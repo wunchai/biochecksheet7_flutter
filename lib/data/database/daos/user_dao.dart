@@ -1,0 +1,46 @@
+// lib/data/database/daos/user_dao.dart
+import 'package:drift/drift.dart';
+import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // Import your main database
+import 'package:biochecksheet7_flutter/data/database/tables/user_table.dart'; // Import your table
+
+part 'user_dao.g.dart';
+
+@DriftAccessor(tables: [Users])
+class UserDao extends DatabaseAccessor<AppDatabase> with _$UserDaoMixin {
+  UserDao(AppDatabase db) : super(db);
+
+  // Equivalent to suspend fun insertUser(user: DbUser) in DaoUser.kt
+  Future<int> insertUser(UsersCompanion entry) => into(users).insert(entry);
+
+  // Equivalent to suspend fun insertAll(users: List<DbUser>)
+  Future<void> insertAllUsers(List<UsersCompanion> entries) async {
+    await batch((batch) {
+      batch.insertAll(users, entries);
+    });
+  }
+
+  // Equivalent to suspend fun getUser(userId: String): DbUser?
+  Future<DbUser?> getUser(String userId) {
+    return (select(users)..where((tbl) => tbl.userId.equals(userId))).getSingleOrNull();
+  }
+
+  // Equivalent to suspend fun getLogin(userCode: String, password: String): DbUser?
+  Future<DbUser?> getLogin(String userCode, String password) {
+    return (select(users)
+          ..where((tbl) => tbl.userCode.equals(userCode) & tbl.password.equals(password)))
+        .getSingleOrNull();
+  }
+
+  // Equivalent to suspend fun getAllUser(): List<DbUser>
+  Stream<List<DbUser>> watchAllUsers() => select(users).watch();
+  Future<List<DbUser>> getAllUsers() => select(users).get();
+
+  // Equivalent to suspend fun updateUser(user: DbUser)
+  Future<bool> updateUser(DbUser entry) => update(users).replace(entry);
+
+  // Equivalent to suspend fun deleteUser(user: DbUser)
+  Future<int> deleteUser(DbUser entry) => delete(users).delete(entry);
+
+  // Equivalent to suspend fun deleteAll()
+  Future<int> deleteAllUsers() => delete(users).go();
+}
