@@ -1,6 +1,9 @@
 // lib/data/database/tables/job_table.dart
 import 'package:drift/drift.dart';
 
+
+
+
 // This annotation tells drift to create a class named DbJob
 // for this table, similar to your Kotlin DbJob.kt
 @DataClassName('DbJob')

@@ -11,6 +11,8 @@ LoggedInUser _$LoggedInUserFromJson(Map<String, dynamic> json) => LoggedInUser(
       displayName: json['displayName'] as String,
       userCode: json['userCode'] as String,
       password: json['password'] as String,
+      position: json['position'] as String?,
+      status: (json['status'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$LoggedInUserToJson(LoggedInUser instance) =>
@@ -19,4 +21,6 @@ Map<String, dynamic> _$LoggedInUserToJson(LoggedInUser instance) =>
       'displayName': instance.displayName,
       'userCode': instance.userCode,
       'password': instance.password,
+      'position': instance.position,
+      'status': instance.status,
     };

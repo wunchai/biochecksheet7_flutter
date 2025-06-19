@@ -16,8 +16,8 @@ class LoginError extends LoginResult {
   final Exception exception;
 }
 
-// You might also have a general error type or specific error messages
 class LoginFailed extends LoginResult {
   const LoginFailed(this.errorMessage);
   final String errorMessage;
 }
+

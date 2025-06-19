@@ -1,8 +1,8 @@
 // lib/ui/login/login_screen.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // For Provider package
+import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/ui/login/login_viewmodel.dart';
-import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart'; // Assuming you might use this to navigate or display info
+import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,14 +18,13 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Listen for changes in the loginFormState to update UI validation
     _usernameController.addListener(_onLoginDataChanged);
     _passwordController.addListener(_onLoginDataChanged);
 
-    // Optional: Check if user is already logged in when the screen initializes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<LoginViewModel>(context, listen: false).checkLoggedInUser();
-    });
+    // <<< ลบบรรทัดนี้ออก: ไม่จำเป็นต้องเรียก checkLoggedInUser จาก initState ของ LoginScreen แล้ว
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   Provider.of<LoginViewModel>(context, listen: false).checkLoggedInUser();
+    // });
   }
 
   @override
@@ -38,45 +37,58 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _onLoginDataChanged() {
-    // This will trigger validation in the ViewModel as text changes
     Provider.of<LoginViewModel>(context, listen: false).loginDataChanged(
       _usernameController.text,
       _passwordController.text,
     );
   }
 
-  void _onLoginPressed() {
-    Provider.of<LoginViewModel>(context, listen: false).login(
+  void _onLoginPressed() async { // <<< Make async to await login result
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    await viewModel.login(
       _usernameController.text,
       _passwordController.text,
     );
+    // <<< เพิ่ม Logic การนำทางหลัง Login สำเร็จที่นี่
+    if (viewModel.loggedInUser != null && mounted) { // Check mounted to avoid error if widget is disposed
+      Navigator.of(context).pushReplacementNamed('/home');
+    }
+  }
+
+  void _onSyncUsersPressed() {
+    Provider.of<LoginViewModel>(context, listen: false).syncUsers();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Use Consumer to react to changes in LoginViewModel
     return Consumer<LoginViewModel>(
       builder: (context, viewModel, child) {
-        // Show a SnackBar if there's a login error
+        // Show SnackBar for login errors
         if (viewModel.loginError != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(viewModel.loginError!)),
             );
-            // Clear the error after showing to prevent repeat
-            // (You might want a more sophisticated way to clear errors in ViewModel)
-            viewModel.loginDataChanged(_usernameController.text, _passwordController.text); // A simple way to clear the error by re-validating
+            viewModel.loginDataChanged(_usernameController.text, _passwordController.text);
           });
         }
 
-        // Navigate to home screen on successful login
-        if (viewModel.loggedInUser != null) {
+        // Show SnackBar for sync messages
+        if (viewModel.syncMessage != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            // Navigate to your main app screen (e.g., HomeScreen or DashboardScreen)
-            // Using pushReplacementNamed to prevent going back to login screen
-            Navigator.of(context).pushReplacementNamed('/home'); // Assuming '/home' is your main route
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(viewModel.syncMessage!)),
+            );
+            viewModel.loginDataChanged(_usernameController.text, _passwordController.text);
           });
         }
+
+        // <<< ลบ Logic การนำทางอัตโนมัติจากตรงนี้ออก:
+        // if (viewModel.loggedInUser != null) {
+        //   WidgetsBinding.instance.addPostFrameCallback((_) {
+        //     Navigator.of(context).pushReplacementNamed('/home');
+        //   });
+        // }
 
         return Scaffold(
           appBar: AppBar(
@@ -88,11 +100,9 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  // Logo or app icon (e.g., from ic_launcher2.xml, adjust assets in pubspec.yaml)
-                  const FlutterLogo(size: 100), // Placeholder
+                  const FlutterLogo(size: 100),
                   const SizedBox(height: 24.0),
 
-                  // Username/User Code Input
                   TextField(
                     controller: _usernameController,
                     decoration: InputDecoration(
@@ -100,13 +110,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       errorText: viewModel.loginFormState.usernameError,
                       border: const OutlineInputBorder(),
                     ),
-                    keyboardType: TextInputType.text, // Equivalent to textPersonName
+                    keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
-                    onSubmitted: (_) => FocusScope.of(context).nextFocus(), // Move to next field
+                    onSubmitted: (_) => FocusScope.of(context).nextFocus(),
                   ),
                   const SizedBox(height: 16.0),
 
-                  // Password Input
                   TextField(
                     controller: _passwordController,
                     decoration: InputDecoration(
@@ -114,19 +123,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       errorText: viewModel.loginFormState.passwordError,
                       border: const OutlineInputBorder(),
                     ),
-                    obscureText: true, // Equivalent to password field
+                    obscureText: true,
                     textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => _onLoginPressed(), // Trigger login on done
+                    onSubmitted: (_) => _onLoginPressed(),
                   ),
                   const SizedBox(height: 24.0),
 
-                  // Login Button
                   ElevatedButton(
                     onPressed: viewModel.loginFormState.isDataValid && !viewModel.loginFormState.isLoading
                         ? _onLoginPressed
-                        : null, // Disable button if data is invalid or loading
+                        : null,
                     style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(50), // Make button wider
+                      minimumSize: const Size.fromHeight(50),
                     ),
                     child: viewModel.loginFormState.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
@@ -134,10 +142,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16.0),
 
-                  // Optional: Register button or forgot password
+                  OutlinedButton(
+                    onPressed: viewModel.loginFormState.isLoading
+                        ? null
+                        : _onSyncUsersPressed,
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50),
+                      side: const BorderSide(color: Colors.blue),
+                    ),
+                    child: viewModel.loginFormState.isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text('Sync User Data'),
+                  ),
+                  const SizedBox(height: 16.0),
+
                   TextButton(
                     onPressed: () {
-                      // Handle register/forgot password navigation
                       print('Register button pressed');
                     },
                     child: const Text('Don\'t have an account? Register'),

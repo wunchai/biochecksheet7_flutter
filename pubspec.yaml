@@ -56,7 +56,6 @@ dependencies:
   # Background tasks (for SyncService equivalent)
   workmanager: ^0.6.0 # A plugin for running background tasks (Android and iOS)
   
-  
 dev_dependencies:
   flutter_test:
     sdk: flutter

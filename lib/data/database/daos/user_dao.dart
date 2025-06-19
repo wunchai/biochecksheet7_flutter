@@ -25,11 +25,21 @@ class UserDao extends DatabaseAccessor<AppDatabase> with _$UserDaoMixin {
   }
 
   // Equivalent to suspend fun getLogin(userCode: String, password: String): DbUser?
-  Future<DbUser?> getLogin(String userCode, String password) {
-    return (select(users)
-          ..where((tbl) => tbl.userCode.equals(userCode) & tbl.password.equals(password)))
-        .getSingleOrNull();
+  Future<DbUser?> getLogin(String userId, String password) {
+      print('Attempting login with userId: $userId, password: $password'); // <<< Add this
+      final query = (select(users)
+            ..where((tbl) => tbl.userId.equals(userId) & tbl.password.equals(password)));
+      print('Generated SQL for getLogin: ${query.toString()}'); // Useful for debugging raw SQL
+      return query.getSingleOrNull().then((dbUser) {
+        if (dbUser == null) {
+          print('No user found for given credentials.');
+        } else {
+          print('User found: ${dbUser.userName}, UserID: ${dbUser.userId}');
+        }
+        return dbUser;
+      });
   }
+
 
   // Equivalent to suspend fun getAllUser(): List<DbUser>
   Stream<List<DbUser>> watchAllUsers() => select(users).watch();

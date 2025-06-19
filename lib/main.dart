@@ -2,43 +2,46 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // Import your database
-import 'package:biochecksheet7_flutter/ui/login/login_viewmodel.dart'; // Import your LoginViewModel
-import 'package:biochecksheet7_flutter/ui/login/login_screen.dart'; // Import your LoginScreen
+import 'package:biochecksheet7_flutter/data/database/app_database.dart';
+import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
+import 'package:biochecksheet7_flutter/ui/login/login_viewmodel.dart';
+import 'package:biochecksheet7_flutter/ui/login/login_screen.dart';
+import 'package:biochecksheet7_flutter/ui/home/home_viewmodel.dart';
+import 'package:biochecksheet7_flutter/ui/home/home_screen.dart';
 
 // TODO: You will need to create these screens later
-//import 'package:biochecksheet7_flutter/ui/home/home_screen.dart'; // Placeholder for your home screen
-//import 'package:biochecksheet7_flutter/ui/dashboard/dashboard_screen.dart'; // Placeholder for dashboard
-//import 'package:biochecksheet7_flutter/ui/notifications/notifications_screen.dart'; // Placeholder for notifications
-//import 'package:biochecksheet7_flutter/ui/sync/sync_screen.dart'; // Placeholder for sync
+//import 'package:biochecksheet7_flutter/ui/dashboard/dashboard_screen.dart';
+//import 'package:biochecksheet7_flutter/ui/notifications/notifications_screen.dart';
+// import 'package:biochecksheet7_flutter/ui/sync/sync_screen.dart'; // This path is placeholder
 
-void main() async {
-  // Ensure Flutter widgets are initialized
+Future<void> main() async { // Make main async
   WidgetsFlutterBinding.ensureInitialized();
-
+  
   // Initialize your database (ensure it's done once and available globally)
-  // We already set up AppDatabase as a singleton, so just accessing it initializes.
-  // AppDatabase.instance; // This line might be enough to trigger initialization if designed that way,
-                        // or you might have a specific init() method for the database.
-  // If your AppDatabase has an async init, use await here:
-  // await AppDatabase.instance.initializeDatabase(); // Example if you have an async init
+  AppDatabase.instance; // Accessing the singleton instance to ensure it's initialized
+
+  // Check initial login status
+  final loginRepository = LoginRepository();
+  await loginRepository.getLoggedInUserFromLocal(); // Pre-load user if available
 
   runApp(
-    // MultiProvider is used to provide multiple ViewModels/providers
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
-        // TODO: Add other ViewModels here as you create them
-        // ChangeNotifierProvider(create: (_) => HomeViewModel()),
-        // ChangeNotifierProvider(create: (_) => DashboardViewModel()),
+        ChangeNotifierProvider(create: (_) => HomeViewModel()),
+        Provider<LoginRepository>(create: (_) => LoginRepository()),
       ],
-      child: const MyApp(),
+      child: MyApp(
+        initialRoute: loginRepository.isLoggedIn ? '/home' : '/login', // Set initial route based on login status
+      ),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute; // Accept initial route from main
+
+  const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -48,20 +51,19 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/login', // Set initial route to login screen
+      initialRoute: initialRoute, // Use the dynamically determined initial route
       routes: {
         '/login': (context) => const LoginScreen(),
-        '/home': (context) => const PlaceholderScreen(title: 'Home Screen'), // Placeholder until you create HomeScreen
-        '/dashboard': (context) => const PlaceholderScreen(title: 'Dashboard Screen'), // Placeholder
-        '/notifications': (context) => const PlaceholderScreen(title: 'Notifications Screen'), // Placeholder
-        '/sync': (context) => const PlaceholderScreen(title: 'Sync Screen'), // Placeholder
+        '/home': (context) => const HomeScreen(title: 'Home Screen'),
+        '/dashboard': (context) => const PlaceholderScreen(title: 'Dashboard Screen'),
+        '/notifications': (context) => const PlaceholderScreen(title: 'Notifications Screen'),
+        // '/sync': (context) => const PlaceholderScreen(title: 'Sync Screen'), // Removed if not using now
         // Define other routes as needed
       },
     );
   }
 }
 
-// A simple placeholder screen for demonstration
 class PlaceholderScreen extends StatelessWidget {
   final String title;
   const PlaceholderScreen({Key? key, required this.title}) : super(key: key);

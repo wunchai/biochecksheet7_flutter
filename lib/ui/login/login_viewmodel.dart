@@ -1,11 +1,12 @@
 // lib/ui/login/login_viewmodel.dart
-import 'package:flutter/material.dart'; // For ChangeNotifier
-import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart'; // Your LoginRepository
-import 'package:biochecksheet7_flutter/data/models/login_result.dart'; // Your LoginResult
-import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart'; // Your LoggedInUser
-import 'package:biochecksheet7_flutter/ui/login/login_form_state.dart'; // Your LoginFormState
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
+import 'package:biochecksheet7_flutter/data/models/login_result.dart'; // Import both LoginResult and SyncResult
+import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart';
+import 'package:biochecksheet7_flutter/ui/login/login_form_state.dart';
+import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // <<< เพิ่มบรรทัดนี้
 
-/// Equivalent to LoginViewModel.kt
 class LoginViewModel extends ChangeNotifier {
   final LoginRepository _loginRepository;
 
@@ -13,29 +14,29 @@ class LoginViewModel extends ChangeNotifier {
   LoginFormState get loginFormState => _loginFormState;
 
   LoginViewModel({LoginRepository? loginRepository})
-      : _loginRepository = loginRepository ?? LoginRepository(); // Use provided or default instance
+      : _loginRepository = loginRepository ?? LoginRepository();
 
-  // Event for successful login (for UI to react)
   LoggedInUser? _loggedInUser;
   LoggedInUser? get loggedInUser => _loggedInUser;
 
-  // Event for failed login (for UI to show error message)
   String? _loginError;
   String? get loginError => _loginError;
 
-  // Function to check if user is already logged in (e.g., on app start)
+  String? _syncMessage;
+  String? get syncMessage => _syncMessage;
+
   Future<void> checkLoggedInUser() async {
     final user = await _loginRepository.getLoggedInUserFromLocal();
     if (user != null) {
       _loggedInUser = user;
-      notifyListeners(); // Notify UI that user is logged in
+      notifyListeners();
     }
   }
 
-  // Data changed event (similar to afterTextChanged in Kotlin)
   void loginDataChanged(String username, String password) {
-    _loginError = null; // Clear previous login error
-    _loggedInUser = null; // Clear previous logged in user
+    _loginError = null;
+    _loggedInUser = null;
+    _syncMessage = null;
 
     String? usernameError;
     String? passwordError;
@@ -45,7 +46,7 @@ class LoginViewModel extends ChangeNotifier {
       usernameError = "Username cannot be empty";
       isDataValid = false;
     } else if (!isUserNameValid(username)) {
-      usernameError = "Invalid username format"; // Or provide a specific error message
+      usernameError = "Invalid username format";
       isDataValid = false;
     }
 
@@ -53,7 +54,7 @@ class LoginViewModel extends ChangeNotifier {
       passwordError = "Password cannot be empty";
       isDataValid = false;
     } else if (!isPasswordValid(password)) {
-      passwordError = "Password must be > 5 characters"; // Or provide specific error
+      passwordError = "Password must be > 5 characters";
       isDataValid = false;
     }
 
@@ -61,21 +62,20 @@ class LoginViewModel extends ChangeNotifier {
       usernameError: usernameError,
       passwordError: passwordError,
       isDataValid: isDataValid,
-      isLoading: false, // Ensure loading is false after validation
+      isLoading: false,
     );
-    notifyListeners(); // Notify UI of form state changes
+    notifyListeners();
   }
 
-  // Login action (similar to login(username, password) in Kotlin ViewModel)
   Future<void> login(String username, String password) async {
     _loginFormState = _loginFormState.copyWith(isLoading: true);
-    notifyListeners(); // Show loading indicator
+    notifyListeners();
 
     final result = await _loginRepository.login(username, password);
 
     if (result is LoginSuccess) {
       _loggedInUser = result.loggedInUser;
-      _loginError = null; // Clear any previous error
+      _loginError = null;
       _loginFormState = _loginFormState.copyWith(
         isDataValid: true,
         isLoading: false,
@@ -88,32 +88,48 @@ class LoginViewModel extends ChangeNotifier {
       );
     } else if (result is LoginError) {
       _loggedInUser = null;
-      _loginError = result.exception.toString(); // Display generic error message
+      _loginError = result.exception.toString();
       _loginFormState = _loginFormState.copyWith(
         isLoading: false,
       );
     }
-    notifyListeners(); // Notify UI of login result
+    notifyListeners();
   }
 
-  // Logout action
+  // New method to trigger user sync
+  Future<void> syncUsers() async {
+    _loginFormState = _loginFormState.copyWith(isLoading: true);
+    _syncMessage = null;
+    _loginError = null;
+    notifyListeners();
+
+    final result = await _loginRepository.syncUsers();
+
+    if (result is SyncSuccess) { // Check specifically for SyncSuccess
+      _syncMessage = "User data synced successfully!";
+    } else if (result is SyncFailed) { // Check specifically for SyncFailed
+      _syncMessage = "Sync failed: ${result.errorMessage}"; // Access errorMessage safely
+    } else if (result is SyncError) { // Check specifically for SyncError
+      _syncMessage = "Sync error: ${result.exception.toString()}"; // Access exception safely
+    }
+    _loginFormState = _loginFormState.copyWith(isLoading: false);
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     await _loginRepository.logout();
     _loggedInUser = null;
     _loginError = null;
-    _loginFormState = LoginFormState.initial; // Reset form state
+    _syncMessage = null;
+    _loginFormState = LoginFormState.initial;
     notifyListeners();
   }
 
-  // A placeholder username validation logic (similar to isUserNameValid)
   bool isUserNameValid(String username) {
-    // You can implement more complex validation here
     return username.isNotEmpty && username.length > 3;
   }
 
-  // A placeholder password validation logic (similar to isPasswordValid)
   bool isPasswordValid(String password) {
-    // You can implement more complex validation here (e.g., minimum length, special chars)
     return password.isNotEmpty && password.length > 5;
   }
 }
