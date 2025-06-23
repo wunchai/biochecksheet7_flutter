@@ -36,11 +36,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   
    # Database (Room equivalent)
-  drift: ^2.14.0 # For SQLite database operations
-  sqlite3_flutter_libs: ^0.5.0 # Required for drift to work with SQLite on Flutter
+  drift: ^2.17.0   
+  sqlite3_flutter_libs: ^0.5.22
+  sqlite3: ^2.3.0
   path_provider: ^2.1.1 # Helps find appropriate locations for storing files (like databases)
   path: ^1.8.3 # Utility for path manipulation
- 
+  http: ^1.1.0
+  
   # JSON Serialization
   json_annotation: ^4.8.1 # Annotations for code generation to/from JSON
 
@@ -48,10 +50,10 @@ dependencies:
   provider: ^6.0.5 # A popular and easy-to-use state management solution
 
   # Charts (MPAndroidChart equivalent)
-  fl_chart: ^0.67.0 # A powerful Flutter chart library
+  fl_chart: ^1.0.0 # A powerful Flutter chart library
 
   # Permissions handling
-  permission_handler: ^11.0.1 # For requesting and checking platform permissions
+  permission_handler: ^12.0.0+1 # For requesting and checking platform permissions
 
   # Background tasks (for SyncService equivalent)
   workmanager: ^0.6.0 # A plugin for running background tasks (Android and iOS)
@@ -65,10 +67,10 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
+  flutter_lints: ^6.0.0
 
   # Code generators for database and JSON serialization
-  drift_dev: ^2.14.0 # Code generator for drift
+  drift_dev: ^2.17.0 
   build_runner: ^2.4.6 # A general-purpose code generator used by drift_dev and json_serializable
   json_serializable: ^6.7.1 # Code generator for json_annotation
   
@@ -84,7 +86,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - assets/
+    - assets/   
   # Add fonts here
   # fonts:
   #   - family: OpenSans-Regular

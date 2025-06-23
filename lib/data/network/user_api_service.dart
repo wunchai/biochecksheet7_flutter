@@ -31,7 +31,8 @@ class UserApiService {
           );
           return LoginSuccess(loggedInUser);
         } else {
-          return const LoginFailed("Invalid username or password (API returned no user).");
+          return const LoginFailed(
+              "Invalid username or password (API returned no user).");
         }
       } else {
         return LoginFailed("Login failed: Status code ${response.statusCode}");
@@ -44,19 +45,21 @@ class UserApiService {
   }
 
   // Modified: Return type is now Future<SyncResult>
-  Future<List<LoggedInUser>> syncUsers() async { // <<< เปลี่ยน return type
+  Future<List<LoggedInUser>> syncUsers() async {
+    // <<< เปลี่ยน return type
     final uri = Uri.parse("$_baseUrl/CheckSheet_User_Sync_V2");
+    print("Sync URI: $uri");
     final headers = {"Content-Type": "application/json"};
-    final body = jsonEncode({
-      "ServiceName": "CheckSheet_User_Sync_V2",
-      "Paremeter": {}
-    });
+    final body =
+        jsonEncode({"ServiceName": "CheckSheet_User_Sync_V2", "Paremeter": {}});
 
     try {
       final response = await http.post(uri, headers: headers, body: body);
 
+      print("Sync response status: ${response.statusCode}");
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseJson = jsonDecode(response.body);
+        print("Sync response JSON: $responseJson");
         if (responseJson['Table'] != null && responseJson['Table'] is List) {
           final List<dynamic> userList = responseJson['Table'];
           final List<LoggedInUser> syncedUsers = userList.map((userData) {
@@ -71,15 +74,23 @@ class UserApiService {
           }).toList();
           return syncedUsers; // <<< คืน List<LoggedInUser> โดยตรง
         } else {
-          throw Exception("Sync API response format invalid."); // <<< โยน Exception แทน SyncFailed
+          throw Exception(
+              "Sync API response format invalid."); // <<< โยน Exception แทน SyncFailed
         }
       } else {
-        throw Exception("Sync failed: Status code ${response.statusCode}"); // <<< โยน Exception แทน SyncFailed
+        throw Exception(
+            "Sync failed: Status code ${response.statusCode}"); // <<< โยน Exception แทน SyncFailed
       }
     } on http.ClientException catch (e) {
-      throw Exception("Network error during sync: ${e.message}"); // <<< โยน Exception แทน SyncError
+      print("Network error during sync: ${e}");
+      throw Exception(
+        "Network error during sync: ${e.message}",
+      ); // <<< โยน Exception แทน SyncError
     } catch (e) {
-      throw Exception("An unexpected error occurred during sync: $e"); // <<< โยน Exception แทน SyncError
+      print("An unexpected error occurred during sync: $e");
+      throw Exception(
+        "An unexpected error occurred during sync: $e",
+      ); // <<< โยน Exception แทน SyncError
     }
   }
 }

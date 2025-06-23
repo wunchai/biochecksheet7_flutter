@@ -1,6 +1,6 @@
 // lib/data/services/data_sync_service.dart
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
-import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // SyncStatus sealed class
+import 'package:biochecksheet7_flutter/data/network/sync_status.dart';
 
 // Import all API Services
 import 'package:biochecksheet7_flutter/data/network/user_api_service.dart';
@@ -25,7 +25,7 @@ import 'package:biochecksheet7_flutter/data/database/tables/document_machine_tab
 import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/sync_table.dart';
-import 'package:drift/drift.dart' as drift; // Alias drift
+import 'package:drift/drift.dart' as drift;
 
 class DataSyncService {
   // API Services
@@ -36,7 +36,7 @@ class DataSyncService {
   final ProblemApiService _problemApiService;
   final SyncMetadataApiService _syncMetadataApiService;
 
-  // DAOs
+  // DAOs (now direct instances)
   final UserDao _userDao;
   final JobDao _jobDao;
   final DocumentMachineDao _documentMachineDao;
@@ -44,62 +44,49 @@ class DataSyncService {
   final ProblemDao _problemDao;
   final SyncDao _syncDao;
 
+  // Constructor now takes a resolved AppDatabase instance
   DataSyncService({
+    required AppDatabase appDatabase, // <<< Change to AppDatabase
     UserApiService? userApiService,
     JobApiService? jobApiService,
     JobMachineApiService? jobMachineApiService,
     JobTagApiService? jobTagApiService,
     ProblemApiService? problemApiService,
     SyncMetadataApiService? syncMetadataApiService,
-    UserDao? userDao,
-    JobDao? jobDao,
-    DocumentMachineDao? documentMachineDao,
-    JobTagDao? jobTagDao,
-    ProblemDao? problemDao,
-    SyncDao? syncDao,
   })  : _userApiService = userApiService ?? UserApiService(),
         _jobApiService = jobApiService ?? JobApiService(),
         _jobMachineApiService = jobMachineApiService ?? JobMachineApiService(),
         _jobTagApiService = jobTagApiService ?? JobTagApiService(),
         _problemApiService = problemApiService ?? ProblemApiService(),
-        _syncMetadataApiService = syncMetadataApiService ?? SyncMetadataApiService(),
-        _userDao = userDao ?? AppDatabase.instance.userDao,
-        _jobDao = jobDao ?? AppDatabase.instance.jobDao,
-        _documentMachineDao = documentMachineDao ?? AppDatabase.instance.documentMachineDao,
-        _jobTagDao = jobTagDao ?? AppDatabase.instance.jobTagDao,
-        _problemDao = problemDao ?? AppDatabase.instance.problemDao,
-        _syncDao = syncDao ?? AppDatabase.instance.syncDao;
+        _syncMetadataApiService =
+            syncMetadataApiService ?? SyncMetadataApiService(),
+        _userDao = appDatabase.userDao, // Access dao directly
+        _jobDao = appDatabase.jobDao, // Access dao directly
+        _documentMachineDao =
+            appDatabase.documentMachineDao, // Access dao directly
+        _jobTagDao = appDatabase.jobTagDao, // Access dao directly
+        _problemDao = appDatabase.problemDao, // Access dao directly
+        _syncDao = appDatabase.syncDao; // Access dao directly
 
-  // เมธอดสำหรับทำ Full Sync
+  // Removed old unused imports for tables as they are handled by DAO imports now
+  // Removed unused methods (`_syncJobMachinesData`, `_syncJobTagsData`, `_syncProblemsData`, `_syncMetadataData`)
+  // As they are called directly in performFullSync
+
   Future<SyncStatus> performFullSync() async {
     try {
-      // 1. Sync User Data (already implemented in LoginRepository, but could be here too)
-      // Since LoginRepository handles user login/sync specific logic, we can reuse it
-      // Or, call userApiService.syncUsers() directly and save here:
       await _syncUsersData();
-
-      // 2. Sync Job Data
       await _syncJobsData();
-
-      // 3. Sync Job Machine Data
       //await _syncJobMachinesData();
-
-      // 4. Sync Job Tag Data
       //await _syncJobTagsData();
-
-      // 5. Sync Problem Data
       //await _syncProblemsData();
+      //await _syncMetadataData(); // Added the call for sync metadata
 
-      // 6. Sync Metadata (like DbSyncCode.initFirstRun)
-      //await _syncMetadataData();
-
-      return const SyncSuccess(); // ถ้าทุกอย่างสำเร็จ
+      return const SyncSuccess();
     } on Exception catch (e) {
-      return SyncError(e); // ส่งคืน Exception หากมีข้อผิดพลาดใดๆ
+      return SyncError(e);
     }
   }
 
-  // Private methods for individual sync operations
   Future<void> _syncUsersData() async {
     final users = await _userApiService.syncUsers();
     await _userDao.deleteAllUsers();
