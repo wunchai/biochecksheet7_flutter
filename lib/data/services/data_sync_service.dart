@@ -74,10 +74,10 @@ class DataSyncService {
 
   Future<SyncStatus> performFullSync() async {
     try {
-      await _syncUsersData();
-      await _syncJobsData();
+      //await _syncUsersData();
+      //await _syncJobsData();
       //await _syncJobMachinesData();
-      //await _syncJobTagsData();
+      await _syncJobTagsData();
       //await _syncProblemsData();
       //await _syncMetadataData(); // Added the call for sync metadata
 

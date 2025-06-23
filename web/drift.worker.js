@@ -21455,28 +21455,39 @@
           switch ($async$goto) {
             case 0:
               // Function start
-              if (!$async$self._hasInitializedDatabase) {
-                t1 = $async$self.openDatabase$0();
-                $async$self._database = t1;
-                try {
-                  A.EnableNativeFunctions_useNativeFunctions(t1);
-                  if ($async$self.enableMigrations) {
-                    t1 = $async$self._database;
-                    t1.toString;
-                    t1 = new A._SqliteVersionDelegate(t1);
-                  } else
-                    t1 = B.C_NoVersionDelegate;
-                  $async$self.__Sqlite3Delegate_versionDelegate_A = t1;
-                  $async$self._hasInitializedDatabase = true;
-                } catch (exception) {
+              $async$goto = !$async$self._hasInitializedDatabase ? 3 : 4;
+              break;
+            case 3:
+              // then
+              t1 = A._instanceType($async$self)._eval$1("Sqlite3Delegate.0");
+              t1 = A._Future$value(t1._as($async$self.openDatabase$0()), t1);
+              $async$goto = 5;
+              return A._asyncAwait(t1, $async$open$1);
+            case 5:
+              // returning from await.
+              t1 = $async$result;
+              $async$self._database = t1;
+              try {
+                t1.toString;
+                A.EnableNativeFunctions_useNativeFunctions(t1);
+                if ($async$self.enableMigrations) {
                   t1 = $async$self._database;
-                  if (t1 != null)
-                    t1.dispose$0();
-                  $async$self._database = null;
-                  $async$self._preparedStmtsCache._cachedStatements.clear$0(0);
-                  throw exception;
-                }
+                  t1.toString;
+                  t1 = new A._SqliteVersionDelegate(t1);
+                } else
+                  t1 = B.C_NoVersionDelegate;
+                $async$self.__Sqlite3Delegate_versionDelegate_A = t1;
+                $async$self._hasInitializedDatabase = true;
+              } catch (exception) {
+                t1 = $async$self._database;
+                if (t1 != null)
+                  t1.dispose$0();
+                $async$self._database = null;
+                $async$self._preparedStmtsCache._cachedStatements.clear$0(0);
+                throw exception;
               }
+            case 4:
+              // join
               $async$self._isOpen = true;
               $async$returnValue = A.Future_Future$value(null, type$.void);
               // goto return

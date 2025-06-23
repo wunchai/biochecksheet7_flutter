@@ -1,11 +1,13 @@
 // lib/data/database/app_database.dart
 
 import 'package:drift/drift.dart';
-import 'package:biochecksheet7_flutter/data/database/shared.dart'; // สำหรับ connect()
-import 'connection/connection.dart' as impl;
-import 'package:drift/wasm.dart'; // สำหรับ WasmDatabase ใน connectWorker()
+//import 'package:biochecksheet7_flutter/data/database/shared.dart'; // สำหรับ connect()
+//import 'package:drift/wasm.dart'; // สำหรับ WasmDatabase ใน connectWorker()
+// Import the conditional connection.dart with an alias to avoid name conflicts
+import 'package:biochecksheet7_flutter/data/database/connection/connection.dart' as platform_connection; // <<< เปลี่ยนเป็น platform_connection
 
-// Import table definitions
+
+// Import all table definitions (should be present from previous steps)
 import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_machine_table.dart';
@@ -60,7 +62,7 @@ class AppDatabase extends _$AppDatabase {
   static AppDatabase? _instance;
 
   static Future<AppDatabase> instance() async {
-    _instance ??= AppDatabase._(await impl.connect());
+    _instance ??= AppDatabase._(await platform_connection.connect());
     return _instance!;
   }
 

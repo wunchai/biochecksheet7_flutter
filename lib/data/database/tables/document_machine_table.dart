@@ -14,7 +14,7 @@ class DocumentMachines extends Table {
   TextColumn get documentId => text().named('documentId').nullable()();
 
   // @ColumnInfo(name = "MachineId") var machineId: String? = null
-  TextColumn get machineId => text().named('MachineId').nullable()();
+  TextColumn get machineId => text().named('MachineId').nullable()(); // NEW: Will map int to String
 
   // @ColumnInfo(name = "MachineName") var machineName: String? = null
   TextColumn get machineName => text().named('MachineName').nullable()();
@@ -33,4 +33,9 @@ class DocumentMachines extends Table {
 
   // @ColumnInfo(name = "lastSync") var lastSync: String? = null
   TextColumn get lastSync => text().named('lastSync').nullable()();
+
+   // NEW: Add fields from API response
+  IntColumn get id => integer().named('id')(); // API has 'id' as int
+  TextColumn get createDate => text().named('CreateDate').nullable()();
+  TextColumn get createBy => text().named('CreateBy').nullable()();
 }

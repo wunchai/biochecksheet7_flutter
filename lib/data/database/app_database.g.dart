@@ -60,6 +60,18 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, DbJob> {
   late final GeneratedColumn<String> lastSync = GeneratedColumn<String>(
       'lastSync', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createDateMeta =
+      const VerificationMeta('createDate');
+  @override
+  late final GeneratedColumn<String> createDate = GeneratedColumn<String>(
+      'CreateDate', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createByMeta =
+      const VerificationMeta('createBy');
+  @override
+  late final GeneratedColumn<String> createBy = GeneratedColumn<String>(
+      'CreateBy', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -69,7 +81,9 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, DbJob> {
         documentId,
         location,
         jobStatus,
-        lastSync
+        lastSync,
+        createDate,
+        createBy
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -117,6 +131,16 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, DbJob> {
       context.handle(_lastSyncMeta,
           lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
     }
+    if (data.containsKey('CreateDate')) {
+      context.handle(
+          _createDateMeta,
+          createDate.isAcceptableOrUnknown(
+              data['CreateDate']!, _createDateMeta));
+    }
+    if (data.containsKey('CreateBy')) {
+      context.handle(_createByMeta,
+          createBy.isAcceptableOrUnknown(data['CreateBy']!, _createByMeta));
+    }
     return context;
   }
 
@@ -142,6 +166,10 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, DbJob> {
           .read(DriftSqlType.int, data['${effectivePrefix}JobStatus'])!,
       lastSync: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
+      createDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}CreateDate']),
+      createBy: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}CreateBy']),
     );
   }
 
@@ -160,6 +188,8 @@ class DbJob extends DataClass implements Insertable<DbJob> {
   final String? location;
   final int jobStatus;
   final String? lastSync;
+  final String? createDate;
+  final String? createBy;
   const DbJob(
       {required this.uid,
       this.jobId,
@@ -168,7 +198,9 @@ class DbJob extends DataClass implements Insertable<DbJob> {
       this.documentId,
       this.location,
       required this.jobStatus,
-      this.lastSync});
+      this.lastSync,
+      this.createDate,
+      this.createBy});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -191,6 +223,12 @@ class DbJob extends DataClass implements Insertable<DbJob> {
     map['JobStatus'] = Variable<int>(jobStatus);
     if (!nullToAbsent || lastSync != null) {
       map['lastSync'] = Variable<String>(lastSync);
+    }
+    if (!nullToAbsent || createDate != null) {
+      map['CreateDate'] = Variable<String>(createDate);
+    }
+    if (!nullToAbsent || createBy != null) {
+      map['CreateBy'] = Variable<String>(createBy);
     }
     return map;
   }
@@ -216,6 +254,12 @@ class DbJob extends DataClass implements Insertable<DbJob> {
       lastSync: lastSync == null && nullToAbsent
           ? const Value.absent()
           : Value(lastSync),
+      createDate: createDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createDate),
+      createBy: createBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createBy),
     );
   }
 
@@ -231,6 +275,8 @@ class DbJob extends DataClass implements Insertable<DbJob> {
       location: serializer.fromJson<String?>(json['location']),
       jobStatus: serializer.fromJson<int>(json['jobStatus']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
+      createDate: serializer.fromJson<String?>(json['createDate']),
+      createBy: serializer.fromJson<String?>(json['createBy']),
     );
   }
   @override
@@ -245,6 +291,8 @@ class DbJob extends DataClass implements Insertable<DbJob> {
       'location': serializer.toJson<String?>(location),
       'jobStatus': serializer.toJson<int>(jobStatus),
       'lastSync': serializer.toJson<String?>(lastSync),
+      'createDate': serializer.toJson<String?>(createDate),
+      'createBy': serializer.toJson<String?>(createBy),
     };
   }
 
@@ -256,7 +304,9 @@ class DbJob extends DataClass implements Insertable<DbJob> {
           Value<String?> documentId = const Value.absent(),
           Value<String?> location = const Value.absent(),
           int? jobStatus,
-          Value<String?> lastSync = const Value.absent()}) =>
+          Value<String?> lastSync = const Value.absent(),
+          Value<String?> createDate = const Value.absent(),
+          Value<String?> createBy = const Value.absent()}) =>
       DbJob(
         uid: uid ?? this.uid,
         jobId: jobId.present ? jobId.value : this.jobId,
@@ -266,6 +316,8 @@ class DbJob extends DataClass implements Insertable<DbJob> {
         location: location.present ? location.value : this.location,
         jobStatus: jobStatus ?? this.jobStatus,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        createDate: createDate.present ? createDate.value : this.createDate,
+        createBy: createBy.present ? createBy.value : this.createBy,
       );
   DbJob copyWithCompanion(JobsCompanion data) {
     return DbJob(
@@ -279,6 +331,9 @@ class DbJob extends DataClass implements Insertable<DbJob> {
       location: data.location.present ? data.location.value : this.location,
       jobStatus: data.jobStatus.present ? data.jobStatus.value : this.jobStatus,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      createDate:
+          data.createDate.present ? data.createDate.value : this.createDate,
+      createBy: data.createBy.present ? data.createBy.value : this.createBy,
     );
   }
 
@@ -292,14 +347,16 @@ class DbJob extends DataClass implements Insertable<DbJob> {
           ..write('documentId: $documentId, ')
           ..write('location: $location, ')
           ..write('jobStatus: $jobStatus, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('createDate: $createDate, ')
+          ..write('createBy: $createBy')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(uid, jobId, jobName, machineName, documentId,
-      location, jobStatus, lastSync);
+      location, jobStatus, lastSync, createDate, createBy);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -311,7 +368,9 @@ class DbJob extends DataClass implements Insertable<DbJob> {
           other.documentId == this.documentId &&
           other.location == this.location &&
           other.jobStatus == this.jobStatus &&
-          other.lastSync == this.lastSync);
+          other.lastSync == this.lastSync &&
+          other.createDate == this.createDate &&
+          other.createBy == this.createBy);
 }
 
 class JobsCompanion extends UpdateCompanion<DbJob> {
@@ -323,6 +382,8 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
   final Value<String?> location;
   final Value<int> jobStatus;
   final Value<String?> lastSync;
+  final Value<String?> createDate;
+  final Value<String?> createBy;
   const JobsCompanion({
     this.uid = const Value.absent(),
     this.jobId = const Value.absent(),
@@ -332,6 +393,8 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
     this.location = const Value.absent(),
     this.jobStatus = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.createBy = const Value.absent(),
   });
   JobsCompanion.insert({
     this.uid = const Value.absent(),
@@ -342,6 +405,8 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
     this.location = const Value.absent(),
     this.jobStatus = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.createBy = const Value.absent(),
   });
   static Insertable<DbJob> custom({
     Expression<int>? uid,
@@ -352,6 +417,8 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
     Expression<String>? location,
     Expression<int>? jobStatus,
     Expression<String>? lastSync,
+    Expression<String>? createDate,
+    Expression<String>? createBy,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -362,6 +429,8 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
       if (location != null) 'Location': location,
       if (jobStatus != null) 'JobStatus': jobStatus,
       if (lastSync != null) 'lastSync': lastSync,
+      if (createDate != null) 'CreateDate': createDate,
+      if (createBy != null) 'CreateBy': createBy,
     });
   }
 
@@ -373,7 +442,9 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
       Value<String?>? documentId,
       Value<String?>? location,
       Value<int>? jobStatus,
-      Value<String?>? lastSync}) {
+      Value<String?>? lastSync,
+      Value<String?>? createDate,
+      Value<String?>? createBy}) {
     return JobsCompanion(
       uid: uid ?? this.uid,
       jobId: jobId ?? this.jobId,
@@ -383,6 +454,8 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
       location: location ?? this.location,
       jobStatus: jobStatus ?? this.jobStatus,
       lastSync: lastSync ?? this.lastSync,
+      createDate: createDate ?? this.createDate,
+      createBy: createBy ?? this.createBy,
     );
   }
 
@@ -413,6 +486,12 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
     if (lastSync.present) {
       map['lastSync'] = Variable<String>(lastSync.value);
     }
+    if (createDate.present) {
+      map['CreateDate'] = Variable<String>(createDate.value);
+    }
+    if (createBy.present) {
+      map['CreateBy'] = Variable<String>(createBy.value);
+    }
     return map;
   }
 
@@ -426,7 +505,9 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
           ..write('documentId: $documentId, ')
           ..write('location: $location, ')
           ..write('jobStatus: $jobStatus, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('createDate: $createDate, ')
+          ..write('createBy: $createBy')
           ..write(')'))
         .toString();
   }
@@ -933,6 +1014,23 @@ class $DocumentMachinesTable extends DocumentMachines
   late final GeneratedColumn<String> lastSync = GeneratedColumn<String>(
       'lastSync', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _createDateMeta =
+      const VerificationMeta('createDate');
+  @override
+  late final GeneratedColumn<String> createDate = GeneratedColumn<String>(
+      'CreateDate', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createByMeta =
+      const VerificationMeta('createBy');
+  @override
+  late final GeneratedColumn<String> createBy = GeneratedColumn<String>(
+      'CreateBy', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -944,7 +1042,10 @@ class $DocumentMachinesTable extends DocumentMachines
         description,
         specification,
         status,
-        lastSync
+        lastSync,
+        id,
+        createDate,
+        createBy
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1006,6 +1107,21 @@ class $DocumentMachinesTable extends DocumentMachines
       context.handle(_lastSyncMeta,
           lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
     }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('CreateDate')) {
+      context.handle(
+          _createDateMeta,
+          createDate.isAcceptableOrUnknown(
+              data['CreateDate']!, _createDateMeta));
+    }
+    if (data.containsKey('CreateBy')) {
+      context.handle(_createByMeta,
+          createBy.isAcceptableOrUnknown(data['CreateBy']!, _createByMeta));
+    }
     return context;
   }
 
@@ -1035,6 +1151,12 @@ class $DocumentMachinesTable extends DocumentMachines
           .read(DriftSqlType.int, data['${effectivePrefix}Status'])!,
       lastSync: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      createDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}CreateDate']),
+      createBy: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}CreateBy']),
     );
   }
 
@@ -1056,6 +1178,9 @@ class DbDocumentMachine extends DataClass
   final String? specification;
   final int status;
   final String? lastSync;
+  final int id;
+  final String? createDate;
+  final String? createBy;
   const DbDocumentMachine(
       {required this.uid,
       this.jobId,
@@ -1066,7 +1191,10 @@ class DbDocumentMachine extends DataClass
       this.description,
       this.specification,
       required this.status,
-      this.lastSync});
+      this.lastSync,
+      required this.id,
+      this.createDate,
+      this.createBy});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1095,6 +1223,13 @@ class DbDocumentMachine extends DataClass
     map['Status'] = Variable<int>(status);
     if (!nullToAbsent || lastSync != null) {
       map['lastSync'] = Variable<String>(lastSync);
+    }
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || createDate != null) {
+      map['CreateDate'] = Variable<String>(createDate);
+    }
+    if (!nullToAbsent || createBy != null) {
+      map['CreateBy'] = Variable<String>(createBy);
     }
     return map;
   }
@@ -1126,6 +1261,13 @@ class DbDocumentMachine extends DataClass
       lastSync: lastSync == null && nullToAbsent
           ? const Value.absent()
           : Value(lastSync),
+      id: Value(id),
+      createDate: createDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createDate),
+      createBy: createBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createBy),
     );
   }
 
@@ -1143,6 +1285,9 @@ class DbDocumentMachine extends DataClass
       specification: serializer.fromJson<String?>(json['specification']),
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
+      id: serializer.fromJson<int>(json['id']),
+      createDate: serializer.fromJson<String?>(json['createDate']),
+      createBy: serializer.fromJson<String?>(json['createBy']),
     );
   }
   @override
@@ -1159,6 +1304,9 @@ class DbDocumentMachine extends DataClass
       'specification': serializer.toJson<String?>(specification),
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
+      'id': serializer.toJson<int>(id),
+      'createDate': serializer.toJson<String?>(createDate),
+      'createBy': serializer.toJson<String?>(createBy),
     };
   }
 
@@ -1172,7 +1320,10 @@ class DbDocumentMachine extends DataClass
           Value<String?> description = const Value.absent(),
           Value<String?> specification = const Value.absent(),
           int? status,
-          Value<String?> lastSync = const Value.absent()}) =>
+          Value<String?> lastSync = const Value.absent(),
+          int? id,
+          Value<String?> createDate = const Value.absent(),
+          Value<String?> createBy = const Value.absent()}) =>
       DbDocumentMachine(
         uid: uid ?? this.uid,
         jobId: jobId.present ? jobId.value : this.jobId,
@@ -1185,6 +1336,9 @@ class DbDocumentMachine extends DataClass
             specification.present ? specification.value : this.specification,
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        id: id ?? this.id,
+        createDate: createDate.present ? createDate.value : this.createDate,
+        createBy: createBy.present ? createBy.value : this.createBy,
       );
   DbDocumentMachine copyWithCompanion(DocumentMachinesCompanion data) {
     return DbDocumentMachine(
@@ -1204,6 +1358,10 @@ class DbDocumentMachine extends DataClass
           : this.specification,
       status: data.status.present ? data.status.value : this.status,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      id: data.id.present ? data.id.value : this.id,
+      createDate:
+          data.createDate.present ? data.createDate.value : this.createDate,
+      createBy: data.createBy.present ? data.createBy.value : this.createBy,
     );
   }
 
@@ -1219,14 +1377,29 @@ class DbDocumentMachine extends DataClass
           ..write('description: $description, ')
           ..write('specification: $specification, ')
           ..write('status: $status, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('id: $id, ')
+          ..write('createDate: $createDate, ')
+          ..write('createBy: $createBy')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(uid, jobId, documentId, machineId,
-      machineName, machineType, description, specification, status, lastSync);
+  int get hashCode => Object.hash(
+      uid,
+      jobId,
+      documentId,
+      machineId,
+      machineName,
+      machineType,
+      description,
+      specification,
+      status,
+      lastSync,
+      id,
+      createDate,
+      createBy);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1240,7 +1413,10 @@ class DbDocumentMachine extends DataClass
           other.description == this.description &&
           other.specification == this.specification &&
           other.status == this.status &&
-          other.lastSync == this.lastSync);
+          other.lastSync == this.lastSync &&
+          other.id == this.id &&
+          other.createDate == this.createDate &&
+          other.createBy == this.createBy);
 }
 
 class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
@@ -1254,6 +1430,9 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
   final Value<String?> specification;
   final Value<int> status;
   final Value<String?> lastSync;
+  final Value<int> id;
+  final Value<String?> createDate;
+  final Value<String?> createBy;
   const DocumentMachinesCompanion({
     this.uid = const Value.absent(),
     this.jobId = const Value.absent(),
@@ -1265,6 +1444,9 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     this.specification = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.id = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.createBy = const Value.absent(),
   });
   DocumentMachinesCompanion.insert({
     this.uid = const Value.absent(),
@@ -1277,7 +1459,10 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     this.specification = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
-  });
+    required int id,
+    this.createDate = const Value.absent(),
+    this.createBy = const Value.absent(),
+  }) : id = Value(id);
   static Insertable<DbDocumentMachine> custom({
     Expression<int>? uid,
     Expression<String>? jobId,
@@ -1289,6 +1474,9 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     Expression<String>? specification,
     Expression<int>? status,
     Expression<String>? lastSync,
+    Expression<int>? id,
+    Expression<String>? createDate,
+    Expression<String>? createBy,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -1301,6 +1489,9 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
       if (specification != null) 'Specification': specification,
       if (status != null) 'Status': status,
       if (lastSync != null) 'lastSync': lastSync,
+      if (id != null) 'id': id,
+      if (createDate != null) 'CreateDate': createDate,
+      if (createBy != null) 'CreateBy': createBy,
     });
   }
 
@@ -1314,7 +1505,10 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
       Value<String?>? description,
       Value<String?>? specification,
       Value<int>? status,
-      Value<String?>? lastSync}) {
+      Value<String?>? lastSync,
+      Value<int>? id,
+      Value<String?>? createDate,
+      Value<String?>? createBy}) {
     return DocumentMachinesCompanion(
       uid: uid ?? this.uid,
       jobId: jobId ?? this.jobId,
@@ -1326,6 +1520,9 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
       specification: specification ?? this.specification,
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
+      id: id ?? this.id,
+      createDate: createDate ?? this.createDate,
+      createBy: createBy ?? this.createBy,
     );
   }
 
@@ -1362,6 +1559,15 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     if (lastSync.present) {
       map['lastSync'] = Variable<String>(lastSync.value);
     }
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (createDate.present) {
+      map['CreateDate'] = Variable<String>(createDate.value);
+    }
+    if (createBy.present) {
+      map['CreateBy'] = Variable<String>(createBy.value);
+    }
     return map;
   }
 
@@ -1377,7 +1583,10 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
           ..write('description: $description, ')
           ..write('specification: $specification, ')
           ..write('status: $status, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('id: $id, ')
+          ..write('createDate: $createDate, ')
+          ..write('createBy: $createBy')
           ..write(')'))
         .toString();
   }
@@ -2923,12 +3132,18 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
   static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
   @override
   late final GeneratedColumn<String> tagId = GeneratedColumn<String>(
-      'tagId', aliasedName, true,
+      'TagId', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _jobIdMeta = const VerificationMeta('jobId');
   @override
   late final GeneratedColumn<String> jobId = GeneratedColumn<String>(
-      'jobId', aliasedName, true,
+      'JobId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _machineIdMeta =
+      const VerificationMeta('machineId');
+  @override
+  late final GeneratedColumn<String> machineId = GeneratedColumn<String>(
+      'MachineId', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _tagNameMeta =
       const VerificationMeta('tagName');
@@ -2946,7 +3161,7 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
       const VerificationMeta('tagGroupId');
   @override
   late final GeneratedColumn<String> tagGroupId = GeneratedColumn<String>(
-      'tagGroupId', aliasedName, true,
+      'TagGroupId', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _tagGroupNameMeta =
       const VerificationMeta('tagGroupName');
@@ -2970,13 +3185,13 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
       const VerificationMeta('specMin');
   @override
   late final GeneratedColumn<String> specMin = GeneratedColumn<String>(
-      'specMin', aliasedName, true,
+      'SpecMin', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _specMaxMeta =
       const VerificationMeta('specMax');
   @override
   late final GeneratedColumn<String> specMax = GeneratedColumn<String>(
-      'specMax', aliasedName, true,
+      'SpecMax', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _unitMeta = const VerificationMeta('unit');
   @override
@@ -3002,11 +3217,51 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
   late final GeneratedColumn<String> lastSync = GeneratedColumn<String>(
       'lastSync', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+      'Note', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+      'Value', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _remarkMeta = const VerificationMeta('remark');
+  @override
+  late final GeneratedColumn<String> remark = GeneratedColumn<String>(
+      'Remark', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createDateMeta =
+      const VerificationMeta('createDate');
+  @override
+  late final GeneratedColumn<String> createDate = GeneratedColumn<String>(
+      'CreateDate', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createByMeta =
+      const VerificationMeta('createBy');
+  @override
+  late final GeneratedColumn<String> createBy = GeneratedColumn<String>(
+      'CreateBy', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _valueTypeMeta =
+      const VerificationMeta('valueType');
+  @override
+  late final GeneratedColumn<String> valueType = GeneratedColumn<String>(
+      'ValueType', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagSelectionValueMeta =
+      const VerificationMeta('tagSelectionValue');
+  @override
+  late final GeneratedColumn<String> tagSelectionValue =
+      GeneratedColumn<String>('TagSelectionValue', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
         tagId,
         jobId,
+        machineId,
         tagName,
         tagType,
         tagGroupId,
@@ -3018,7 +3273,14 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
         unit,
         queryStr,
         status,
-        lastSync
+        lastSync,
+        note,
+        value,
+        remark,
+        createDate,
+        createBy,
+        valueType,
+        tagSelectionValue
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3034,13 +3296,17 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
       context.handle(
           _uidMeta, uid.isAcceptableOrUnknown(data['uid']!, _uidMeta));
     }
-    if (data.containsKey('tagId')) {
+    if (data.containsKey('TagId')) {
       context.handle(
-          _tagIdMeta, tagId.isAcceptableOrUnknown(data['tagId']!, _tagIdMeta));
+          _tagIdMeta, tagId.isAcceptableOrUnknown(data['TagId']!, _tagIdMeta));
     }
-    if (data.containsKey('jobId')) {
+    if (data.containsKey('JobId')) {
       context.handle(
-          _jobIdMeta, jobId.isAcceptableOrUnknown(data['jobId']!, _jobIdMeta));
+          _jobIdMeta, jobId.isAcceptableOrUnknown(data['JobId']!, _jobIdMeta));
+    }
+    if (data.containsKey('MachineId')) {
+      context.handle(_machineIdMeta,
+          machineId.isAcceptableOrUnknown(data['MachineId']!, _machineIdMeta));
     }
     if (data.containsKey('tagName')) {
       context.handle(_tagNameMeta,
@@ -3050,11 +3316,11 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
       context.handle(_tagTypeMeta,
           tagType.isAcceptableOrUnknown(data['tagType']!, _tagTypeMeta));
     }
-    if (data.containsKey('tagGroupId')) {
+    if (data.containsKey('TagGroupId')) {
       context.handle(
           _tagGroupIdMeta,
           tagGroupId.isAcceptableOrUnknown(
-              data['tagGroupId']!, _tagGroupIdMeta));
+              data['TagGroupId']!, _tagGroupIdMeta));
     }
     if (data.containsKey('TagGroupName')) {
       context.handle(
@@ -3074,13 +3340,13 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
           specification.isAcceptableOrUnknown(
               data['specification']!, _specificationMeta));
     }
-    if (data.containsKey('specMin')) {
+    if (data.containsKey('SpecMin')) {
       context.handle(_specMinMeta,
-          specMin.isAcceptableOrUnknown(data['specMin']!, _specMinMeta));
+          specMin.isAcceptableOrUnknown(data['SpecMin']!, _specMinMeta));
     }
-    if (data.containsKey('specMax')) {
+    if (data.containsKey('SpecMax')) {
       context.handle(_specMaxMeta,
-          specMax.isAcceptableOrUnknown(data['specMax']!, _specMaxMeta));
+          specMax.isAcceptableOrUnknown(data['SpecMax']!, _specMaxMeta));
     }
     if (data.containsKey('unit')) {
       context.handle(
@@ -3098,6 +3364,38 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
       context.handle(_lastSyncMeta,
           lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
     }
+    if (data.containsKey('Note')) {
+      context.handle(
+          _noteMeta, note.isAcceptableOrUnknown(data['Note']!, _noteMeta));
+    }
+    if (data.containsKey('Value')) {
+      context.handle(
+          _valueMeta, value.isAcceptableOrUnknown(data['Value']!, _valueMeta));
+    }
+    if (data.containsKey('Remark')) {
+      context.handle(_remarkMeta,
+          remark.isAcceptableOrUnknown(data['Remark']!, _remarkMeta));
+    }
+    if (data.containsKey('CreateDate')) {
+      context.handle(
+          _createDateMeta,
+          createDate.isAcceptableOrUnknown(
+              data['CreateDate']!, _createDateMeta));
+    }
+    if (data.containsKey('CreateBy')) {
+      context.handle(_createByMeta,
+          createBy.isAcceptableOrUnknown(data['CreateBy']!, _createByMeta));
+    }
+    if (data.containsKey('ValueType')) {
+      context.handle(_valueTypeMeta,
+          valueType.isAcceptableOrUnknown(data['ValueType']!, _valueTypeMeta));
+    }
+    if (data.containsKey('TagSelectionValue')) {
+      context.handle(
+          _tagSelectionValueMeta,
+          tagSelectionValue.isAcceptableOrUnknown(
+              data['TagSelectionValue']!, _tagSelectionValueMeta));
+    }
     return context;
   }
 
@@ -3110,15 +3408,17 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
       uid: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}uid'])!,
       tagId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}tagId']),
+          .read(DriftSqlType.string, data['${effectivePrefix}TagId']),
       jobId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}jobId']),
+          .read(DriftSqlType.string, data['${effectivePrefix}JobId']),
+      machineId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}MachineId']),
       tagName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}tagName']),
       tagType: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}tagType']),
       tagGroupId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}tagGroupId']),
+          .read(DriftSqlType.string, data['${effectivePrefix}TagGroupId']),
       tagGroupName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}TagGroupName']),
       description: attachedDatabase.typeMapping
@@ -3126,9 +3426,9 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
       specification: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}specification']),
       specMin: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}specMin']),
+          .read(DriftSqlType.string, data['${effectivePrefix}SpecMin']),
       specMax: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}specMax']),
+          .read(DriftSqlType.string, data['${effectivePrefix}SpecMax']),
       unit: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}unit']),
       queryStr: attachedDatabase.typeMapping
@@ -3137,6 +3437,20 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
           .read(DriftSqlType.int, data['${effectivePrefix}status'])!,
       lastSync: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
+      note: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}Note']),
+      value: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}Value']),
+      remark: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}Remark']),
+      createDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}CreateDate']),
+      createBy: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}CreateBy']),
+      valueType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}ValueType']),
+      tagSelectionValue: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}TagSelectionValue']),
     );
   }
 
@@ -3150,6 +3464,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
   final int uid;
   final String? tagId;
   final String? jobId;
+  final String? machineId;
   final String? tagName;
   final String? tagType;
   final String? tagGroupId;
@@ -3162,10 +3477,18 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
   final String? queryStr;
   final int status;
   final String? lastSync;
+  final String? note;
+  final String? value;
+  final String? remark;
+  final String? createDate;
+  final String? createBy;
+  final String? valueType;
+  final String? tagSelectionValue;
   const DbJobTag(
       {required this.uid,
       this.tagId,
       this.jobId,
+      this.machineId,
       this.tagName,
       this.tagType,
       this.tagGroupId,
@@ -3177,16 +3500,26 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       this.unit,
       this.queryStr,
       required this.status,
-      this.lastSync});
+      this.lastSync,
+      this.note,
+      this.value,
+      this.remark,
+      this.createDate,
+      this.createBy,
+      this.valueType,
+      this.tagSelectionValue});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['uid'] = Variable<int>(uid);
     if (!nullToAbsent || tagId != null) {
-      map['tagId'] = Variable<String>(tagId);
+      map['TagId'] = Variable<String>(tagId);
     }
     if (!nullToAbsent || jobId != null) {
-      map['jobId'] = Variable<String>(jobId);
+      map['JobId'] = Variable<String>(jobId);
+    }
+    if (!nullToAbsent || machineId != null) {
+      map['MachineId'] = Variable<String>(machineId);
     }
     if (!nullToAbsent || tagName != null) {
       map['tagName'] = Variable<String>(tagName);
@@ -3195,7 +3528,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       map['tagType'] = Variable<String>(tagType);
     }
     if (!nullToAbsent || tagGroupId != null) {
-      map['tagGroupId'] = Variable<String>(tagGroupId);
+      map['TagGroupId'] = Variable<String>(tagGroupId);
     }
     if (!nullToAbsent || tagGroupName != null) {
       map['TagGroupName'] = Variable<String>(tagGroupName);
@@ -3207,10 +3540,10 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       map['specification'] = Variable<String>(specification);
     }
     if (!nullToAbsent || specMin != null) {
-      map['specMin'] = Variable<String>(specMin);
+      map['SpecMin'] = Variable<String>(specMin);
     }
     if (!nullToAbsent || specMax != null) {
-      map['specMax'] = Variable<String>(specMax);
+      map['SpecMax'] = Variable<String>(specMax);
     }
     if (!nullToAbsent || unit != null) {
       map['unit'] = Variable<String>(unit);
@@ -3222,6 +3555,27 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
     if (!nullToAbsent || lastSync != null) {
       map['lastSync'] = Variable<String>(lastSync);
     }
+    if (!nullToAbsent || note != null) {
+      map['Note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || value != null) {
+      map['Value'] = Variable<String>(value);
+    }
+    if (!nullToAbsent || remark != null) {
+      map['Remark'] = Variable<String>(remark);
+    }
+    if (!nullToAbsent || createDate != null) {
+      map['CreateDate'] = Variable<String>(createDate);
+    }
+    if (!nullToAbsent || createBy != null) {
+      map['CreateBy'] = Variable<String>(createBy);
+    }
+    if (!nullToAbsent || valueType != null) {
+      map['ValueType'] = Variable<String>(valueType);
+    }
+    if (!nullToAbsent || tagSelectionValue != null) {
+      map['TagSelectionValue'] = Variable<String>(tagSelectionValue);
+    }
     return map;
   }
 
@@ -3232,6 +3586,9 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           tagId == null && nullToAbsent ? const Value.absent() : Value(tagId),
       jobId:
           jobId == null && nullToAbsent ? const Value.absent() : Value(jobId),
+      machineId: machineId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(machineId),
       tagName: tagName == null && nullToAbsent
           ? const Value.absent()
           : Value(tagName),
@@ -3264,6 +3621,23 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       lastSync: lastSync == null && nullToAbsent
           ? const Value.absent()
           : Value(lastSync),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      value:
+          value == null && nullToAbsent ? const Value.absent() : Value(value),
+      remark:
+          remark == null && nullToAbsent ? const Value.absent() : Value(remark),
+      createDate: createDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createDate),
+      createBy: createBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createBy),
+      valueType: valueType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(valueType),
+      tagSelectionValue: tagSelectionValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagSelectionValue),
     );
   }
 
@@ -3274,6 +3648,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       uid: serializer.fromJson<int>(json['uid']),
       tagId: serializer.fromJson<String?>(json['tagId']),
       jobId: serializer.fromJson<String?>(json['jobId']),
+      machineId: serializer.fromJson<String?>(json['machineId']),
       tagName: serializer.fromJson<String?>(json['tagName']),
       tagType: serializer.fromJson<String?>(json['tagType']),
       tagGroupId: serializer.fromJson<String?>(json['tagGroupId']),
@@ -3286,6 +3661,14 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       queryStr: serializer.fromJson<String?>(json['queryStr']),
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
+      note: serializer.fromJson<String?>(json['note']),
+      value: serializer.fromJson<String?>(json['value']),
+      remark: serializer.fromJson<String?>(json['remark']),
+      createDate: serializer.fromJson<String?>(json['createDate']),
+      createBy: serializer.fromJson<String?>(json['createBy']),
+      valueType: serializer.fromJson<String?>(json['valueType']),
+      tagSelectionValue:
+          serializer.fromJson<String?>(json['tagSelectionValue']),
     );
   }
   @override
@@ -3295,6 +3678,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       'uid': serializer.toJson<int>(uid),
       'tagId': serializer.toJson<String?>(tagId),
       'jobId': serializer.toJson<String?>(jobId),
+      'machineId': serializer.toJson<String?>(machineId),
       'tagName': serializer.toJson<String?>(tagName),
       'tagType': serializer.toJson<String?>(tagType),
       'tagGroupId': serializer.toJson<String?>(tagGroupId),
@@ -3307,6 +3691,13 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       'queryStr': serializer.toJson<String?>(queryStr),
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
+      'note': serializer.toJson<String?>(note),
+      'value': serializer.toJson<String?>(value),
+      'remark': serializer.toJson<String?>(remark),
+      'createDate': serializer.toJson<String?>(createDate),
+      'createBy': serializer.toJson<String?>(createBy),
+      'valueType': serializer.toJson<String?>(valueType),
+      'tagSelectionValue': serializer.toJson<String?>(tagSelectionValue),
     };
   }
 
@@ -3314,6 +3705,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           {int? uid,
           Value<String?> tagId = const Value.absent(),
           Value<String?> jobId = const Value.absent(),
+          Value<String?> machineId = const Value.absent(),
           Value<String?> tagName = const Value.absent(),
           Value<String?> tagType = const Value.absent(),
           Value<String?> tagGroupId = const Value.absent(),
@@ -3325,11 +3717,19 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           Value<String?> unit = const Value.absent(),
           Value<String?> queryStr = const Value.absent(),
           int? status,
-          Value<String?> lastSync = const Value.absent()}) =>
+          Value<String?> lastSync = const Value.absent(),
+          Value<String?> note = const Value.absent(),
+          Value<String?> value = const Value.absent(),
+          Value<String?> remark = const Value.absent(),
+          Value<String?> createDate = const Value.absent(),
+          Value<String?> createBy = const Value.absent(),
+          Value<String?> valueType = const Value.absent(),
+          Value<String?> tagSelectionValue = const Value.absent()}) =>
       DbJobTag(
         uid: uid ?? this.uid,
         tagId: tagId.present ? tagId.value : this.tagId,
         jobId: jobId.present ? jobId.value : this.jobId,
+        machineId: machineId.present ? machineId.value : this.machineId,
         tagName: tagName.present ? tagName.value : this.tagName,
         tagType: tagType.present ? tagType.value : this.tagType,
         tagGroupId: tagGroupId.present ? tagGroupId.value : this.tagGroupId,
@@ -3344,12 +3744,22 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
         queryStr: queryStr.present ? queryStr.value : this.queryStr,
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        note: note.present ? note.value : this.note,
+        value: value.present ? value.value : this.value,
+        remark: remark.present ? remark.value : this.remark,
+        createDate: createDate.present ? createDate.value : this.createDate,
+        createBy: createBy.present ? createBy.value : this.createBy,
+        valueType: valueType.present ? valueType.value : this.valueType,
+        tagSelectionValue: tagSelectionValue.present
+            ? tagSelectionValue.value
+            : this.tagSelectionValue,
       );
   DbJobTag copyWithCompanion(JobTagsCompanion data) {
     return DbJobTag(
       uid: data.uid.present ? data.uid.value : this.uid,
       tagId: data.tagId.present ? data.tagId.value : this.tagId,
       jobId: data.jobId.present ? data.jobId.value : this.jobId,
+      machineId: data.machineId.present ? data.machineId.value : this.machineId,
       tagName: data.tagName.present ? data.tagName.value : this.tagName,
       tagType: data.tagType.present ? data.tagType.value : this.tagType,
       tagGroupId:
@@ -3368,6 +3778,16 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       queryStr: data.queryStr.present ? data.queryStr.value : this.queryStr,
       status: data.status.present ? data.status.value : this.status,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      note: data.note.present ? data.note.value : this.note,
+      value: data.value.present ? data.value.value : this.value,
+      remark: data.remark.present ? data.remark.value : this.remark,
+      createDate:
+          data.createDate.present ? data.createDate.value : this.createDate,
+      createBy: data.createBy.present ? data.createBy.value : this.createBy,
+      valueType: data.valueType.present ? data.valueType.value : this.valueType,
+      tagSelectionValue: data.tagSelectionValue.present
+          ? data.tagSelectionValue.value
+          : this.tagSelectionValue,
     );
   }
 
@@ -3377,6 +3797,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           ..write('uid: $uid, ')
           ..write('tagId: $tagId, ')
           ..write('jobId: $jobId, ')
+          ..write('machineId: $machineId, ')
           ..write('tagName: $tagName, ')
           ..write('tagType: $tagType, ')
           ..write('tagGroupId: $tagGroupId, ')
@@ -3388,28 +3809,44 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           ..write('unit: $unit, ')
           ..write('queryStr: $queryStr, ')
           ..write('status: $status, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('note: $note, ')
+          ..write('value: $value, ')
+          ..write('remark: $remark, ')
+          ..write('createDate: $createDate, ')
+          ..write('createBy: $createBy, ')
+          ..write('valueType: $valueType, ')
+          ..write('tagSelectionValue: $tagSelectionValue')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      uid,
-      tagId,
-      jobId,
-      tagName,
-      tagType,
-      tagGroupId,
-      tagGroupName,
-      description,
-      specification,
-      specMin,
-      specMax,
-      unit,
-      queryStr,
-      status,
-      lastSync);
+  int get hashCode => Object.hashAll([
+        uid,
+        tagId,
+        jobId,
+        machineId,
+        tagName,
+        tagType,
+        tagGroupId,
+        tagGroupName,
+        description,
+        specification,
+        specMin,
+        specMax,
+        unit,
+        queryStr,
+        status,
+        lastSync,
+        note,
+        value,
+        remark,
+        createDate,
+        createBy,
+        valueType,
+        tagSelectionValue
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3417,6 +3854,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           other.uid == this.uid &&
           other.tagId == this.tagId &&
           other.jobId == this.jobId &&
+          other.machineId == this.machineId &&
           other.tagName == this.tagName &&
           other.tagType == this.tagType &&
           other.tagGroupId == this.tagGroupId &&
@@ -3428,13 +3866,21 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           other.unit == this.unit &&
           other.queryStr == this.queryStr &&
           other.status == this.status &&
-          other.lastSync == this.lastSync);
+          other.lastSync == this.lastSync &&
+          other.note == this.note &&
+          other.value == this.value &&
+          other.remark == this.remark &&
+          other.createDate == this.createDate &&
+          other.createBy == this.createBy &&
+          other.valueType == this.valueType &&
+          other.tagSelectionValue == this.tagSelectionValue);
 }
 
 class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
   final Value<int> uid;
   final Value<String?> tagId;
   final Value<String?> jobId;
+  final Value<String?> machineId;
   final Value<String?> tagName;
   final Value<String?> tagType;
   final Value<String?> tagGroupId;
@@ -3447,10 +3893,18 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
   final Value<String?> queryStr;
   final Value<int> status;
   final Value<String?> lastSync;
+  final Value<String?> note;
+  final Value<String?> value;
+  final Value<String?> remark;
+  final Value<String?> createDate;
+  final Value<String?> createBy;
+  final Value<String?> valueType;
+  final Value<String?> tagSelectionValue;
   const JobTagsCompanion({
     this.uid = const Value.absent(),
     this.tagId = const Value.absent(),
     this.jobId = const Value.absent(),
+    this.machineId = const Value.absent(),
     this.tagName = const Value.absent(),
     this.tagType = const Value.absent(),
     this.tagGroupId = const Value.absent(),
@@ -3463,11 +3917,19 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     this.queryStr = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.note = const Value.absent(),
+    this.value = const Value.absent(),
+    this.remark = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.createBy = const Value.absent(),
+    this.valueType = const Value.absent(),
+    this.tagSelectionValue = const Value.absent(),
   });
   JobTagsCompanion.insert({
     this.uid = const Value.absent(),
     this.tagId = const Value.absent(),
     this.jobId = const Value.absent(),
+    this.machineId = const Value.absent(),
     this.tagName = const Value.absent(),
     this.tagType = const Value.absent(),
     this.tagGroupId = const Value.absent(),
@@ -3480,11 +3942,19 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     this.queryStr = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.note = const Value.absent(),
+    this.value = const Value.absent(),
+    this.remark = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.createBy = const Value.absent(),
+    this.valueType = const Value.absent(),
+    this.tagSelectionValue = const Value.absent(),
   });
   static Insertable<DbJobTag> custom({
     Expression<int>? uid,
     Expression<String>? tagId,
     Expression<String>? jobId,
+    Expression<String>? machineId,
     Expression<String>? tagName,
     Expression<String>? tagType,
     Expression<String>? tagGroupId,
@@ -3497,23 +3967,38 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     Expression<String>? queryStr,
     Expression<int>? status,
     Expression<String>? lastSync,
+    Expression<String>? note,
+    Expression<String>? value,
+    Expression<String>? remark,
+    Expression<String>? createDate,
+    Expression<String>? createBy,
+    Expression<String>? valueType,
+    Expression<String>? tagSelectionValue,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
-      if (tagId != null) 'tagId': tagId,
-      if (jobId != null) 'jobId': jobId,
+      if (tagId != null) 'TagId': tagId,
+      if (jobId != null) 'JobId': jobId,
+      if (machineId != null) 'MachineId': machineId,
       if (tagName != null) 'tagName': tagName,
       if (tagType != null) 'tagType': tagType,
-      if (tagGroupId != null) 'tagGroupId': tagGroupId,
+      if (tagGroupId != null) 'TagGroupId': tagGroupId,
       if (tagGroupName != null) 'TagGroupName': tagGroupName,
       if (description != null) 'description': description,
       if (specification != null) 'specification': specification,
-      if (specMin != null) 'specMin': specMin,
-      if (specMax != null) 'specMax': specMax,
+      if (specMin != null) 'SpecMin': specMin,
+      if (specMax != null) 'SpecMax': specMax,
       if (unit != null) 'unit': unit,
       if (queryStr != null) 'queryStr': queryStr,
       if (status != null) 'status': status,
       if (lastSync != null) 'lastSync': lastSync,
+      if (note != null) 'Note': note,
+      if (value != null) 'Value': value,
+      if (remark != null) 'Remark': remark,
+      if (createDate != null) 'CreateDate': createDate,
+      if (createBy != null) 'CreateBy': createBy,
+      if (valueType != null) 'ValueType': valueType,
+      if (tagSelectionValue != null) 'TagSelectionValue': tagSelectionValue,
     });
   }
 
@@ -3521,6 +4006,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       {Value<int>? uid,
       Value<String?>? tagId,
       Value<String?>? jobId,
+      Value<String?>? machineId,
       Value<String?>? tagName,
       Value<String?>? tagType,
       Value<String?>? tagGroupId,
@@ -3532,11 +4018,19 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       Value<String?>? unit,
       Value<String?>? queryStr,
       Value<int>? status,
-      Value<String?>? lastSync}) {
+      Value<String?>? lastSync,
+      Value<String?>? note,
+      Value<String?>? value,
+      Value<String?>? remark,
+      Value<String?>? createDate,
+      Value<String?>? createBy,
+      Value<String?>? valueType,
+      Value<String?>? tagSelectionValue}) {
     return JobTagsCompanion(
       uid: uid ?? this.uid,
       tagId: tagId ?? this.tagId,
       jobId: jobId ?? this.jobId,
+      machineId: machineId ?? this.machineId,
       tagName: tagName ?? this.tagName,
       tagType: tagType ?? this.tagType,
       tagGroupId: tagGroupId ?? this.tagGroupId,
@@ -3549,6 +4043,13 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       queryStr: queryStr ?? this.queryStr,
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
+      note: note ?? this.note,
+      value: value ?? this.value,
+      remark: remark ?? this.remark,
+      createDate: createDate ?? this.createDate,
+      createBy: createBy ?? this.createBy,
+      valueType: valueType ?? this.valueType,
+      tagSelectionValue: tagSelectionValue ?? this.tagSelectionValue,
     );
   }
 
@@ -3559,10 +4060,13 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       map['uid'] = Variable<int>(uid.value);
     }
     if (tagId.present) {
-      map['tagId'] = Variable<String>(tagId.value);
+      map['TagId'] = Variable<String>(tagId.value);
     }
     if (jobId.present) {
-      map['jobId'] = Variable<String>(jobId.value);
+      map['JobId'] = Variable<String>(jobId.value);
+    }
+    if (machineId.present) {
+      map['MachineId'] = Variable<String>(machineId.value);
     }
     if (tagName.present) {
       map['tagName'] = Variable<String>(tagName.value);
@@ -3571,7 +4075,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       map['tagType'] = Variable<String>(tagType.value);
     }
     if (tagGroupId.present) {
-      map['tagGroupId'] = Variable<String>(tagGroupId.value);
+      map['TagGroupId'] = Variable<String>(tagGroupId.value);
     }
     if (tagGroupName.present) {
       map['TagGroupName'] = Variable<String>(tagGroupName.value);
@@ -3583,10 +4087,10 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       map['specification'] = Variable<String>(specification.value);
     }
     if (specMin.present) {
-      map['specMin'] = Variable<String>(specMin.value);
+      map['SpecMin'] = Variable<String>(specMin.value);
     }
     if (specMax.present) {
-      map['specMax'] = Variable<String>(specMax.value);
+      map['SpecMax'] = Variable<String>(specMax.value);
     }
     if (unit.present) {
       map['unit'] = Variable<String>(unit.value);
@@ -3600,6 +4104,27 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     if (lastSync.present) {
       map['lastSync'] = Variable<String>(lastSync.value);
     }
+    if (note.present) {
+      map['Note'] = Variable<String>(note.value);
+    }
+    if (value.present) {
+      map['Value'] = Variable<String>(value.value);
+    }
+    if (remark.present) {
+      map['Remark'] = Variable<String>(remark.value);
+    }
+    if (createDate.present) {
+      map['CreateDate'] = Variable<String>(createDate.value);
+    }
+    if (createBy.present) {
+      map['CreateBy'] = Variable<String>(createBy.value);
+    }
+    if (valueType.present) {
+      map['ValueType'] = Variable<String>(valueType.value);
+    }
+    if (tagSelectionValue.present) {
+      map['TagSelectionValue'] = Variable<String>(tagSelectionValue.value);
+    }
     return map;
   }
 
@@ -3609,6 +4134,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
           ..write('uid: $uid, ')
           ..write('tagId: $tagId, ')
           ..write('jobId: $jobId, ')
+          ..write('machineId: $machineId, ')
           ..write('tagName: $tagName, ')
           ..write('tagType: $tagType, ')
           ..write('tagGroupId: $tagGroupId, ')
@@ -3620,7 +4146,14 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
           ..write('unit: $unit, ')
           ..write('queryStr: $queryStr, ')
           ..write('status: $status, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('note: $note, ')
+          ..write('value: $value, ')
+          ..write('remark: $remark, ')
+          ..write('createDate: $createDate, ')
+          ..write('createBy: $createBy, ')
+          ..write('valueType: $valueType, ')
+          ..write('tagSelectionValue: $tagSelectionValue')
           ..write(')'))
         .toString();
   }
@@ -4785,6 +5318,8 @@ typedef $$JobsTableCreateCompanionBuilder = JobsCompanion Function({
   Value<String?> location,
   Value<int> jobStatus,
   Value<String?> lastSync,
+  Value<String?> createDate,
+  Value<String?> createBy,
 });
 typedef $$JobsTableUpdateCompanionBuilder = JobsCompanion Function({
   Value<int> uid,
@@ -4795,6 +5330,8 @@ typedef $$JobsTableUpdateCompanionBuilder = JobsCompanion Function({
   Value<String?> location,
   Value<int> jobStatus,
   Value<String?> lastSync,
+  Value<String?> createDate,
+  Value<String?> createBy,
 });
 
 class $$JobsTableFilterComposer extends Composer<_$AppDatabase, $JobsTable> {
@@ -4828,6 +5365,12 @@ class $$JobsTableFilterComposer extends Composer<_$AppDatabase, $JobsTable> {
 
   ColumnFilters<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createBy => $composableBuilder(
+      column: $table.createBy, builder: (column) => ColumnFilters(column));
 }
 
 class $$JobsTableOrderingComposer extends Composer<_$AppDatabase, $JobsTable> {
@@ -4861,6 +5404,12 @@ class $$JobsTableOrderingComposer extends Composer<_$AppDatabase, $JobsTable> {
 
   ColumnOrderings<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createBy => $composableBuilder(
+      column: $table.createBy, builder: (column) => ColumnOrderings(column));
 }
 
 class $$JobsTableAnnotationComposer
@@ -4895,6 +5444,12 @@ class $$JobsTableAnnotationComposer
 
   GeneratedColumn<String> get lastSync =>
       $composableBuilder(column: $table.lastSync, builder: (column) => column);
+
+  GeneratedColumn<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => column);
+
+  GeneratedColumn<String> get createBy =>
+      $composableBuilder(column: $table.createBy, builder: (column) => column);
 }
 
 class $$JobsTableTableManager extends RootTableManager<
@@ -4928,6 +5483,8 @@ class $$JobsTableTableManager extends RootTableManager<
             Value<String?> location = const Value.absent(),
             Value<int> jobStatus = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<String?> createBy = const Value.absent(),
           }) =>
               JobsCompanion(
             uid: uid,
@@ -4938,6 +5495,8 @@ class $$JobsTableTableManager extends RootTableManager<
             location: location,
             jobStatus: jobStatus,
             lastSync: lastSync,
+            createDate: createDate,
+            createBy: createBy,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -4948,6 +5507,8 @@ class $$JobsTableTableManager extends RootTableManager<
             Value<String?> location = const Value.absent(),
             Value<int> jobStatus = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<String?> createBy = const Value.absent(),
           }) =>
               JobsCompanion.insert(
             uid: uid,
@@ -4958,6 +5519,8 @@ class $$JobsTableTableManager extends RootTableManager<
             location: location,
             jobStatus: jobStatus,
             lastSync: lastSync,
+            createDate: createDate,
+            createBy: createBy,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -5195,6 +5758,9 @@ typedef $$DocumentMachinesTableCreateCompanionBuilder
   Value<String?> specification,
   Value<int> status,
   Value<String?> lastSync,
+  required int id,
+  Value<String?> createDate,
+  Value<String?> createBy,
 });
 typedef $$DocumentMachinesTableUpdateCompanionBuilder
     = DocumentMachinesCompanion Function({
@@ -5208,6 +5774,9 @@ typedef $$DocumentMachinesTableUpdateCompanionBuilder
   Value<String?> specification,
   Value<int> status,
   Value<String?> lastSync,
+  Value<int> id,
+  Value<String?> createDate,
+  Value<String?> createBy,
 });
 
 class $$DocumentMachinesTableFilterComposer
@@ -5248,6 +5817,15 @@ class $$DocumentMachinesTableFilterComposer
 
   ColumnFilters<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createBy => $composableBuilder(
+      column: $table.createBy, builder: (column) => ColumnFilters(column));
 }
 
 class $$DocumentMachinesTableOrderingComposer
@@ -5289,6 +5867,15 @@ class $$DocumentMachinesTableOrderingComposer
 
   ColumnOrderings<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createBy => $composableBuilder(
+      column: $table.createBy, builder: (column) => ColumnOrderings(column));
 }
 
 class $$DocumentMachinesTableAnnotationComposer
@@ -5329,6 +5916,15 @@ class $$DocumentMachinesTableAnnotationComposer
 
   GeneratedColumn<String> get lastSync =>
       $composableBuilder(column: $table.lastSync, builder: (column) => column);
+
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => column);
+
+  GeneratedColumn<String> get createBy =>
+      $composableBuilder(column: $table.createBy, builder: (column) => column);
 }
 
 class $$DocumentMachinesTableTableManager extends RootTableManager<
@@ -5368,6 +5964,9 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             Value<String?> specification = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<int> id = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<String?> createBy = const Value.absent(),
           }) =>
               DocumentMachinesCompanion(
             uid: uid,
@@ -5380,6 +5979,9 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             specification: specification,
             status: status,
             lastSync: lastSync,
+            id: id,
+            createDate: createDate,
+            createBy: createBy,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -5392,6 +5994,9 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             Value<String?> specification = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            required int id,
+            Value<String?> createDate = const Value.absent(),
+            Value<String?> createBy = const Value.absent(),
           }) =>
               DocumentMachinesCompanion.insert(
             uid: uid,
@@ -5404,6 +6009,9 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             specification: specification,
             status: status,
             lastSync: lastSync,
+            id: id,
+            createDate: createDate,
+            createBy: createBy,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -6101,6 +6709,7 @@ typedef $$JobTagsTableCreateCompanionBuilder = JobTagsCompanion Function({
   Value<int> uid,
   Value<String?> tagId,
   Value<String?> jobId,
+  Value<String?> machineId,
   Value<String?> tagName,
   Value<String?> tagType,
   Value<String?> tagGroupId,
@@ -6113,11 +6722,19 @@ typedef $$JobTagsTableCreateCompanionBuilder = JobTagsCompanion Function({
   Value<String?> queryStr,
   Value<int> status,
   Value<String?> lastSync,
+  Value<String?> note,
+  Value<String?> value,
+  Value<String?> remark,
+  Value<String?> createDate,
+  Value<String?> createBy,
+  Value<String?> valueType,
+  Value<String?> tagSelectionValue,
 });
 typedef $$JobTagsTableUpdateCompanionBuilder = JobTagsCompanion Function({
   Value<int> uid,
   Value<String?> tagId,
   Value<String?> jobId,
+  Value<String?> machineId,
   Value<String?> tagName,
   Value<String?> tagType,
   Value<String?> tagGroupId,
@@ -6130,6 +6747,13 @@ typedef $$JobTagsTableUpdateCompanionBuilder = JobTagsCompanion Function({
   Value<String?> queryStr,
   Value<int> status,
   Value<String?> lastSync,
+  Value<String?> note,
+  Value<String?> value,
+  Value<String?> remark,
+  Value<String?> createDate,
+  Value<String?> createBy,
+  Value<String?> valueType,
+  Value<String?> tagSelectionValue,
 });
 
 class $$JobTagsTableFilterComposer
@@ -6149,6 +6773,9 @@ class $$JobTagsTableFilterComposer
 
   ColumnFilters<String> get jobId => $composableBuilder(
       column: $table.jobId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get tagName => $composableBuilder(
       column: $table.tagName, builder: (column) => ColumnFilters(column));
@@ -6185,6 +6812,28 @@ class $$JobTagsTableFilterComposer
 
   ColumnFilters<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get note => $composableBuilder(
+      column: $table.note, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get value => $composableBuilder(
+      column: $table.value, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get remark => $composableBuilder(
+      column: $table.remark, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createBy => $composableBuilder(
+      column: $table.createBy, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get valueType => $composableBuilder(
+      column: $table.valueType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagSelectionValue => $composableBuilder(
+      column: $table.tagSelectionValue,
+      builder: (column) => ColumnFilters(column));
 }
 
 class $$JobTagsTableOrderingComposer
@@ -6204,6 +6853,9 @@ class $$JobTagsTableOrderingComposer
 
   ColumnOrderings<String> get jobId => $composableBuilder(
       column: $table.jobId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get tagName => $composableBuilder(
       column: $table.tagName, builder: (column) => ColumnOrderings(column));
@@ -6242,6 +6894,28 @@ class $$JobTagsTableOrderingComposer
 
   ColumnOrderings<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get note => $composableBuilder(
+      column: $table.note, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get value => $composableBuilder(
+      column: $table.value, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get remark => $composableBuilder(
+      column: $table.remark, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createBy => $composableBuilder(
+      column: $table.createBy, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get valueType => $composableBuilder(
+      column: $table.valueType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagSelectionValue => $composableBuilder(
+      column: $table.tagSelectionValue,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$JobTagsTableAnnotationComposer
@@ -6261,6 +6935,9 @@ class $$JobTagsTableAnnotationComposer
 
   GeneratedColumn<String> get jobId =>
       $composableBuilder(column: $table.jobId, builder: (column) => column);
+
+  GeneratedColumn<String> get machineId =>
+      $composableBuilder(column: $table.machineId, builder: (column) => column);
 
   GeneratedColumn<String> get tagName =>
       $composableBuilder(column: $table.tagName, builder: (column) => column);
@@ -6297,6 +6974,27 @@ class $$JobTagsTableAnnotationComposer
 
   GeneratedColumn<String> get lastSync =>
       $composableBuilder(column: $table.lastSync, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<String> get remark =>
+      $composableBuilder(column: $table.remark, builder: (column) => column);
+
+  GeneratedColumn<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => column);
+
+  GeneratedColumn<String> get createBy =>
+      $composableBuilder(column: $table.createBy, builder: (column) => column);
+
+  GeneratedColumn<String> get valueType =>
+      $composableBuilder(column: $table.valueType, builder: (column) => column);
+
+  GeneratedColumn<String> get tagSelectionValue => $composableBuilder(
+      column: $table.tagSelectionValue, builder: (column) => column);
 }
 
 class $$JobTagsTableTableManager extends RootTableManager<
@@ -6325,6 +7023,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             Value<int> uid = const Value.absent(),
             Value<String?> tagId = const Value.absent(),
             Value<String?> jobId = const Value.absent(),
+            Value<String?> machineId = const Value.absent(),
             Value<String?> tagName = const Value.absent(),
             Value<String?> tagType = const Value.absent(),
             Value<String?> tagGroupId = const Value.absent(),
@@ -6337,11 +7036,19 @@ class $$JobTagsTableTableManager extends RootTableManager<
             Value<String?> queryStr = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> note = const Value.absent(),
+            Value<String?> value = const Value.absent(),
+            Value<String?> remark = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<String?> createBy = const Value.absent(),
+            Value<String?> valueType = const Value.absent(),
+            Value<String?> tagSelectionValue = const Value.absent(),
           }) =>
               JobTagsCompanion(
             uid: uid,
             tagId: tagId,
             jobId: jobId,
+            machineId: machineId,
             tagName: tagName,
             tagType: tagType,
             tagGroupId: tagGroupId,
@@ -6354,11 +7061,19 @@ class $$JobTagsTableTableManager extends RootTableManager<
             queryStr: queryStr,
             status: status,
             lastSync: lastSync,
+            note: note,
+            value: value,
+            remark: remark,
+            createDate: createDate,
+            createBy: createBy,
+            valueType: valueType,
+            tagSelectionValue: tagSelectionValue,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
             Value<String?> tagId = const Value.absent(),
             Value<String?> jobId = const Value.absent(),
+            Value<String?> machineId = const Value.absent(),
             Value<String?> tagName = const Value.absent(),
             Value<String?> tagType = const Value.absent(),
             Value<String?> tagGroupId = const Value.absent(),
@@ -6371,11 +7086,19 @@ class $$JobTagsTableTableManager extends RootTableManager<
             Value<String?> queryStr = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> note = const Value.absent(),
+            Value<String?> value = const Value.absent(),
+            Value<String?> remark = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<String?> createBy = const Value.absent(),
+            Value<String?> valueType = const Value.absent(),
+            Value<String?> tagSelectionValue = const Value.absent(),
           }) =>
               JobTagsCompanion.insert(
             uid: uid,
             tagId: tagId,
             jobId: jobId,
+            machineId: machineId,
             tagName: tagName,
             tagType: tagType,
             tagGroupId: tagGroupId,
@@ -6388,6 +7111,13 @@ class $$JobTagsTableTableManager extends RootTableManager<
             queryStr: queryStr,
             status: status,
             lastSync: lastSync,
+            note: note,
+            value: value,
+            remark: remark,
+            createDate: createDate,
+            createBy: createBy,
+            valueType: valueType,
+            tagSelectionValue: tagSelectionValue,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

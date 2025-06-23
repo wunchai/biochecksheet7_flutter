@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/ui/home/home_viewmodel.dart';
 import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // สำหรับ DbJob
+import 'package:biochecksheet7_flutter/ui/document/document_screen.dart'; // <<< Import DocumentScreen
 
 class HomeScreen extends StatefulWidget {
   // Constructor for HomeScreen, takes a 'title' string.
@@ -205,9 +206,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 elevation: 4.0, // Adds a shadow effect.
                                 child: InkWell(
                                   // Provides a visual ripple effect on tap.
-                                  onTap: () {
-                                    // TODO: Implement navigation to DocumentActivity/Job details.
-                                    print('Job Tapped: ${job.jobName}');
+                                   onTap: () {
+                                    // Navigate to DocumentScreen when Job item is tapped
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => DocumentScreen(
+                                          title: 'Documents for Job: ${job.jobId ?? ''}', // Dynamic title
+                                          jobId: job.jobId, // Pass jobId to DocumentScreen
+                                        ),
+                                      ),
+                                    );
+                                    print('Job Tapped: ${job.jobName}, Navigating to Documents for Job ID: ${job.jobId}');
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.all(16.0),

@@ -38,6 +38,16 @@ class DocumentDao extends DatabaseAccessor<AppDatabase> with _$DocumentDaoMixin 
   // Equivalent to suspend fun deleteAll()
   Future<int> deleteAllDocuments() => delete(documents).go();
 
+  // NEW: Equivalent to suspend fun getDocumentList(jobId: String): LiveData<List<DbDocument>>
+  Future<List<DbDocument>> getDocumentsByJobId(String jobId) {
+    return (select(documents)..where((tbl) => tbl.jobId.equals(jobId))).get();
+  }
+
+  // Optional: If you need a stream of filtered documents (like LiveData)
+  Stream<List<DbDocument>> watchDocumentsByJobId(String jobId) {
+    return (select(documents)..where((tbl) => tbl.jobId.equals(jobId))).watch();
+  }
+
   // You might have custom queries in your DaoDocument.kt,
   // for example, to get documents by jobId. You can add them here:
   // Future<List<DbDocument>> getDocumentsByJobId(String jobId) {

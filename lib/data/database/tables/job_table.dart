@@ -32,6 +32,9 @@ class Jobs extends Table {
   // @ColumnInfo(name = "lastSync") var lastSync: String? = null
   TextColumn get lastSync => text().named('lastSync').nullable()(); // Assuming lastSync is stored as ISO 8601 string
 
+ // NEW: Add CreateDate and CreateBy based on API response
+  TextColumn get createDate => text().named('CreateDate').nullable()();
+  TextColumn get createBy => text().named('CreateBy').nullable()();
   // Primary key definition if not auto-incrementing UID
   // For DbJob, 'jobId' could potentially be a primary key if unique and not null
   // Example: Set<Column> get primaryKey => {jobId};

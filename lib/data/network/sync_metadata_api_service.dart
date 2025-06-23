@@ -9,17 +9,22 @@ const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
 class SyncMetadataApiService {
   Future<List<DbSync>> checkSyncStatus() async {
     final uri = Uri.parse("$_baseUrl/CheckSheet_MasterSync_Check"); // สันนิษฐานว่า API นี้ใช้สำหรับ Sync Metadata
+    print("Checking sync status with URL: $uri");
     final headers = {"Content-Type": "application/json"};
     final body = jsonEncode({
       "ServiceName": "CheckSheet_MasterSync_Check",
       "Paremeter": {} // Assuming no parameters
     });
+    print("Request body: $body");
 
     try {
       final response = await http.post(uri, headers: headers, body: body);
+      
+      final String decodedBody = utf8.decode(response.bodyBytes); // <<< แก้ไขตรงนี้
+      print("Job Sync API Response: $decodedBody"); // Debugging log with decoded body
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseJson = jsonDecode(response.body);
+        final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
         if (responseJson['Table'] != null && responseJson['Table'] is List) {
           final List<dynamic> syncList = responseJson['Table'];
           final List<DbSync> syncedMetadata = syncList.map((syncData) {
@@ -40,8 +45,10 @@ class SyncMetadataApiService {
         throw Exception("Sync Metadata failed: Status code ${response.statusCode}");
       }
     } on http.ClientException catch (e) {
+      print("Network error during sync metadata: ${e}");
       throw Exception("Network error during sync metadata: ${e.message}");
     } catch (e) {
+      print("An unexpected error occurred during sync metadata: $e");
       throw Exception("An unexpected error occurred during sync metadata: $e");
     }
   }

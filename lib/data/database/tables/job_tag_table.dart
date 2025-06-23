@@ -8,10 +8,12 @@ class JobTags extends Table {
   IntColumn get uid => integer().autoIncrement().named('uid')();
 
   // @ColumnInfo(name = "tagId") var tagId: String? = null
-  TextColumn get tagId => text().named('tagId').nullable()();
+  TextColumn get tagId => text().named('TagId').nullable()(); // NEW: Will map int to String
 
   // @ColumnInfo(name = "jobId") var jobId: String? = null
-  TextColumn get jobId => text().named('jobId').nullable()();
+  TextColumn get jobId => text().named('JobId').nullable()(); // NEW: Will map int to String
+
+  TextColumn get machineId => text().named('MachineId').nullable()(); // NEW: Add this field and map int to String
 
   // @ColumnInfo(name = "tagName") var tagName: String? = null
   TextColumn get tagName => text().named('tagName').nullable()();
@@ -20,7 +22,7 @@ class JobTags extends Table {
   TextColumn get tagType => text().named('tagType').nullable()();
 
   // @ColumnInfo(name = "tagGroupId") var tagGroupId: String? = null
-  TextColumn get tagGroupId => text().named('tagGroupId').nullable()();
+  TextColumn get tagGroupId => text().named('TagGroupId').nullable()(); // NEW: Will map int to String
 
   // @ColumnInfo(name = "TagGroupName") var tagGroupName: String? = null
   TextColumn get tagGroupName => text().named('TagGroupName').nullable()();
@@ -32,10 +34,10 @@ class JobTags extends Table {
   TextColumn get specification => text().named('specification').nullable()();
 
   // @ColumnInfo(name = "specMin") var specMin : String? = null
-  TextColumn get specMin => text().named('specMin').nullable()();
+  TextColumn get specMin => text().named('SpecMin').nullable()(); // NEW: Will map double to String
 
   // @ColumnInfo(name = "specMax") var specMax : String? = null
-  TextColumn get specMax => text().named('specMax').nullable()();
+  TextColumn get specMax => text().named('SpecMax').nullable()(); // NEW: Will map double to String
 
   // @ColumnInfo(name = "unit") var unit: String? = null
   TextColumn get unit => text().named('unit').nullable()();
@@ -48,4 +50,13 @@ class JobTags extends Table {
 
   // @ColumnInfo(name = "lastSync") var lastSync: String? = null
   TextColumn get lastSync => text().named('lastSync').nullable()();
+
+   // NEW: Add fields from API response
+  TextColumn get note => text().named('Note').nullable()();
+  TextColumn get value => text().named('Value').nullable()(); // API has 'Value' as null
+  TextColumn get remark => text().named('Remark').nullable()();
+  TextColumn get createDate => text().named('CreateDate').nullable()();
+  TextColumn get createBy => text().named('CreateBy').nullable()();
+  TextColumn get valueType => text().named('ValueType').nullable()(); // API has 'ValueType'
+  TextColumn get tagSelectionValue => text().named('TagSelectionValue').nullable()(); // API has 'TagSelectionValue'
 }
