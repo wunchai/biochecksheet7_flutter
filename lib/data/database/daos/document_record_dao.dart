@@ -21,8 +21,17 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase> with _$DocumentRec
     });
   }
 
+// NEW: Method to get a single document record by its local UID
+  Future<DbDocumentRecord?> getDocumentRecordByUid(int uid) {
+    return (select(documentRecords)..where((tbl) => tbl.uid.equals(uid))).getSingleOrNull();
+  }
+  
   // Equivalent to suspend fun getDocumentRecord(documentId: String, machineId: String, tagId: String): DbDocumentRecord?
-  Future<DbDocumentRecord?> getDocumentRecord(String documentId, String machineId, String tagId) {
+   Future<DbDocumentRecord?> getDocumentRecord({ // <<< เพิ่ม { } ตรงนี้
+    required String documentId,
+    required String machineId,
+    required String tagId,
+  }) {
     return (select(documentRecords)
           ..where((tbl) =>
               tbl.documentId.equals(documentId) &

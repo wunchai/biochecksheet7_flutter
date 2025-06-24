@@ -3,45 +3,42 @@ import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/network/user_api_service.dart';
 import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart';
 import 'package:biochecksheet7_flutter/data/models/login_result.dart';
-// Removed: import 'package:biochecksheet7_flutter/data/database/tables/user_table.dart'; // No longer directly needed
 import 'package:biochecksheet7_flutter/data/database/daos/user_dao.dart';
-import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // เพิ่ม import SyncStatus
+import 'package:biochecksheet7_flutter/data/network/sync_status.dart';
 import 'package:drift/drift.dart';
 
 class LoginRepository {
   final UserApiService _userApiService;
-  final UserDao _userDao; // Now it's a direct UserDao, not Future<UserDao>
+  final UserDao _userDao;
 
   LoggedInUser? _user;
 
+  // CRUCIAL ADDITION: Public getter for the logged-in user
+  LoggedInUser? get loggedInUser => _user; // <<< เพิ่มบรรทัดนี้
+
   bool get isLoggedIn => _user != null;
 
-  // Constructor now takes resolved AppDatabase instance
   LoginRepository._internal({
     required UserApiService userApiService,
-    required AppDatabase appDatabase, // <<< Change to AppDatabase
+    required AppDatabase appDatabase,
   })  : _userApiService = userApiService,
-        _userDao = appDatabase.userDao; // Access dao directly from appDatabase
+        _userDao = appDatabase.userDao;
 
-  // Singleton instance now needs an async initializer
-  static LoginRepository? _instance; // Make nullable
+  static LoginRepository? _instance;
   factory LoginRepository() {
-    // This factory should only be called after AppDatabase.instance is resolved.
-    // Or, pass AppDatabase instance during main app initialization.
-    // For simplicity with current setup, we assume AppDatabase.instance is ready.
     if (_instance == null) {
-      throw Exception(
-          "LoginRepository must be initialized after AppDatabase is ready.");
+      throw Exception("LoginRepository must be initialized after AppDatabase is ready.");
     }
     return _instance!;
   }
 
-  // NEW static async initializer for AppDatabase and LoginRepository
   static Future<void> initialize(AppDatabase appDatabase) async {
     _instance = LoginRepository._internal(
       userApiService: UserApiService(),
-      appDatabase: appDatabase, // Pass the resolved AppDatabase
+      appDatabase: appDatabase,
     );
+    // After initialization, attempt to load user from local storage
+    await _instance!.getLoggedInUserFromLocal();
   }
 
   Future<void> logout() async {
@@ -64,8 +61,7 @@ class LoginRepository {
         );
         return LoginSuccess(_user!);
       } else {
-        return const LoginFailed(
-            "Invalid username or password. Please sync user data first.");
+        return const LoginFailed("Invalid username or password. Please sync user data first.");
       }
     } catch (e) {
       return LoginError(Exception("Login repository error: $e"));
@@ -77,7 +73,7 @@ class LoginRepository {
       final List<LoggedInUser> syncedUsers = await _userApiService.syncUsers();
 
       await _userDao.deleteAllUsers();
-
+      
       final List<UsersCompanion> usersToInsert = syncedUsers.map((user) {
         return UsersCompanion(
           userId: Value(user.userId),

@@ -85,8 +85,8 @@ class DataSyncService {
     try {
       await _syncUsersData();
       await _syncJobsData();
-      await syncDocumentsData();
-      await _syncJobMachinesData();
+      //await syncDocumentsData();
+      await syncJobMachinesData();
       await _syncJobTagsData();
       //await _syncProblemsData();
       //await _syncMetadataData(); // Added the call for sync metadata
@@ -131,11 +131,13 @@ class DataSyncService {
     await _jobDao.insertAllJobs(jobsToInsert);
   }
 
-  Future<void> _syncJobMachinesData() async {
-    final machines = await _jobMachineApiService.syncJobMachines();
+  Future<void> syncJobMachinesData() async {
+    final machines = await _jobMachineApiService.syncJobMachines(); // This returns List<DbDocumentMachine>
     await _documentMachineDao.deleteAllDocumentMachines();
     final machinesToInsert = machines.map((machine) {
-      return DocumentMachinesCompanion(
+      return DocumentMachinesCompanion( // This is the companion object being built
+        // CRITICAL FIX: Map 'id', 'createDate', 'createBy'
+        id: drift.Value(machine.id), // <<< Map 'id' (int)
         jobId: drift.Value(machine.jobId),
         documentId: drift.Value(machine.documentId),
         machineId: drift.Value(machine.machineId),
@@ -145,6 +147,8 @@ class DataSyncService {
         specification: drift.Value(machine.specification),
         status: drift.Value(machine.status),
         lastSync: drift.Value(DateTime.now().toIso8601String()),
+        createDate: drift.Value(machine.createDate), // <<< Map 'createDate'
+        createBy: drift.Value(machine.createBy),     // <<< Map 'createBy'
       );
     }).toList();
     await _documentMachineDao.insertAllDocumentMachines(machinesToInsert);
@@ -154,24 +158,48 @@ class DataSyncService {
     final tags = await _jobTagApiService.syncJobTags();
     await _jobTagDao.deleteAllJobTags();
     final tagsToInsert = tags.map((tag) {
-      return JobTagsCompanion(
-        tagId: drift.Value(tag.tagId),
-        jobId: drift.Value(tag.jobId),
-        tagName: drift.Value(tag.tagName),
-        tagType: drift.Value(tag.tagType),
-        tagGroupId: drift.Value(tag.tagGroupId),
-        tagGroupName: drift.Value(tag.tagGroupName),
-        description: drift.Value(tag.description),
-        specification: drift.Value(tag.specification),
-        specMin: drift.Value(tag.specMin),
-        specMax: drift.Value(tag.specMax),
-        unit: drift.Value(tag.unit),
-        queryStr: drift.Value(tag.queryStr),
-        status: drift.Value(tag.status),
-        lastSync: drift.Value(DateTime.now().toIso8601String()),
-      );
-    }).toList();
-    await _jobTagDao.insertAllJobTags(tagsToInsert);
+
+    print('Processing DbJobTag for insertion:');
+    print('  TagId: ${tag.tagId} (Type: ${tag.tagId.runtimeType})');
+    print('  JobId: ${tag.jobId} (Type: ${tag.jobId.runtimeType})');
+    print('  MachineId: ${tag.machineId} (Type: ${tag.machineId.runtimeType})');
+    print('  TagGroupId: ${tag.tagGroupId} (Type: ${tag.tagGroupId.runtimeType})');
+    print('  SpecMin: ${tag.specMin} (Type: ${tag.specMin.runtimeType})');
+    print('  SpecMax: ${tag.specMax} (Type: ${tag.specMax.runtimeType})');
+    print('  Status: ${tag.status} (Type: ${tag.status.runtimeType})');
+    print('  Value: ${tag.value} (Type: ${tag.value.runtimeType})');
+    print('  Remark: ${tag.remark} (Type: ${tag.remark.runtimeType})');
+    print('----------------------------------------');
+
+
+        return JobTagsCompanion(
+      uid: drift.Value.absent(), // uid is auto-increment, so Value.absent() is correct
+      tagId: drift.Value(tag.tagId), // Should be String
+      jobId: drift.Value(tag.jobId), // Should be String
+      machineId: drift.Value(tag.machineId), // Should be String
+      tagName: drift.Value(tag.tagName),
+      tagType: drift.Value(tag.tagType),
+      tagGroupId: drift.Value(tag.tagGroupId), // Should be String
+      tagGroupName: drift.Value(tag.tagGroupName),
+      description: drift.Value(tag.description),
+      specification: drift.Value(tag.specification),
+      specMin: drift.Value(tag.specMin), // Should be String
+      specMax: drift.Value(tag.specMax), // Should be String
+      unit: drift.Value(tag.unit),
+      queryStr: drift.Value(tag.queryStr),
+      status: drift.Value(tag.status), // Should be int
+      lastSync: drift.Value(tag.lastSync), // Should be String
+      note: drift.Value(tag.note),
+      value: drift.Value(tag.value), // Should be String
+      remark: drift.Value(tag.remark),
+      createDate: drift.Value(tag.createDate),
+      createBy: drift.Value(tag.createBy),
+      valueType: drift.Value(tag.valueType),
+      tagSelectionValue: drift.Value(tag.tagSelectionValue),
+    );
+  }).toList();
+  await _jobTagDao.insertAllJobTags(tagsToInsert);
+  print('Successfully inserted ${tagsToInsert.length} JobTags into DB.'); // Confirmation log
   }
 
   Future<void> _syncProblemsData() async {

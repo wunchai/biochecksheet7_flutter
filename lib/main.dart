@@ -25,7 +25,13 @@ import 'package:biochecksheet7_flutter/ui/notifications/notifications_screen.dar
 import 'package:biochecksheet7_flutter/ui/document/document_viewmodel.dart'; // <<< Import ViewModel
 import 'package:biochecksheet7_flutter/ui/document/document_screen.dart'; // <<< Import Screen
 
+// Import DocumentMachine components
+import 'package:biochecksheet7_flutter/ui/documentmachine/document_machine_viewmodel.dart'; // <<< Import ViewModel
+import 'package:biochecksheet7_flutter/ui/documentmachine/document_machine_screen.dart'; // <<< Import Screen
 
+// Import DocumentRecord components
+import 'package:biochecksheet7_flutter/ui/documentrecord/document_record_viewmodel.dart'; // <<< Import ViewModel
+import 'package:biochecksheet7_flutter/ui/documentrecord/document_record_screen.dart'; // Already imported, just for context
 // Import MainWrapperScreen
 import 'package:biochecksheet7_flutter/ui/main_wrapper/main_wrapper_screen.dart'; // <<< Import MainWrapperScreen
 
@@ -53,7 +59,9 @@ Future<void> main() async {
             create: (_) => HomeViewModel(appDatabase: db)), // Pass appDatabase
         ChangeNotifierProvider(create: (_) => DashboardViewModel()), // <<< Add DashboardViewModel
         ChangeNotifierProvider(create: (_) => NotificationsViewModel()), // <<< Add NotificationsViewModel
-         ChangeNotifierProvider(create: (_) => DocumentViewModel(appDatabase: db)), // <<< Add DocumentViewModel
+        ChangeNotifierProvider(create: (_) => DocumentViewModel(appDatabase: db)), // <<< Add DocumentViewModel
+        ChangeNotifierProvider(create: (_) => DocumentMachineViewModel(appDatabase: db)), // <<< Add DocumentMachineViewModel
+        ChangeNotifierProvider(create: (_) => DocumentRecordViewModel(appDatabase: db)), // <<< Add DocumentRecordViewModel
       ],
       child: MyApp(
         initialRoute: loginRepository.isLoggedIn ? '/main_wrapper' : '/login', // <<< เปลี่ยน initialRoute
@@ -85,6 +93,23 @@ class MyApp extends StatelessWidget {
         '/notifications': (context) =>
             const PlaceholderScreen(title: 'Notifications Screen'),
         '/document': (context) => const DocumentScreen(title: 'Document Screen'), // <<< Add Document Screen Route
+        '/document_machine': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          return DocumentMachineScreen(
+            title: args?['title'] ?? 'Machines',
+            jobId: args?['jobId'] ?? '',
+            documentId: args?['documentId'] ?? '',
+          );
+        },
+        '/document_record': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          return DocumentRecordScreen(
+            title: args?['title'] ?? 'Document Record',
+            documentId: args?['documentId'] ?? '',
+            machineId: args?['machineId'] ?? '',
+            jobId: args?['jobId'] ?? '',
+          );
+        },
       },
     );
   }

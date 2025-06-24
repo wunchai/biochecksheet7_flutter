@@ -1,0 +1,153 @@
+// lib/data/repositories/document_record_repository.dart
+import 'package:biochecksheet7_flutter/data/database/app_database.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
+import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart';
+import 'package:drift/drift.dart' as drift; // Alias drift
+
+// NEW: Import for JobTag and Problem
+import 'package:biochecksheet7_flutter/data/database/daos/job_tag_dao.dart'; // For JobTagDao
+import 'package:biochecksheet7_flutter/data/database/daos/problem_dao.dart'; // For ProblemDao
+import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart'; // For DbJobTag
+import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart'; // For DbProblem
+
+
+
+// TODO: หากมี API Service สำหรับ Record (DbDocumentRecordCode.kt) ให้สร้างและ Import ที่นี่
+// import 'package:biochecksheet7_flutter/data/network/document_record_api_service.dart';
+
+/// Repository for managing document records.
+/// This class abstracts data operations for records from UI/ViewModels.
+class DocumentRecordRepository {
+  final DocumentRecordDao _documentRecordDao;
+  final JobTagDao _jobTagDao; // NEW
+  final ProblemDao _problemDao; // NEW
+  // TODO: หากมี DocumentRecordApiService ก็เพิ่มที่นี่
+  // final DocumentRecordApiService _documentRecordApiService;
+
+  DocumentRecordRepository({required AppDatabase appDatabase})
+      : _documentRecordDao = appDatabase.documentRecordDao,
+        _jobTagDao = appDatabase.jobTagDao, // NEW
+        _problemDao = appDatabase.problemDao; // NEW
+        // _documentRecordApiService = documentRecordApiService ?? DocumentRecordApiService(); // หากมี API
+
+  /// Loads document records for a specific document and machine,
+  /// joined with their corresponding job tags and problems.
+  /// This provides data for the DocumentRecordScreen.
+  Stream<List<DocumentRecordWithTagAndProblem>> loadRecordsForDocumentMachine({
+    required String documentId,
+    required String machineId,
+  }) {
+    // Uses the join query defined in DocumentRecordDao.
+    return _documentRecordDao.getDocumentRecordsList(documentId, machineId);
+  }
+
+/// NEW: Initializes document records from job tags if they don't exist yet.
+  /// Equivalent to DbDocumentRecordCode.initFirstRun
+  Future<void> initializeRecordsFromJobTags({
+    required String jobId,
+    required String documentId,
+    required String machineId,
+  }) async {
+    try {
+      // 1. Get relevant job tags for this jobId and machineId
+      final List<DbJobTag> jobTags = await _jobTagDao.getJobTagsByJobAndMachine(jobId, machineId); // Assuming you add this method to JobTagDao
+
+      if (jobTags.isEmpty) {
+        print('No job tags found for Job ID: $jobId, Machine ID: $machineId. Cannot initialize records.');
+        return; // No tags to create records from
+      }
+
+      // 2. For each job tag, check if a corresponding DbDocumentRecord exists
+      for (final jobTag in jobTags) {
+        final existingRecord = await _documentRecordDao.getDocumentRecord(
+          documentId: documentId, // <<< แก้ไขตรงนี้
+          machineId: machineId, // <<< แก้ไขตรงนี้
+          tagId: jobTag.tagId ?? '', // <<< แก้ไขตรงนี้
+        );
+
+        if (existingRecord == null) {
+          // 3. If no record exists, create a new DbDocumentRecord based on the JobTag
+          final newRecordEntry = DocumentRecordsCompanion(
+            documentId: drift.Value(documentId),
+            machineId: drift.Value(machineId),
+            jobId: drift.Value(jobId), // Record is tied to the job too
+            tagId: drift.Value(jobTag.tagId),
+            tagName: drift.Value(jobTag.tagName),
+            tagType: drift.Value(jobTag.tagType),
+            tagGroupId: drift.Value(jobTag.tagGroupId),
+            tagGroupName: drift.Value(jobTag.tagGroupName),
+            tagSelectionValue: drift.Value(jobTag.tagSelectionValue),
+            description: drift.Value(jobTag.description),
+            specification: drift.Value(jobTag.specification),
+            specMin: drift.Value(jobTag.specMin),
+            specMax: drift.Value(jobTag.specMax),
+            unit: drift.Value(jobTag.unit),
+            queryStr: drift.Value(jobTag.queryStr),
+            status: drift.Value(jobTag.status), // Default status from tag
+            value: const drift.Value(''), // Default empty value
+            remark: const drift.Value(''), // Default empty remark
+            unReadable: const drift.Value('false'),
+            lastSync: drift.Value(DateTime.now().toIso8601String()),
+          );
+          await _documentRecordDao.insertDocumentRecord(newRecordEntry);
+          print('Created new record for Tag ID: ${jobTag.tagId}');
+        }
+      }
+      print('Records initialization complete for Doc: $documentId, Machine: $machineId');
+    } catch (e) {
+      print('Error initializing records from JobTags: $e');
+      throw Exception('Failed to initialize records: $e');
+    }
+  }
+  
+  /// Updates the 'value' and 'remark' of a specific document record locally.
+  /// Equivalent to updating a record in DbDocumentRecord.
+  Future<bool> updateRecordValue({
+    required int uid, // Local unique ID of the record
+    required String? newValue,
+    required String? newRemark,
+  }) async {
+    try {
+      final existingRecord = await _documentRecordDao.getDocumentRecordByUid(uid);
+      if (existingRecord == null) {
+        throw Exception("Record with UID $uid not found for update.");
+      }
+
+      final updatedEntry = existingRecord.copyWith(
+        value: drift.Value(newValue), // <<< แก้ไขตรงนี้: ห่อด้วย drift.Value()
+        remark: drift.Value(newRemark), // <<< แก้ไขตรงนี้: ห่อด้วย drift.Value()
+        lastSync: drift.Value(DateTime.now().toIso8601String()), // Update lastSync timestamp
+      );
+
+      final success = await _documentRecordDao.updateDocumentRecord(updatedEntry);
+      // TODO: หากมี API สำหรับ Sync การอัปเดตขึ้น Server, ให้เรียกใช้ที่นี่
+      // await _documentRecordApiService.uploadRecordUpdate(updatedEntry);
+      print('Record UID $uid updated: Value=$newValue, Remark=$newRemark');
+      return success;
+    } catch (e) {
+      print('Error updating record UID $uid: $e');
+      throw Exception('Failed to update record: $e');
+    }
+  }
+
+  /// Deletes a specific document record locally.
+  /// Equivalent to deleting a record in DbDocumentRecord.
+  Future<void> deleteRecord({
+    required int uid,
+  }) async {
+    try {
+      final recordToDelete = await _documentRecordDao.getDocumentRecordByUid(uid);
+      if (recordToDelete == null) {
+        throw Exception('Record with UID $uid not found for deletion.');
+      }
+
+      await _documentRecordDao.deleteDocumentRecord(recordToDelete);
+      // TODO: หากมี API สำหรับ Sync การลบ record ขึ้น Server, ให้เรียกใช้ที่นี่
+      // await _documentRecordApiService.deleteRecordOnServer(recordToDelete.documentId, recordToDelete.machineId, recordToDelete.tagId);
+      print('Record UID $uid deleted.');
+    } catch (e) {
+      print('Error deleting record UID $uid: $e');
+      throw Exception('Failed to delete record: $e');
+    }
+  }
+}

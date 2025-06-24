@@ -26,6 +26,13 @@ class JobTagDao extends DatabaseAccessor<AppDatabase> with _$JobTagDaoMixin {
         .getSingleOrNull();
   }
 
+  // NEW: Method to get JobTags filtered by JobId and MachineId
+  Future<List<DbJobTag>> getJobTagsByJobAndMachine(String jobId, String machineId) {
+    return (select(jobTags)
+          ..where((tbl) => tbl.jobId.equals(jobId) & tbl.machineId.equals(machineId)))
+        .get();
+  }
+
   // Equivalent to suspend fun getAllJobTag(): List<DbJobTag>
   Stream<List<DbJobTag>> watchAllJobTags() => select(jobTags).watch();
   Future<List<DbJobTag>> getAllJobTags() => select(jobTags).get();
