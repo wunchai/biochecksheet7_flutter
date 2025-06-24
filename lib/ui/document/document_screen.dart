@@ -2,14 +2,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/ui/document/document_viewmodel.dart';
+import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // สำหรับ DbJob
 import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // For DbDocument
-import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 
 /// Equivalent to DocumentActivity.kt in the original Kotlin project.
 /// This screen displays a list of documents, managed by DocumentViewModel.
 class DocumentScreen extends StatefulWidget {
   final String title; // Title for the app bar.
-  final String? jobId; // Optional: Pass jobId to filter documents associated with a specific job.
+  final String?
+      jobId; // Optional: Pass jobId to filter documents associated with a specific job.
 
   const DocumentScreen({super.key, required this.title, this.jobId});
 
@@ -26,7 +27,8 @@ class _DocumentScreenState extends State<DocumentScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Access the DocumentViewModel and trigger data loading, passing the jobId if available.
       // listen: false because we are only calling a method, not listening for rebuilds here.
-      Provider.of<DocumentViewModel>(context, listen: false).loadDocuments(widget.jobId);
+      Provider.of<DocumentViewModel>(context, listen: false)
+          .loadDocuments(widget.jobId);
     });
   }
 
@@ -34,14 +36,16 @@ class _DocumentScreenState extends State<DocumentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title), // Display the screen title from widget property.
+        title: Text(
+            widget.title), // Display the screen title from widget property.
         actions: [
           // Refresh button in the AppBar.
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
               // Trigger a data refresh when the refresh button is pressed.
-              Provider.of<DocumentViewModel>(context, listen: false).refreshDocuments();
+              Provider.of<DocumentViewModel>(context, listen: false)
+                  .refreshDocuments();
             },
           ),
           // TODO: Add a search icon here if search functionality is implemented for documents.
@@ -59,6 +63,17 @@ class _DocumentScreenState extends State<DocumentScreen> {
       body: Consumer<DocumentViewModel>(
         // Consumer widget listens to changes in DocumentViewModel and rebuilds its builder.
         builder: (context, viewModel, child) {
+          // Show SnackBar for sync messages from DocumentViewModel
+          if (viewModel.syncMessage != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(viewModel.syncMessage!)),
+              );
+              viewModel.syncMessage =
+                  null; // Clear message after showing to prevent repeat
+            });
+          }
+
           return Stack(
             // Stack allows placing widgets on top of each other, used here for the loading overlay.
             children: [
@@ -66,10 +81,14 @@ class _DocumentScreenState extends State<DocumentScreen> {
                 // Main column to arrange UI elements vertically.
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(16.0), // Padding around the status message text.
+                    padding: const EdgeInsets.all(
+                        16.0), // Padding around the status message text.
                     child: Text(
-                      viewModel.statusMessage, // Display a status message from the ViewModel.
-                      style: Theme.of(context).textTheme.headlineSmall, // Apply a heading style.
+                      viewModel
+                          .statusMessage, // Display a status message from the ViewModel.
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall, // Apply a heading style.
                       textAlign: TextAlign.center, // Center-align the text.
                     ),
                   ),
@@ -81,31 +100,43 @@ class _DocumentScreenState extends State<DocumentScreen> {
                       builder: (context, snapshot) {
                         if (viewModel.isLoading && !snapshot.hasData) {
                           // Show a circular progress indicator if data is initially loading.
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                              child: CircularProgressIndicator());
                         } else if (snapshot.hasError) {
                           // Displays an error message if the stream encounters an error.
-                          return Center(child: Text('Error: ${snapshot.error}'));
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(
+                              child: Text('Error: ${snapshot.error}'));
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
                           // Displays a message if no document data is available.
-                          return const Center(child: Text('No documents found.'));
+                          return const Center(
+                              child: Text('No documents found.'));
                         } else {
                           // If data is available, build the list of documents.
                           final documents = snapshot.data!;
                           return ListView.builder(
-                            itemCount: documents.length, // Number of documents in the list.
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0), // Padding for the entire list.
+                            itemCount: documents
+                                .length, // Number of documents in the list.
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0), // Padding for the entire list.
                             itemBuilder: (context, index) {
-                              final document = documents[index]; // Get the current document item.
+                              final document = documents[
+                                  index]; // Get the current document item.
                               // Each document is displayed as a Card, conceptually similar to document_fragment_item.xml.
                               return Card(
-                                margin: const EdgeInsets.symmetric(vertical: 8.0), // Vertical margin between cards.
-                                elevation: 4.0, // Adds a shadow effect to the card.
+                                margin: const EdgeInsets.symmetric(
+                                    vertical:
+                                        8.0), // Vertical margin between cards.
+                                elevation:
+                                    4.0, // Adds a shadow effect to the card.
                                 child: InkWell(
                                   // InkWell provides a visual ripple effect when the card is tapped.
                                   onTap: () {
                                     // TODO: Implement navigation to DocumentRecordScreen for this document.
                                     // You would typically pass the document's ID or relevant data to the next screen.
-                                    print('Document Tapped: ${document.documentName}');
+                                    print(
+                                        'Document Tapped: ${document.documentName}');
                                     // Example Navigation:
                                     // Navigator.push(
                                     //   context,
@@ -115,20 +146,50 @@ class _DocumentScreenState extends State<DocumentScreen> {
                                     // );
                                   },
                                   child: Padding(
-                                    padding: const EdgeInsets.all(16.0), // Internal padding of the card content.
+                                    padding: const EdgeInsets.all(
+                                        16.0), // Internal padding of the card content.
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start, // Align text to the start (left).
+                                      crossAxisAlignment: CrossAxisAlignment
+                                          .start, // Align text to the start (left).
                                       children: [
                                         Text(
-                                          document.documentName ?? 'N/A', // Display document name.
-                                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold), // Bold title.
+                                          document.documentName ??
+                                              'N/A', // Display document name.
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                  fontWeight: FontWeight
+                                                      .bold), // Bold title.
                                         ),
-                                        const SizedBox(height: 4.0), // Small vertical space.
-                                        Text('Document ID: ${document.documentId ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall), // Display document ID.
-                                        Text('Job ID: ${document.jobId ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall), // Display associated job ID.
-                                        Text('User ID: ${document.userId ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall), // Display user who created/modified.
-                                        Text('Create Date: ${document.createDate ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall), // Display creation date.
-                                        Text('Status: ${document.status ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall), // Display document status.
+                                        const SizedBox(
+                                            height:
+                                                4.0), // Small vertical space.
+                                        Text(
+                                            'Document ID: ${document.documentId ?? 'N/A'}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall), // Display document ID.
+                                        Text(
+                                            'Job ID: ${document.jobId ?? 'N/A'}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall), // Display associated job ID.
+                                        Text(
+                                            'User ID: ${document.userId ?? 'N/A'}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall), // Display user who created/modified.
+                                        Text(
+                                            'Create Date: ${document.createDate ?? 'N/A'}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall), // Display creation date.
+                                        Text(
+                                            'Status: ${document.status ?? 'N/A'}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall), // Display document status.
                                       ],
                                     ),
                                   ),
@@ -145,9 +206,11 @@ class _DocumentScreenState extends State<DocumentScreen> {
               // Loading overlay that appears on top of the content when isLoading is true.
               if (viewModel.isLoading)
                 Container(
-                  color: Colors.black.withOpacity(0.5), // Semi-transparent black background.
+                  color: Colors.black
+                      .withOpacity(0.5), // Semi-transparent black background.
                   alignment: Alignment.center, // Centers the loading spinner.
-                  child: const CircularProgressIndicator(), // The actual loading spinner.
+                  child:
+                      const CircularProgressIndicator(), // The actual loading spinner.
                 ),
             ],
           );

@@ -9,6 +9,7 @@ import 'package:biochecksheet7_flutter/data/network/job_machine_api_service.dart
 import 'package:biochecksheet7_flutter/data/network/job_tag_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/problem_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/sync_metadata_api_service.dart';
+import 'package:biochecksheet7_flutter/data/network/document_api_service.dart'; // <<< เพิ่ม import นี้
 
 // Import all DAOs
 import 'package:biochecksheet7_flutter/data/database/daos/user_dao.dart';
@@ -17,6 +18,7 @@ import 'package:biochecksheet7_flutter/data/database/daos/document_machine_dao.d
 import 'package:biochecksheet7_flutter/data/database/daos/job_tag_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/problem_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/sync_dao.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart'; // <<< เพิ่ม import นี้
 
 // Import table companions for insertion
 import 'package:biochecksheet7_flutter/data/database/tables/user_table.dart';
@@ -25,6 +27,7 @@ import 'package:biochecksheet7_flutter/data/database/tables/document_machine_tab
 import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/sync_table.dart';
+import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // <<< เพิ่ม import นี้
 import 'package:drift/drift.dart' as drift;
 
 class DataSyncService {
@@ -35,6 +38,7 @@ class DataSyncService {
   final JobTagApiService _jobTagApiService;
   final ProblemApiService _problemApiService;
   final SyncMetadataApiService _syncMetadataApiService;
+  final DocumentApiService _documentApiService; // <<< เพิ่ม Dependency
 
   // DAOs (now direct instances)
   final UserDao _userDao;
@@ -43,6 +47,7 @@ class DataSyncService {
   final JobTagDao _jobTagDao;
   final ProblemDao _problemDao;
   final SyncDao _syncDao;
+  final DocumentDao _documentDao; // <<< เพิ่ม Dependency นี้
 
   // Constructor now takes a resolved AppDatabase instance
   DataSyncService({
@@ -53,6 +58,7 @@ class DataSyncService {
     JobTagApiService? jobTagApiService,
     ProblemApiService? problemApiService,
     SyncMetadataApiService? syncMetadataApiService,
+    DocumentApiService? documentApiService,
   })  : _userApiService = userApiService ?? UserApiService(),
         _jobApiService = jobApiService ?? JobApiService(),
         _jobMachineApiService = jobMachineApiService ?? JobMachineApiService(),
@@ -60,13 +66,16 @@ class DataSyncService {
         _problemApiService = problemApiService ?? ProblemApiService(),
         _syncMetadataApiService =
             syncMetadataApiService ?? SyncMetadataApiService(),
+        _documentApiService =
+            documentApiService ?? DocumentApiService(), // <<< สร้าง instance
         _userDao = appDatabase.userDao, // Access dao directly
         _jobDao = appDatabase.jobDao, // Access dao directly
         _documentMachineDao =
             appDatabase.documentMachineDao, // Access dao directly
         _jobTagDao = appDatabase.jobTagDao, // Access dao directly
         _problemDao = appDatabase.problemDao, // Access dao directly
-        _syncDao = appDatabase.syncDao; // Access dao directly
+        _syncDao = appDatabase.syncDao, // Access dao directly
+        _documentDao = appDatabase.documentDao; // <<< สร้าง instance
 
   // Removed old unused imports for tables as they are handled by DAO imports now
   // Removed unused methods (`_syncJobMachinesData`, `_syncJobTagsData`, `_syncProblemsData`, `_syncMetadataData`)
@@ -74,9 +83,10 @@ class DataSyncService {
 
   Future<SyncStatus> performFullSync() async {
     try {
-      //await _syncUsersData();
-      //await _syncJobsData();
-      //await _syncJobMachinesData();
+      await _syncUsersData();
+      await _syncJobsData();
+      await syncDocumentsData();
+      await _syncJobMachinesData();
       await _syncJobTagsData();
       //await _syncProblemsData();
       //await _syncMetadataData(); // Added the call for sync metadata
@@ -192,5 +202,24 @@ class DataSyncService {
       );
     }).toList();
     await _syncDao.insertAllSyncs(syncsToInsert);
+  }
+
+  // NEW: Public method for Document sync (removed underscore)
+  Future<void> syncDocumentsData() async {
+    // <<< เปลี่ยนชื่อเมธอด (ลบ _ ออก)
+    final documents = await _documentApiService.syncDocuments();
+    await _documentDao.deleteAllDocuments();
+    final documentsToInsert = documents.map((doc) {
+      return DocumentsCompanion(
+        documentId: drift.Value(doc.documentId),
+        jobId: drift.Value(doc.jobId),
+        documentName: drift.Value(doc.documentName),
+        userId: drift.Value(doc.userId),
+        createDate: drift.Value(doc.createDate),
+        status: drift.Value(doc.status),
+        lastSync: drift.Value(DateTime.now().toIso8601String()),
+      );
+    }).toList();
+    await _documentDao.insertAllDocuments(documentsToInsert);
   }
 }

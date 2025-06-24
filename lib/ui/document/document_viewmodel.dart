@@ -1,46 +1,49 @@
 // lib/ui/document/document_viewmodel.dart
 import 'package:flutter/material.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // สำหรับ DbDocument
-import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart'; // สำหรับ DocumentDao
+import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart';
+import 'package:biochecksheet7_flutter/data/services/data_sync_service.dart';
+import 'package:biochecksheet7_flutter/data/network/sync_status.dart';
 
-
-/// Equivalent to DocumentViewModel.kt
 class DocumentViewModel extends ChangeNotifier {
   final DocumentDao _documentDao;
+  final DataSyncService _dataSyncService;
 
-  // ตัวแปรสำหรับเก็บ jobId ที่ส่งเข้ามา (ถ้ามี)
   String? _jobId;
   String? get jobId => _jobId;
 
-  // Stream สำหรับรายการเอกสาร
   Stream<List<DbDocument>>? _documentsStream;
   Stream<List<DbDocument>>? get documentsStream => _documentsStream;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  // สามารถเพิ่มข้อความแสดงสถานะได้เหมือน ViewModel อื่นๆ
   String _statusMessage = "Loading documents...";
   String get statusMessage => _statusMessage;
 
-  DocumentViewModel({required AppDatabase appDatabase})
-      : _documentDao = appDatabase.documentDao;
+  String? _syncMessage;
+  String? get syncMessage => _syncMessage;
+  set syncMessage(String? value) {
+    _syncMessage = value;
+    notifyListeners();
+  }
 
-  // เมธอดสำหรับโหลดเอกสาร
+  DocumentViewModel({required AppDatabase appDatabase})
+      : _documentDao = appDatabase.documentDao,
+        _dataSyncService = DataSyncService(appDatabase: appDatabase);
+
   Future<void> loadDocuments(String? jobId) async {
     _isLoading = true;
-    _jobId = jobId; // เก็บ jobId ไว้
+    _jobId = jobId;
     _statusMessage = "Fetching documents...";
     notifyListeners();
 
     try {
       if (jobId != null && jobId.isNotEmpty) {
-        // หากมี jobId ให้ดึงเอกสารตาม jobId
-        _documentsStream = _documentDao.watchDocumentsByJobId(jobId); // <<< แก้ไขตรงนี้
+        _documentsStream = _documentDao.watchDocumentsByJobId(jobId);
         _statusMessage = "Documents for Job ID: $jobId loaded.";
       } else {
-        // หากไม่มี jobId ให้ดึงเอกสารทั้งหมด
         _documentsStream = _documentDao.watchAllDocuments();
         _statusMessage = "All documents loaded.";
       }
@@ -53,19 +56,28 @@ class DocumentViewModel extends ChangeNotifier {
     }
   }
 
-  // เมธอดสำหรับ Refresh
-  void refreshDocuments() {
-    _statusMessage = "Refreshing documents...";
-    loadDocuments(_jobId); // โหลดเอกสารใหม่ด้วย jobId เดิม
-  }
-
-  // TODO: เพิ่มเมธอดสำหรับค้นหา/ฟิลเตอร์เอกสาร หากมี UI สำหรับการค้นหา
-  /*
-  void searchDocuments(String query) {
-    // Implement search logic here, re-filter _documentsStream
-    // e.g., _documentsStream = _documentDao.searchDocuments(query).watch();
-    _statusMessage = "Searching for: $query";
+  Future<void> refreshDocuments() async {
+    _isLoading = true;
+    _syncMessage = "Syncing document data...";
+    _statusMessage = "Syncing document data...";
     notifyListeners();
+
+    try {
+      final result =
+          await _dataSyncService.syncDocumentsData(); // <<< เรียก public method
+
+      // Note: syncDocumentsData returns Future<void>, not SyncStatus directly
+      // So, handle based on success/failure of the Future itself, not SyncStatus.
+      // If any exception occurs in syncDocumentsData, it will be caught by the catch block.
+      _syncMessage = "Document data synced successfully!";
+      _statusMessage = "Document data synced successfully!";
+      await loadDocuments(_jobId); // Reload from local DB after sync
+    } on Exception catch (e) {
+      _syncMessage = "An unexpected error occurred during document sync: $e";
+      _statusMessage = "An unexpected error occurred during document sync: $e";
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
-  */
 }
