@@ -11,8 +11,7 @@ import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart';
 import 'package:biochecksheet7_flutter/ui/documentrecord/inputs/record_text_input.dart';
 import 'package:biochecksheet7_flutter/ui/documentrecord/inputs/record_number_input.dart';
 import 'package:biochecksheet7_flutter/ui/documentrecord/inputs/record_combobox_input.dart';
-import 'package:biochecksheet7_flutter/ui/documentrecord/inputs/record_problem_input.dart';
-
+import 'package:biochecksheet7_flutter/ui/documentrecord/widgets/record_detail_dialog.dart'; // <<< เพิ่ม import นี้
 
 /// หน้าจอนี้แสดงรายการบันทึกสำหรับเอกสารและเครื่องจักรที่ระบุ
 /// เทียบเท่ากับ DocumentRecordActivity.kt ในโปรเจกต์ Kotlin เดิม
@@ -44,6 +43,7 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
   @override
   void initState() {
     super.initState();
+    
     // เรียกโหลดบันทึกเมื่อหน้าจอเริ่มต้น
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<DocumentRecordViewModel>(context, listen: false)
@@ -58,6 +58,15 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
     super.dispose();
   }
 
+// NEW: Method to show the Record Details Dialog
+  void _showRecordDetailsDialog(BuildContext context, DocumentRecordWithTagAndProblem recordWithTag) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return RecordDetailDialog(recordWithTag: recordWithTag);
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,12 +145,22 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
                               final recordWithTag = records[index];
                               final DbDocumentRecord record = recordWithTag.documentRecord;
                               final DbJobTag? jobTag = recordWithTag.jobTag; // รายละเอียด Tag
-                              final DbProblem? problem = recordWithTag.problem; // รายละเอียด Problem
+                              final DbProblem? problem = null; // รายละเอียด Problem
 
                               // แสดงแต่ละบันทึกเป็น Card คล้ายกับ document_record_fragment_item.xml
                               return Card(
                                 margin: const EdgeInsets.symmetric(vertical: 8.0), // ระยะห่างแนวตั้งระหว่าง Card
                                 elevation: 4.0, // เพิ่มเงาให้กับ Card
+                                 child: InkWell(
+                                  onTap: () {
+                                    // CRUCIAL CHANGE: Show details dialog on tap
+                                    _showRecordDetailsDialog(context, recordWithTag); // <<< แก้ไขตรงนี้
+                                    // No longer handling selection state here, single tap directly shows details.
+                                  },
+                                  onLongPress: () {
+                                    // Long press also shows details, or could be used for other context menu actions
+                                    _showRecordDetailsDialog(context, recordWithTag); // <<< แก้ไขตรงนี้
+                                  },
                                 child: Padding(
                                   padding: const EdgeInsets.all(16.0), // Padding ภายในเนื้อหา Card
                                   child: Column(
@@ -154,8 +173,10 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
                                       ),
                                       const SizedBox(height: 8.0),
                                       
-                                      // --- ช่องป้อนข้อมูลแบบ Dynamic ตาม Tag Type ---
-                                      _buildInputField(context, record, jobTag, problem, viewModel),
+                                      // CRUCIAL CHANGE: Pass errorText to _buildInputField
+                                      _buildInputField(context, record, jobTag, problem, viewModel, 
+                                          errorText: viewModel.recordErrors[record.uid]), // <<< เพิ่ม errorText ตรงนี้
+
 
                                       // แสดงค่าปัจจุบันและหมายเหตุจากบันทึก (ถ้ามี)
                                       if (record.value != null && record.value!.isNotEmpty)
@@ -165,6 +186,7 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
                                     ],
                                   ),
                                 ),
+                              ),
                               );
                             },
                           );
@@ -189,7 +211,7 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
   }
 
   // --- Helper method เพื่อสร้างช่องป้อนข้อมูลแบบ Dynamic ตาม tagType ---
-  Widget _buildInputField(BuildContext context, DbDocumentRecord record, DbJobTag? jobTag, DbProblem? problem, DocumentRecordViewModel viewModel) {
+  Widget _buildInputField(BuildContext context, DbDocumentRecord record, DbJobTag? jobTag, DbProblem? problem, DocumentRecordViewModel viewModel,{String? errorText}) {
     final String tagType = jobTag?.tagType ?? '';
     
     // Switch on tagType to return different input widgets
@@ -198,33 +220,39 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
         return RecordNumberInputField(
           record: record, jobTag: jobTag, viewModel: viewModel,
           controller: _controllers.putIfAbsent(record.uid, () => TextEditingController(text: record.value)),
+          errorText: errorText, // <<< Pass errorText
         );
       case 'ComboBox':
         return RecordComboBoxInputField(
           record: record, jobTag: jobTag, viewModel: viewModel,
           initialSelectedValue: _selectedComboBoxValues.putIfAbsent(record.uid, () => record.value),
+          errorText: errorText, // <<< Pass errorText
         );
       case 'Text': // Single line text
         return RecordTextInputField(
           record: record, jobTag: jobTag, viewModel: viewModel,
           controller: _controllers.putIfAbsent(record.uid, () => TextEditingController(text: record.value)),
+          errorText: errorText, // <<< Pass errorText
         );
       case 'Message': // Multi-line text (like 'ข้อความยาวๆ')
         return RecordTextInputField(
           record: record, jobTag: jobTag, viewModel: viewModel,
           controller: _controllers.putIfAbsent(record.uid, () => TextEditingController(text: record.value)),
           isMultiline: true,
+          errorText: errorText, // <<< Pass errorText
         );
-      case 'Problem': // Problem type, could be a dropdown or specific picker
-        return RecordProblemInputField(
-          record: record, jobTag: jobTag, problem: problem, viewModel: viewModel,
-          controller: _controllers.putIfAbsent(record.uid, () => TextEditingController(text: problem?.problemName ?? record.value)),
+       case 'CheckBox': // NEW: Handle CheckBox TagType
+        return RecordComboBoxInputField( // Reuse ComboBox for now, as it handles selection from a list
+          record: record, jobTag: jobTag, viewModel: viewModel,
+          initialSelectedValue: _selectedComboBoxValues.putIfAbsent(record.uid, () => record.value),
+          errorText: viewModel.recordErrors[record.uid],
         );
       default:
         // Default to a basic text field for unknown types
         return RecordTextInputField(
           record: record, jobTag: jobTag, viewModel: viewModel,
           controller: _controllers.putIfAbsent(record.uid, () => TextEditingController(text: record.value)),
+          errorText: errorText, // <<< Pass errorText
         );
     }
   }

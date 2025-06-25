@@ -11,6 +11,7 @@ class RecordTextInputField extends StatefulWidget {
   final DocumentRecordViewModel viewModel;
   final bool isMultiline;
   final TextEditingController controller; // Pass the controller
+  final String? errorText; // NEW: Parameter to receive error text from ViewModel
 
   const RecordTextInputField({
     super.key,
@@ -19,6 +20,7 @@ class RecordTextInputField extends StatefulWidget {
     required this.viewModel,
     required this.controller,
     this.isMultiline = false,
+     this.errorText, // NEW: Make it optional
   });
 
   @override

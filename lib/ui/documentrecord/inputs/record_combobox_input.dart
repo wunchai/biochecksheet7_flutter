@@ -10,14 +10,15 @@ class RecordComboBoxInputField extends StatefulWidget {
   final DbDocumentRecord record;
   final DbJobTag? jobTag;
   final DocumentRecordViewModel viewModel;
-  final String? initialSelectedValue; // Pass initial value for dropdown
-
+  final String? initialSelectedValue;
+  final String? errorText; // NEW: Parameter to receive error text from ViewModel
   const RecordComboBoxInputField({
     super.key,
     required this.record,
     required this.jobTag,
     required this.viewModel,
-    this.initialSelectedValue, // This will come from _selectedComboBoxValues map
+    this.initialSelectedValue,
+     this.errorText, // NEW: Make it optional
   });
 
   @override
@@ -25,7 +26,7 @@ class RecordComboBoxInputField extends StatefulWidget {
 }
 
 class _RecordComboBoxInputFieldState extends State<RecordComboBoxInputField> {
-  String? _currentSelectedValue; // Internal state for the dropdown
+  String? _currentSelectedValue;
 
   @override
   void initState() {
@@ -36,7 +37,8 @@ class _RecordComboBoxInputFieldState extends State<RecordComboBoxInputField> {
   @override
   void didUpdateWidget(covariant RecordComboBoxInputField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Update internal state if the initialSelectedValue from parent changes
+    // CRUCIAL: Update internal state ONLY if the new initialSelectedValue is different
+    // This handles cases where the parent rebuilds but the value hasn't changed.
     if (widget.initialSelectedValue != oldWidget.initialSelectedValue) {
       _currentSelectedValue = widget.initialSelectedValue;
     }
@@ -45,6 +47,7 @@ class _RecordComboBoxInputFieldState extends State<RecordComboBoxInputField> {
   @override
   Widget build(BuildContext context) {
     List<String> options = [];
+    String? displayInitialValue = widget.record.value; // Get value from record directly
 
     if (widget.jobTag?.tagSelectionValue != null && widget.jobTag!.tagSelectionValue!.isNotEmpty) {
       try {
@@ -59,16 +62,20 @@ class _RecordComboBoxInputFieldState extends State<RecordComboBoxInputField> {
       }
     }
     
-    // Ensure the current selected value is still in options
-    if (_currentSelectedValue != null && !options.contains(_currentSelectedValue)) {
-      _currentSelectedValue = null;
+    // Ensure the displayInitialValue is in the options list, otherwise set to null
+    if (displayInitialValue != null && !options.contains(displayInitialValue)) {
+        displayInitialValue = null;
+    }
+    // Update _currentSelectedValue if it somehow got out of sync or if the record.value updated
+    if (_currentSelectedValue != displayInitialValue) {
+      _currentSelectedValue = displayInitialValue;
     }
 
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: DropdownButtonFormField<String>(
-        value: _currentSelectedValue,
+        value: _currentSelectedValue, // Use internal state
         decoration: InputDecoration(
           labelText: widget.jobTag?.tagName ?? 'เลือกตัวเลือก',
           border: const OutlineInputBorder(),

@@ -6,5 +6,4 @@ part of 'document_record_dao.dart';
 mixin _$DocumentRecordDaoMixin on DatabaseAccessor<AppDatabase> {
   $DocumentRecordsTable get documentRecords => attachedDatabase.documentRecords;
   $JobTagsTable get jobTags => attachedDatabase.jobTags;
-  $ProblemsTable get problems => attachedDatabase.problems;
 }

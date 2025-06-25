@@ -2,7 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/repositories/document_record_repository.dart';
-import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart'; // For DocumentRecordWithTagAndProblem
+import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
+import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart'; // For DbDocumentRecord
+import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart'; // For DbJobTag
+import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart'; // For DbProblem
+import 'package:drift/drift.dart' as drift; // Alias drift
 
 /// Equivalent to DocumentRecordViewModel.kt
 class DocumentRecordViewModel extends ChangeNotifier {
@@ -30,6 +34,24 @@ class DocumentRecordViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+ // NEW: Map to store validation errors for each record's UID
+  final Map<int, String?> _recordErrors = {};
+  Map<int, String?> get recordErrors => _recordErrors;
+
+
+  // Currently selected document (for copy/delete operations)
+  DbDocumentRecord? _selectedDocument; // Note: This is DbDocumentRecord, not DbDocument
+  DbDocumentRecord? get selectedDocument => _selectedDocument;
+  void selectDocument(DbDocumentRecord doc) {
+    _selectedDocument = doc;
+    notifyListeners();
+  }
+  void clearSelection() {
+    _selectedDocument = null;
+    notifyListeners();
+  }
+
+
   DocumentRecordViewModel({required AppDatabase appDatabase})
       : _documentRecordRepository = DocumentRecordRepository(appDatabase: appDatabase);
 
@@ -43,17 +65,36 @@ class DocumentRecordViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+       print('DocumentRecordViewModel: loadRecords called with DocID=$documentId, MachineID=$machineId, JobID=$jobId'); // <<< Debugging
+        
         await _documentRecordRepository.initializeRecordsFromJobTags(
         jobId: _jobId!, // Use stored jobId
         documentId: _documentId!, // Use stored documentId
         machineId: _machineId!, // Use stored machineId
       );
       _statusMessage = "Records initialized/checked.";
-      
+        print('DocumentRecordViewModel: Records initialized. Now loading from DB.'); // <<< Debugging
+     
       _recordsStream = _documentRecordRepository.loadRecordsForDocumentMachine(
         documentId: documentId,
         machineId: machineId,
       );
+
+      _recordsStream?.listen((data) {
+        print("DocumentRecordViewModel Stream: Received ${data.length} records.");
+        if (data.isEmpty) {
+          print("DocumentRecordViewModel Stream: No records found after loading.");
+        } else {
+          for (var recordWithTag in data) {
+            print("  Record: UID=${recordWithTag.documentRecord.uid}, TagName=${recordWithTag.jobTag?.tagName}, Value=${recordWithTag.documentRecord.value}, TagType=${recordWithTag.jobTag?.tagType}");
+          }
+        }
+      }, onError: (error) {
+        print("DocumentRecordViewModel Stream Error: $error");
+      });
+
+
+
       _statusMessage = "Records for Document ID: $documentId, Machine ID: $machineId loaded.";
     } catch (e) {
       _statusMessage = "Failed to load records: $e";
@@ -64,7 +105,7 @@ class DocumentRecordViewModel extends ChangeNotifier {
     }
   }
 
-  /// Refreshes records by re-loading them from the repository.
+   /// Refreshes records by re-loading them from the repository.
   Future<void> refreshRecords() async {
     _isLoading = true;
     _syncMessage = "Refreshing records...";
@@ -72,13 +113,15 @@ class DocumentRecordViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // TODO: Implement actual API sync for records here if needed
-      // await _documentRecordRepository.syncRecords(documentId!, machineId!); // If you create a sync method
-
       if (_documentId != null && _machineId != null && _jobId != null) {
-        await loadRecords(_documentId!, _machineId!, _jobId!); // Reload from local DB
+        await _documentRecordRepository.initializeRecordsFromJobTags(
+          jobId: _jobId!,
+          documentId: _documentId!,
+          machineId: _machineId!,
+        );
+        await loadRecords(_documentId!, _machineId!, _jobId!);
       } else {
-        _statusMessage = "Cannot refresh: documentId or machineId is missing.";
+        _statusMessage = "Cannot refresh: documentId, machineId or jobId is missing.";
       }
       _syncMessage = "Records refreshed!";
     } on Exception catch (e) {
@@ -91,13 +134,61 @@ class DocumentRecordViewModel extends ChangeNotifier {
     }
   }
 
-  /// Updates the value and/or remark of a specific record.
+/// Updates the value and/or remark of a specific record locally.
+  /// Includes validation based on tagType and jobTag specifications.
+  /// Displays validation errors directly on the input field.
   Future<bool> updateRecordValue(int uid, String? newValue, String? newRemark) async {
     _isLoading = true;
-    _syncMessage = null;
+    _syncMessage = null; // Clear overall sync message.
+    _recordErrors[uid] = null; // NEW: Clear specific record error before validation.
     _statusMessage = "Updating record...";
     notifyListeners();
+
     try {
+      final recordWithTag = (await _documentRecordRepository.loadRecordsForDocumentMachine(
+        documentId: _documentId!, machineId: _machineId!,
+      ).first).firstWhere((element) => element.documentRecord.uid == uid);
+
+      final DbJobTag? jobTag = recordWithTag.jobTag;
+      final String tagType = jobTag?.tagType ?? '';
+      final String? specMin = jobTag?.specMin;
+      final String? specMax = jobTag?.specMax;
+
+      // --- Validation Logic ---
+      if (tagType == 'Number' && newValue != null && newValue.isNotEmpty) {
+        final double? numValue = double.tryParse(newValue);
+        if (numValue == null) {
+          _recordErrors[uid] = "กรุณาป้อนตัวเลขที่ถูกต้อง"; // NEW: Set specific error for field.
+          _statusMessage = "อัปเดตล้มเหลว: รูปแบบตัวเลขไม่ถูกต้อง.";
+          notifyListeners(); // Notify to update UI with error.
+          return false; // Validation failed
+        }
+
+        if (specMin != null && specMin.isNotEmpty) {
+          final double? min = double.tryParse(specMin);
+          if (min != null && numValue < min) {
+            _recordErrors[uid] = "ค่าน้อยกว่าค่าต่ำสุด ($min)."; // NEW: Set specific error.
+            _statusMessage = "อัปเดตล้มเหลว: ค่าอยู่นอกช่วง.";
+            notifyListeners();
+            return false; // Validation failed
+          }
+        }
+        if (specMax != null && specMax.isNotEmpty) {
+          final double? max = double.tryParse(specMax);
+          if (max != null && numValue > max) {
+            _recordErrors[uid] = "ค่ามากกว่าค่าสูงสุด ($max)."; // NEW: Set specific error.
+            _statusMessage = "อัปเดตล้มเหลว: ค่าอยู่นอกช่วง.";
+            notifyListeners();
+            return false; // Validation failed
+          }
+        }
+      }
+      // --- End Validation Logic ---
+
+      // If validation passes, ensure error is cleared.
+      _recordErrors[uid] = null;
+
+
       final success = await _documentRecordRepository.updateRecordValue(
         uid: uid,
         newValue: newValue,
@@ -110,6 +201,50 @@ class DocumentRecordViewModel extends ChangeNotifier {
       _syncMessage = "Error updating record: $e";
       _statusMessage = "Update failed: $e";
       print("Error updating record: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+/// NEW: Updates the 'unReadable' status for a specific record.
+  /// If unReadable is true, the value field is also cleared.
+  Future<bool> updateUnReadableStatus(int uid, bool isUnReadable) async {
+    _isLoading = true;
+    _syncMessage = null;
+    _recordErrors[uid] = null; // Clear any existing error for this record.
+    _statusMessage = "Updating unReadable status...";
+    notifyListeners();
+
+    try {
+      final recordWithTag = (await _documentRecordRepository.loadRecordsForDocumentMachine(
+        documentId: _documentId!, machineId: _machineId!,
+      ).first).firstWhere((element) => element.documentRecord.uid == uid);
+
+      // Get current values
+      String? currentValue = recordWithTag.documentRecord.value;
+      String? currentRemark = recordWithTag.documentRecord.remark;
+
+      // Determine new value based on unReadable status
+      String newUnReadableStatus = isUnReadable ? 'true' : 'false';
+      String? newValueToSet = isUnReadable ? '' : currentValue; // Clear value if unReadable is true
+
+      // Update record in repository
+      final success = await _documentRecordRepository.updateRecordValueWithUnReadable( // NEW method in repo
+        uid: uid,
+        newValue: newValueToSet,
+        newRemark: currentRemark,
+        newUnReadable: newUnReadableStatus,
+      );
+
+      _syncMessage = success ? "สถานะ 'ไม่อ่านค่าได้' อัปเดตสำเร็จ!" : "ไม่สามารถอัปเดตสถานะ 'ไม่อ่านค่าได้' ได้.";
+      _statusMessage = success ? "สถานะ 'ไม่อ่านค่าได้' อัปเดตแล้ว." : "อัปเดตสถานะล้มเหลว.";
+      return success;
+    } on Exception catch (e) {
+      _syncMessage = "ข้อผิดพลาดในการอัปเดตสถานะ 'ไม่อ่านค่าได้': $e";
+      _statusMessage = "อัปเดตสถานะล้มเหลว: $e";
+      print("Error updating unReadable status: $e");
       return false;
     } finally {
       _isLoading = false;

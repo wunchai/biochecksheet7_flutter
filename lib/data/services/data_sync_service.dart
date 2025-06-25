@@ -159,6 +159,7 @@ class DataSyncService {
     await _jobTagDao.deleteAllJobTags();
     final tagsToInsert = tags.map((tag) {
 
+ /*
     print('Processing DbJobTag for insertion:');
     print('  TagId: ${tag.tagId} (Type: ${tag.tagId.runtimeType})');
     print('  JobId: ${tag.jobId} (Type: ${tag.jobId.runtimeType})');
@@ -170,36 +171,38 @@ class DataSyncService {
     print('  Value: ${tag.value} (Type: ${tag.value.runtimeType})');
     print('  Remark: ${tag.remark} (Type: ${tag.remark.runtimeType})');
     print('----------------------------------------');
+*/
 
-
-        return JobTagsCompanion(
-      uid: drift.Value.absent(), // uid is auto-increment, so Value.absent() is correct
-      tagId: drift.Value(tag.tagId), // Should be String
-      jobId: drift.Value(tag.jobId), // Should be String
-      machineId: drift.Value(tag.machineId), // Should be String
+         return JobTagsCompanion(
+      uid: drift.Value.absent(), // <<< เพิ่ม uid (auto-increment)
+      tagId: drift.Value(tag.tagId),
+      jobId: drift.Value(tag.jobId),
+      machineId: drift.Value(tag.machineId),
       tagName: drift.Value(tag.tagName),
       tagType: drift.Value(tag.tagType),
-      tagGroupId: drift.Value(tag.tagGroupId), // Should be String
+      tagGroupId: drift.Value(tag.tagGroupId),
       tagGroupName: drift.Value(tag.tagGroupName),
       description: drift.Value(tag.description),
       specification: drift.Value(tag.specification),
-      specMin: drift.Value(tag.specMin), // Should be String
-      specMax: drift.Value(tag.specMax), // Should be String
+      specMin: drift.Value(tag.specMin),
+      specMax: drift.Value(tag.specMax),
       unit: drift.Value(tag.unit),
       queryStr: drift.Value(tag.queryStr),
-      status: drift.Value(tag.status), // Should be int
-      lastSync: drift.Value(tag.lastSync), // Should be String
-      note: drift.Value(tag.note),
-      value: drift.Value(tag.value), // Should be String
-      remark: drift.Value(tag.remark),
-      createDate: drift.Value(tag.createDate),
-      createBy: drift.Value(tag.createBy),
-      valueType: drift.Value(tag.valueType),
-      tagSelectionValue: drift.Value(tag.tagSelectionValue),
+      status: drift.Value(tag.status),
+      lastSync: drift.Value(DateTime.now().toIso8601String()),
+      
+      // CRUCIAL ADDITIONS: Map the missing fields
+      note: drift.Value(tag.note), // <<< เพิ่ม
+      value: drift.Value(tag.value), // <<< เพิ่ม
+      remark: drift.Value(tag.remark), // <<< เพิ่ม
+      createDate: drift.Value(tag.createDate), // <<< เพิ่ม
+      createBy: drift.Value(tag.createBy), // <<< เพิ่ม
+      valueType: drift.Value(tag.valueType), // <<< เพิ่ม
+      tagSelectionValue: drift.Value(tag.tagSelectionValue), // <<< เพิ่ม
     );
   }).toList();
   await _jobTagDao.insertAllJobTags(tagsToInsert);
-  print('Successfully inserted ${tagsToInsert.length} JobTags into DB.'); // Confirmation log
+  print('Successfully inserted ${tagsToInsert.length} JobTags into DB.');
   }
 
   Future<void> _syncProblemsData() async {

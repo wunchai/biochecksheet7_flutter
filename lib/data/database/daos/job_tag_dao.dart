@@ -27,10 +27,12 @@ class JobTagDao extends DatabaseAccessor<AppDatabase> with _$JobTagDaoMixin {
   }
 
   // NEW: Method to get JobTags filtered by JobId and MachineId
-  Future<List<DbJobTag>> getJobTagsByJobAndMachine(String jobId, String machineId) {
-    return (select(jobTags)
-          ..where((tbl) => tbl.jobId.equals(jobId) & tbl.machineId.equals(machineId)))
-        .get();
+   Future<List<DbJobTag>> getJobTagsByJobAndMachine(String jobId, String machineId) {
+    print('JobTagDao: getJobTagsByJobAndMachine called with JobID=$jobId, MachineID=$machineId'); // <<< Debugging
+    final query = (select(jobTags)
+          ..where((tbl) => tbl.jobId.equals(jobId) & tbl.machineId.equals(machineId)));
+    print('JobTagDao: Generated SQL for getJobTagsByJobAndMachine: ${query.toString()}'); // <<< Debugging
+    return query.get();
   }
 
   // Equivalent to suspend fun getAllJobTag(): List<DbJobTag>

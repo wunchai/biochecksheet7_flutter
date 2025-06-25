@@ -6,9 +6,7 @@ import 'package:drift/drift.dart' as drift; // Alias drift
 
 // NEW: Import for JobTag and Problem
 import 'package:biochecksheet7_flutter/data/database/daos/job_tag_dao.dart'; // For JobTagDao
-import 'package:biochecksheet7_flutter/data/database/daos/problem_dao.dart'; // For ProblemDao
 import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart'; // For DbJobTag
-import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart'; // For DbProblem
 
 
 
@@ -20,14 +18,14 @@ import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart';
 class DocumentRecordRepository {
   final DocumentRecordDao _documentRecordDao;
   final JobTagDao _jobTagDao; // NEW
-  final ProblemDao _problemDao; // NEW
+   
   // TODO: หากมี DocumentRecordApiService ก็เพิ่มที่นี่
   // final DocumentRecordApiService _documentRecordApiService;
 
   DocumentRecordRepository({required AppDatabase appDatabase})
       : _documentRecordDao = appDatabase.documentRecordDao,
-        _jobTagDao = appDatabase.jobTagDao, // NEW
-        _problemDao = appDatabase.problemDao; // NEW
+        _jobTagDao = appDatabase.jobTagDao; // NEW
+      
         // _documentRecordApiService = documentRecordApiService ?? DocumentRecordApiService(); // หากมี API
 
   /// Loads document records for a specific document and machine,
@@ -37,6 +35,7 @@ class DocumentRecordRepository {
     required String documentId,
     required String machineId,
   }) {
+     print('DocumentRecordRepository: Loading records for DocID=$documentId, MachineID=$machineId'); // <<< Debugging
     // Uses the join query defined in DocumentRecordDao.
     return _documentRecordDao.getDocumentRecordsList(documentId, machineId);
   }
@@ -49,9 +48,10 @@ class DocumentRecordRepository {
     required String machineId,
   }) async {
     try {
+       print('DocumentRecordRepository: Initializing records for JobID=$jobId, DocID=$documentId, MachineID=$machineId'); // <<< Debugging
       // 1. Get relevant job tags for this jobId and machineId
       final List<DbJobTag> jobTags = await _jobTagDao.getJobTagsByJobAndMachine(jobId, machineId); // Assuming you add this method to JobTagDao
-
+      print('DocumentRecordRepository: Found ${jobTags.length} job tags for initialization.'); // <<< Debugging
       if (jobTags.isEmpty) {
         print('No job tags found for Job ID: $jobId, Machine ID: $machineId. Cannot initialize records.');
         return; // No tags to create records from
@@ -127,6 +127,36 @@ class DocumentRecordRepository {
     } catch (e) {
       print('Error updating record UID $uid: $e');
       throw Exception('Failed to update record: $e');
+    }
+  }
+
+/// Updates the 'value', 'remark', and 'unReadable' status for a specific record locally.
+  Future<bool> updateRecordValueWithUnReadable({
+    required int uid,
+    required String? newValue,
+    required String? newRemark,
+    required String newUnReadable, // 'true' or 'false'
+  }) async {
+    try {
+      final existingRecord = await _documentRecordDao.getDocumentRecordByUid(uid);
+      if (existingRecord == null) {
+        throw Exception("Record with UID $uid not found for update.");
+      }
+
+      // CRUCIAL FIX: existingRecord.copyWith expects drift.Value objects
+      final updatedEntry = existingRecord.copyWith(
+        value: drift.Value(newValue), // <<< แก้ไขตรงนี้: ห่อด้วย drift.Value()
+        remark: drift.Value(newRemark), // <<< แก้ไขตรงนี้: ห่อด้วย drift.Value()
+        unReadable: newUnReadable, // <<< แก้ไขตรงนี้: ห่อด้วย drift.Value()
+        lastSync: drift.Value(DateTime.now().toIso8601String()), // Also needs Value
+      );
+
+      final success = await _documentRecordDao.updateDocumentRecord(updatedEntry);
+      print('Record UID $uid updated: Value=$newValue, Remark=$newRemark, UnReadable=$newUnReadable');
+      return success;
+    } catch (e) {
+      print('Error updating record UID $uid with unReadable: $e');
+      throw Exception('Failed to update record with unReadable: $e');
     }
   }
 

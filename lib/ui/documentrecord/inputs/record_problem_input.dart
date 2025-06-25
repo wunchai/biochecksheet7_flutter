@@ -12,6 +12,7 @@ class RecordProblemInputField extends StatefulWidget {
   final DbProblem? problem; // The problem object associated with the record
   final DocumentRecordViewModel viewModel;
   final TextEditingController controller; // Pass the controller
+   final String? errorText; // NEW: Parameter to receive error text from ViewModel
 
   const RecordProblemInputField({
     super.key,
@@ -20,6 +21,7 @@ class RecordProblemInputField extends StatefulWidget {
     required this.problem,
     required this.viewModel,
     required this.controller,
+     this.errorText, // NEW: Make it optional
   });
 
   @override

@@ -1,13 +1,13 @@
 // lib/data/database/daos/document_record_dao.dart
 import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' as drift; 
 import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // Import your main database
 import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart'; // Import your table
 import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart'; // Needed for joins
-import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart'; // Needed for joins
 
 part 'document_record_dao.g.dart';
 
-@DriftAccessor(tables: [DocumentRecords, JobTags, Problems])
+@DriftAccessor(tables: [DocumentRecords, JobTags ])
 class DocumentRecordDao extends DatabaseAccessor<AppDatabase> with _$DocumentRecordDaoMixin {
   DocumentRecordDao(AppDatabase db) : super(db);
 
@@ -25,7 +25,15 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase> with _$DocumentRec
   Future<DbDocumentRecord?> getDocumentRecordByUid(int uid) {
     return (select(documentRecords)..where((tbl) => tbl.uid.equals(uid))).getSingleOrNull();
   }
-  
+   // NEW: Delete all document records associated with a specific documentId
+  Future<int> deleteAllRecordsByDocumentId(String documentId) {
+    return (delete(documentRecords)..where((tbl) => tbl.documentId.equals(documentId))).go();
+  }
+
+  // NEW: Get all document records associated with a specific documentId (for copy operation)
+  Future<List<DbDocumentRecord>> getRecordsByDocumentId(String documentId) {
+    return (select(documentRecords)..where((tbl) => tbl.documentId.equals(documentId))).get();
+  }
   // Equivalent to suspend fun getDocumentRecord(documentId: String, machineId: String, tagId: String): DbDocumentRecord?
    Future<DbDocumentRecord?> getDocumentRecord({ // <<< เพิ่ม { } ตรงนี้
     required String documentId,
@@ -57,27 +65,32 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase> with _$DocumentRec
   // Equivalent to fun getDocumentRecordsList(documentId: String, machineId: String): LiveData<List<DbDocumentRecord>>
   // This function will need to join with JobTags and Problems, similar to the Room query.
   // For LiveData equivalent, we return a Stream.
-  Stream<List<DocumentRecordWithTagAndProblem>> getDocumentRecordsList(String documentId, String machineId) {
+   Stream<List<DocumentRecordWithTagAndProblem>> getDocumentRecordsList(String documentId, String machineId) {
+    print('DocumentRecordDao: Querying records for DocID=$documentId, MachineID=$machineId');
     final query = select(documentRecords).join([
-      leftOuterJoin(jobTags, jobTags.tagId.equalsExp(documentRecords.tagId)),
-      leftOuterJoin(problems, problems.problemId.equalsExp(documentRecords.value)), // Assuming value holds problemId for problem tags
+      // CRUCIAL FIX: Add more conditions to the INNER JOIN to ensure uniqueness
+      // Join on tagId AND jobId AND machineId to precisely match the record to its tag
+      innerJoin(jobTags, 
+          jobTags.tagId.equalsExp(documentRecords.tagId) & // Match by Tag ID
+          jobTags.jobId.equalsExp(documentRecords.jobId) & // Match by Job ID (from record)
+          jobTags.machineId.equalsExp(documentRecords.machineId) // Match by Machine ID (from record)
+      ),
     ])
       ..where(documentRecords.documentId.equals(documentId) & documentRecords.machineId.equals(machineId))
       ..orderBy([
-        // Corrected lines: Pass OrderingTerm directly, not a function returning it
-        OrderingTerm(expression: jobTags.tagGroupId),
-        OrderingTerm(expression: documentRecords.tagType),
-        OrderingTerm(expression: documentRecords.tagName),
+        drift.OrderingTerm(expression: jobTags.tagGroupId),
+        drift.OrderingTerm(expression: jobTags.tagType),
+        drift.OrderingTerm(expression: jobTags.tagName),
       ]);
-
+    
+    print('DocumentRecordDao: Generated SQL for getDocumentRecordsList: ${query.toString()}');
+    
     return query.map((row) {
       final documentRecord = row.readTable(documentRecords);
-      final jobTag = row.readTableOrNull(jobTags);
-      final problem = row.readTableOrNull(problems);
+      final jobTag = row.readTable(jobTags);
       return DocumentRecordWithTagAndProblem(
         documentRecord: documentRecord,
         jobTag: jobTag,
-        problem: problem,
       );
     }).watch();
   }
@@ -101,12 +114,12 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase> with _$DocumentRec
 // similar to how Room handles return types for joins.
 class DocumentRecordWithTagAndProblem {
   final DbDocumentRecord documentRecord;
-  final DbJobTag? jobTag; // Nullable if leftOuterJoin
-  final DbProblem? problem; // Nullable if leftOuterJoin
+  final DbJobTag? jobTag; // Nullable if leftOuterJoin 
+ 
 
   DocumentRecordWithTagAndProblem({
     required this.documentRecord,
-    this.jobTag,
-    this.problem,
+    this.jobTag,   
+    
   });
 }

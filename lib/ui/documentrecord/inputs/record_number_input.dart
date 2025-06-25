@@ -9,7 +9,8 @@ class RecordNumberInputField extends StatefulWidget {
   final DbDocumentRecord record;
   final DbJobTag? jobTag;
   final DocumentRecordViewModel viewModel;
-  final TextEditingController controller; // Pass the controller
+  final TextEditingController controller;
+  final String? errorText;
 
   const RecordNumberInputField({
     super.key,
@@ -17,6 +18,7 @@ class RecordNumberInputField extends StatefulWidget {
     required this.jobTag,
     required this.viewModel,
     required this.controller,
+    this.errorText,
   });
 
   @override
@@ -24,20 +26,34 @@ class RecordNumberInputField extends StatefulWidget {
 }
 
 class _RecordNumberInputFieldState extends State<RecordNumberInputField> {
+  // Internal state for the Checkbox, reflects record.unReadable
+  late bool _isUnReadableChecked;
+
   @override
   void initState() {
     super.initState();
-    // Initialize controller text from record.value
-    if (widget.controller.text != widget.record.value) {
-      widget.controller.text = widget.record.value ?? '';
+    // Initialize checkbox state from record's unReadable value
+    _isUnReadableChecked = widget.record.unReadable == 'true';
+    // If unReadable is true, ensure controller is cleared initially
+    if (_isUnReadableChecked) {
+      widget.controller.clear();
+    } else {
+      // Ensure controller reflects actual record value if not unReadable
+      if (widget.controller.text != widget.record.value) {
+        widget.controller.text = widget.record.value ?? '';
+      }
     }
   }
 
   @override
   void didUpdateWidget(covariant RecordNumberInputField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Update controller text if record.value changes (e.g., after refresh)
-    if (widget.controller.text != widget.record.value) {
+    // Update internal checkbox state if record.unReadable changes from outside
+    if (widget.record.unReadable != oldWidget.record.unReadable) {
+      _isUnReadableChecked = widget.record.unReadable == 'true';
+    }
+    // Update controller text if record.value changes and not unReadable
+    if (!_isUnReadableChecked && widget.controller.text != widget.record.value) {
       widget.controller.text = widget.record.value ?? '';
     }
   }
@@ -57,24 +73,58 @@ class _RecordNumberInputFieldState extends State<RecordNumberInputField> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: TextField(
-        controller: widget.controller,
-        decoration: InputDecoration(
-          labelText: '${widget.jobTag?.tagName ?? 'ตัวเลข'} (${widget.jobTag?.unit ?? ''})',
-          hintText: hint,
-          border: const OutlineInputBorder(),
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: () {
-              widget.viewModel.updateRecordValue(
-                  widget.record.uid, widget.controller.text, widget.record.remark);
+      child: Column( // Use Column to stack TextField and Checkbox
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: widget.controller,
+            enabled: !_isUnReadableChecked, // Disable TextField when unReadable is checked
+            decoration: InputDecoration(
+              labelText: '${widget.jobTag?.tagName ?? 'ตัวเลข'} (${widget.jobTag?.unit ?? ''})',
+              hintText: _isUnReadableChecked ? 'ไม่อ่านค่าได้' : hint, // Change hint when disabled
+              border: const OutlineInputBorder(),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.check),
+                onPressed: _isUnReadableChecked ? null : () { // Disable check button too
+                  widget.viewModel.updateRecordValue(
+                      widget.record.uid, widget.controller.text, widget.record.remark);
+                },
+              ),
+              errorText: widget.errorText, // Display error text directly from ViewModel
+            ),
+            keyboardType: TextInputType.number,
+            onSubmitted: (value) {
+              if (!_isUnReadableChecked) { // Only submit if not unReadable
+                widget.viewModel.updateRecordValue(widget.record.uid, value, widget.record.remark);
+              }
             },
           ),
-        ),
-        keyboardType: TextInputType.number,
-        onSubmitted: (value) {
-          widget.viewModel.updateRecordValue(widget.record.uid, value, widget.record.remark);
-        },
+          // NEW: Checkbox for unReadable
+          Row(
+            children: [
+              Checkbox(
+                value: _isUnReadableChecked,
+                onChanged: (bool? newValue) async {
+                  if (newValue != null) {
+                    setState(() {
+                      _isUnReadableChecked = newValue; // Update internal state
+                      if (_isUnReadableChecked) {
+                        widget.controller.clear(); // Clear value when checked
+                      } else {
+                        // Restore original value if unReadable is unchecked, or keep empty
+                        widget.controller.text = widget.record.value ?? '';
+                      }
+                    });
+                    // Update ViewModel and database
+                    await widget.viewModel.updateUnReadableStatus(widget.record.uid, newValue);
+                    // No need to call updateRecordValue explicitly here as updateUnReadableStatus handles it
+                  }
+                },
+              ),
+              const Text('ไม่อ่านค่าได้'), // Label for the checkbox
+            ],
+          ),
+        ],
       ),
     );
   }
