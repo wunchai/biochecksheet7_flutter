@@ -8,6 +8,10 @@ import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart'; // For DbProblem
 import 'package:drift/drift.dart' as drift; // Alias drift
 
+
+// NEW: Import for charts
+import 'package:fl_chart/fl_chart.dart'; // For FlSpot
+
 /// Equivalent to DocumentRecordViewModel.kt
 class DocumentRecordViewModel extends ChangeNotifier {
   final DocumentRecordRepository _documentRecordRepository;
@@ -20,6 +24,10 @@ class DocumentRecordViewModel extends ChangeNotifier {
 
   Stream<List<DocumentRecordWithTagAndProblem>>? _recordsStream;
   Stream<List<DocumentRecordWithTagAndProblem>>? get recordsStream => _recordsStream;
+
+ // NEW: Stream for chart data
+  Stream<List<FlSpot>>? _chartDataStream;
+  Stream<List<FlSpot>>? get chartDataStream => _chartDataStream;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -42,6 +50,11 @@ class DocumentRecordViewModel extends ChangeNotifier {
   // Currently selected document (for copy/delete operations)
   DbDocumentRecord? _selectedDocument; // Note: This is DbDocumentRecord, not DbDocument
   DbDocumentRecord? get selectedDocument => _selectedDocument;
+
+  //NEW: Stream for online chart data
+  Stream<List<FlSpot>>? _onlineChartDataStream;
+  Stream<List<FlSpot>>? get onlineChartDataStream => _onlineChartDataStream;
+
   void selectDocument(DbDocumentRecord doc) {
     _selectedDocument = doc;
     notifyListeners();
@@ -134,6 +147,63 @@ class DocumentRecordViewModel extends ChangeNotifier {
     }
   }
 
+
+
+  // Corrected: Loads chart data for a specific tag within the current job and machine.
+  Future<void> loadChartData(String tagId) async {
+    if (_documentId == null || _machineId == null || _jobId == null) {
+      _syncMessage = "Cannot load chart: Missing documentId, machineId, or jobId.";
+      notifyListeners();
+      return;
+    }
+    _isLoading = true;
+    _statusMessage = "Fetching chart data...";
+    notifyListeners();
+
+    try {
+      _chartDataStream = _documentRecordRepository.getChartDataStream(
+        _jobId!, // <<< Changed to _jobId!
+        _machineId!,
+        tagId,
+      );
+      _statusMessage = "Chart data for Tag ID: $tagId loaded.";
+      print('DocumentRecordViewModel: Chart data stream initialized for Tag ID: $tagId');
+    } catch (e) {
+      _statusMessage = "Failed to load chart data: $e";
+      print("Error loading chart data: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+   // NEW: Loads chart data for a specific tag from API (online)
+  Future<void> loadOnlineChartData(String tagId) async {
+    if (_documentId == null || _machineId == null || _jobId == null) {
+      _syncMessage = "Cannot load online chart: Missing documentId, machineId, or jobId.";
+      notifyListeners();
+      return;
+    }
+    _isLoading = true;
+    _statusMessage = "Fetching online chart data...";
+    notifyListeners();
+
+    try {
+      _onlineChartDataStream = _documentRecordRepository.getOnlineChartDataStream(
+        _jobId!,
+        _machineId!,
+        tagId,
+      );
+      _statusMessage = "Online chart data for Tag ID: $tagId loaded.";
+      print('DocumentRecordViewModel: Online chart data stream initialized for Tag ID: $tagId');
+    } catch (e) {
+      _statusMessage = "Failed to load online chart data: $e";
+      print("Error loading online chart data: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 /// Updates the value and/or remark of a specific record locally.
   /// Includes validation based on tagType and jobTag specifications.
   /// Displays validation errors directly on the input field.

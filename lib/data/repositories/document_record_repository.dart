@@ -8,26 +8,77 @@ import 'package:drift/drift.dart' as drift; // Alias drift
 import 'package:biochecksheet7_flutter/data/database/daos/job_tag_dao.dart'; // For JobTagDao
 import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart'; // For DbJobTag
 
+// NEW: Import for charts
+import 'package:fl_chart/fl_chart.dart';
+import 'package:collection/collection.dart'; // For IterableExtension, if needed for complex grouping/ordering
 
+// NEW: Import DocumentRecordApiService
+import 'package:biochecksheet7_flutter/data/network/document_record_api_service.dart';
 
-// TODO: หากมี API Service สำหรับ Record (DbDocumentRecordCode.kt) ให้สร้างและ Import ที่นี่
-// import 'package:biochecksheet7_flutter/data/network/document_record_api_service.dart';
 
 /// Repository for managing document records.
 /// This class abstracts data operations for records from UI/ViewModels.
 class DocumentRecordRepository {
   final DocumentRecordDao _documentRecordDao;
   final JobTagDao _jobTagDao; // NEW
+  final DocumentRecordApiService _documentRecordApiService; // <<< เพิ่ม Dependency นี้
    
   // TODO: หากมี DocumentRecordApiService ก็เพิ่มที่นี่
   // final DocumentRecordApiService _documentRecordApiService;
 
   DocumentRecordRepository({required AppDatabase appDatabase})
       : _documentRecordDao = appDatabase.documentRecordDao,
-        _jobTagDao = appDatabase.jobTagDao; // NEW
-      
+        _jobTagDao = appDatabase.jobTagDao, // NEW
+      _documentRecordApiService = DocumentRecordApiService(); // <<< สร้าง instance
         // _documentRecordApiService = documentRecordApiService ?? DocumentRecordApiService(); // หากมี API
 
+// Get chart data from local database
+ // Corrected: Get chart data as a stream of FlSpot
+  Stream<List<FlSpot>> getChartDataStream(String jobId, String machineId, String tagId) { // <<< Changed documentId to jobId
+    // Watch the records for the chart
+    return _documentRecordDao.watchRecordsForChart(jobId, machineId, tagId).map((records) { // <<< Changed documentId to jobId
+      final List<FlSpot> spots = [];
+      int spotIndex = 0;
+      for (var i = 0; i < records.length; i++) {
+        final record = records[i];
+        final double? value = double.tryParse(record.value ?? '');
+        if (value != null) {
+          spots.add(FlSpot(spotIndex.toDouble(), value));
+          spotIndex++;
+        }
+      }
+      print('DocumentRecordRepository: Generated ${spots.length} chart spots.');
+      return spots;
+    });
+  }
+   // NEW: Get chart data from API (online chart)
+  Stream<List<FlSpot>> getOnlineChartDataStream(String jobId, String machineId, String tagId) {
+    // Since API calls are one-time fetches, we return a Future that then converts to a Stream.
+    // Or, more simply, just map the Future to a Stream.
+    return Stream.fromFuture(_documentRecordApiService.fetchHistoricalRecords(
+      jobId: jobId,
+      machineId: machineId,
+      tagId: tagId,
+    ).then((historicalData) {
+      final List<FlSpot> spots = [];
+      int spotIndex = 0;
+      for (var i = 0; i < historicalData.length; i++) {
+        final data = historicalData[i];
+        final double? value = double.tryParse(data['Value']?.toString() ?? ''); // Assuming 'Value' key
+        // You might want to parse 'CreateDate' for X-axis if it's a date-time chart
+        // For now, use index for X.
+        if (value != null) {
+          spots.add(FlSpot(spotIndex.toDouble(), value));
+          spotIndex++;
+        }
+      }
+      print('DocumentRecordRepository: Generated ${spots.length} online chart spots.');
+      return spots;
+    }).catchError((error) {
+      print('DocumentRecordRepository: Error fetching online chart data: $error');
+      throw error; // Re-throw to be caught by ViewModel
+    }));
+  }
   /// Loads document records for a specific document and machine,
   /// joined with their corresponding job tags and problems.
   /// This provides data for the DocumentRecordScreen.

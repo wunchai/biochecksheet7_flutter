@@ -12,6 +12,8 @@ import 'package:biochecksheet7_flutter/ui/documentrecord/inputs/record_text_inpu
 import 'package:biochecksheet7_flutter/ui/documentrecord/inputs/record_number_input.dart';
 import 'package:biochecksheet7_flutter/ui/documentrecord/inputs/record_combobox_input.dart';
 import 'package:biochecksheet7_flutter/ui/documentrecord/widgets/record_detail_dialog.dart'; // <<< เพิ่ม import นี้
+import 'package:biochecksheet7_flutter/ui/documentrecord/widgets/remark_input_dialog.dart'; // <<< NEW IMPORT
+import 'package:biochecksheet7_flutter/ui/documentrecord/widgets/record_line_chart.dart'; // <<< NEW IMPORT for chart widget
 
 /// หน้าจอนี้แสดงรายการบันทึกสำหรับเอกสารและเครื่องจักรที่ระบุ
 /// เทียบเท่ากับ DocumentRecordActivity.kt ในโปรเจกต์ Kotlin เดิม
@@ -64,6 +66,112 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
       context: context,
       builder: (BuildContext context) {
         return RecordDetailDialog(recordWithTag: recordWithTag);
+      },
+    );
+  }
+
+ // CORRECTED: Show dialog for Remark input
+  Future<void> _showRemarkInputDialog(BuildContext context, DbDocumentRecord record, DocumentRecordViewModel viewModel) async {
+    // CRUCIAL CHANGE: Get/create the controller from the _controllers map.
+    // This ties the remark controller's lifecycle to the screen's state.
+    final TextEditingController remarkController = _controllers.putIfAbsent(
+      record.uid, // Use record UID as key
+      () => TextEditingController(text: record.remark), // Create if not exists, initialize with current remark
+    );
+
+    // Ensure the text is updated if the record's remark changed before opening dialog.
+    if (remarkController.text != record.remark) {
+      remarkController.text = record.remark ?? '';
+    }
+
+    final String? resultRemark = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('เพิ่ม/แก้ไขหมายเหตุ'),
+          content: RemarkInputDialog(controller: remarkController),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('ยกเลิก'),
+              onPressed: () {
+                Navigator.of(context).pop(null);
+              },
+            ),
+            TextButton(
+              child: const Text('บันทึก'),
+              onPressed: () {
+                final String newRemarkValue = remarkController.text;
+                Navigator.of(context).pop(newRemarkValue);
+              },
+            ),
+          ],
+        );
+      },
+    );
+
+    // After the dialog closes, process the returned remark value
+    if (resultRemark != null) {
+      await viewModel.updateRecordValue(record.uid, record.value, resultRemark);
+    }
+    // CRUCIAL CHANGE: DO NOT call remarkController.dispose() here.
+    // Its disposal is handled by the _controllers.forEach in the main dispose() method.
+  }
+
+ // Corrected: Show dialog for chart display
+  void _showChartDialog(BuildContext context, String tagId, DbJobTag? jobTag, DocumentRecordViewModel viewModel) {
+    // CRUCIAL CHANGE: Pass jobId to loadChartData
+    viewModel.loadChartData(tagId); // Load chart data for the specific tag
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('กราฟ: ${jobTag?.tagName ?? 'N/A'} (${jobTag?.unit ?? ''})'),
+          content: SizedBox( // Give chart a fixed size within dialog
+            width: MediaQuery.of(context).size.width * 0.8,
+            height: MediaQuery.of(context).size.height * 0.4,
+            child: RecordLineChart(
+              chartDataStream: viewModel.chartDataStream!, // Pass the stream
+              jobTag: jobTag, // Pass job tag for labels
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('ปิด'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+ // NEW: Show dialog for Online Chart display
+  void _showOnlineChartDialog(BuildContext context, String tagId, DbJobTag? jobTag, DocumentRecordViewModel viewModel) {
+    viewModel.loadOnlineChartData(tagId); // Trigger loading online chart data
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('กราฟประวัติ: ${jobTag?.tagName ?? 'N/A'} (${jobTag?.unit ?? ''})'),
+          content: SizedBox( // Give chart a fixed size within dialog
+            width: MediaQuery.of(context).size.width * 0.8,
+            height: MediaQuery.of(context).size.height * 0.4,
+            child: RecordLineChart(
+              chartDataStream: viewModel.onlineChartDataStream!, // Pass the online chart stream
+              jobTag: jobTag, // Pass job tag for labels
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('ปิด'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
       },
     );
   }
@@ -165,11 +273,33 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
                                   padding: const EdgeInsets.all(16.0), // Padding ภายในเนื้อหา Card
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start, // จัดข้อความชิดซ้าย
-                                    children: [
-                                      // ชื่อ Tag (จาก JobTag)
-                                      Text(
-                                        jobTag?.tagName ?? 'N/A',
-                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                       children: [
+                                      Row( // Use Row to place TagName and Chart button side by side
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              jobTag?.tagName ?? 'N/A',
+                                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                          // NEW: Chart Button (only for Number type tags)
+                                          if (jobTag?.tagType == 'Number')
+                                            IconButton(
+                                              icon: const Icon(Icons.show_chart),
+                                              onPressed: () {
+                                                _showChartDialog(context, record.tagId ?? '', jobTag, viewModel);
+                                              },
+                                            ),
+                                             // NEW: Online Chart Button (only for Number type tags)
+                                            if (jobTag?.tagType == 'Number')
+                                              IconButton(
+                                                icon: const Icon(Icons.history), // Example icon for history
+                                                onPressed: () {
+                                                  _showOnlineChartDialog(context, record.tagId ?? '', jobTag, viewModel);
+                                                },
+                                              ),
+                                        ],
                                       ),
                                       const SizedBox(height: 8.0),
                                       
@@ -181,6 +311,18 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
                                       // แสดงค่าปัจจุบันและหมายเหตุจากบันทึก (ถ้ามี)
                                       if (record.value != null && record.value!.isNotEmpty)
                                         Text('ค่าปัจจุบัน: ${record.value}', style: Theme.of(context).textTheme.bodySmall),
+
+                                         // NEW: Button for Remark
+                                        Align(
+                                          alignment: Alignment.centerRight,
+                                          child: TextButton(
+                                            onPressed: () => _showRemarkInputDialog(context, record, viewModel),
+                                            child: Text(record.remark != null && record.remark!.isNotEmpty
+                                                ? 'แก้ไขหมายเหตุ' // If remark exists
+                                                : 'เพิ่มหมายเหตุ', // If no remark
+                                            ),
+                                          ),
+                                        ),
                                       if (record.remark != null && record.remark!.isNotEmpty)
                                         Text('หมายเหตุ: ${record.remark}', style: Theme.of(context).textTheme.bodySmall),
                                     ],

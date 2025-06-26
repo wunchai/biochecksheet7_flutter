@@ -94,7 +94,22 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase> with _$DocumentRec
       );
     }).watch();
   }
-
+  // Corrected: Method to watch document records specifically for chart plotting
+  // Filters by jobId, machineId, and tagId, and orders by lastSync for time series.
+  Stream<List<DbDocumentRecord>> watchRecordsForChart(String jobId, String machineId, String tagId) { // <<< Changed documentId to jobId
+    print('DocumentRecordDao: WatchRecordsForChart called for JobID=$jobId, MachineID=$machineId, TagID=$tagId'); // <<< Changed Log
+    final query = select(documentRecords)
+        ..where((tbl) =>
+            tbl.jobId.equals(jobId) & // <<< Changed to jobId
+            tbl.machineId.equals(machineId) &
+            tbl.tagId.equals(tagId))
+        ..orderBy([
+          (tbl) => drift.OrderingTerm(expression: tbl.lastSync, mode: drift.OrderingMode.asc),
+        ]);
+    print('DocumentRecordDao: Generated SQL for watchRecordsForChart: ${query.toString()}');
+    return query.watch();
+  }
+  
   // TODO: Implement getDocumentRecordsChart(documentId: String, machineId: String, tagId: String): LiveData<List<DbDocumentRecord>>
   // This will involve complex queries and possibly custom data structures for chart data.
   // We will need to define a custom query with `@Query()` or build it using `select` and `where` clauses.
