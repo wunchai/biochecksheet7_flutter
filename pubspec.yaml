@@ -57,6 +57,7 @@ dependencies:
 
   # Background tasks (for SyncService equivalent)
   workmanager: ^0.6.0 # A plugin for running background tasks (Android and iOS)
+  flutter_launcher_icons: ^0.14.4
   
 dev_dependencies:
   flutter_test:
@@ -125,3 +126,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
