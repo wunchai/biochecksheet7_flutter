@@ -79,6 +79,7 @@ class _RecordComboBoxInputFieldState extends State<RecordComboBoxInputField> {
         decoration: InputDecoration(
           labelText: widget.jobTag?.tagName ?? 'เลือกตัวเลือก',
           border: const OutlineInputBorder(),
+           errorText: widget.errorText, // <<< เพิ่มบรรทัดนี้
         ),
         items: options.map<DropdownMenuItem<String>>((String value) {
           return DropdownMenuItem<String>(

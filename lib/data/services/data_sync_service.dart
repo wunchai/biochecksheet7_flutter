@@ -199,6 +199,7 @@ class DataSyncService {
       createBy: drift.Value(tag.createBy), // <<< เพิ่ม
       valueType: drift.Value(tag.valueType), // <<< เพิ่ม
       tagSelectionValue: drift.Value(tag.tagSelectionValue), // <<< เพิ่ม
+      driftQueryStr: drift.Value(tag.driftQueryStr), // <<< NEW: Map driftQueryStr
     );
   }).toList();
   await _jobTagDao.insertAllJobTags(tagsToInsert);

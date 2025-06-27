@@ -1736,6 +1736,12 @@ class $DocumentRecordsTable extends DocumentRecords
   late final GeneratedColumn<String> lastSync = GeneratedColumn<String>(
       'lastSync', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createByMeta =
+      const VerificationMeta('createBy');
+  @override
+  late final GeneratedColumn<String> createBy = GeneratedColumn<String>(
+      'CreateBy', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -1760,7 +1766,8 @@ class $DocumentRecordsTable extends DocumentRecords
         remark,
         status,
         unReadable,
-        lastSync
+        lastSync,
+        createBy
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1878,6 +1885,10 @@ class $DocumentRecordsTable extends DocumentRecords
       context.handle(_lastSyncMeta,
           lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
     }
+    if (data.containsKey('CreateBy')) {
+      context.handle(_createByMeta,
+          createBy.isAcceptableOrUnknown(data['CreateBy']!, _createByMeta));
+    }
     return context;
   }
 
@@ -1933,6 +1944,8 @@ class $DocumentRecordsTable extends DocumentRecords
           .read(DriftSqlType.string, data['${effectivePrefix}unReadable'])!,
       lastSync: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
+      createBy: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}CreateBy']),
     );
   }
 
@@ -1967,6 +1980,7 @@ class DbDocumentRecord extends DataClass
   final int status;
   final String unReadable;
   final String? lastSync;
+  final String? createBy;
   const DbDocumentRecord(
       {required this.uid,
       this.documentId,
@@ -1990,7 +2004,8 @@ class DbDocumentRecord extends DataClass
       this.remark,
       required this.status,
       required this.unReadable,
-      this.lastSync});
+      this.lastSync,
+      this.createBy});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2057,6 +2072,9 @@ class DbDocumentRecord extends DataClass
     if (!nullToAbsent || lastSync != null) {
       map['lastSync'] = Variable<String>(lastSync);
     }
+    if (!nullToAbsent || createBy != null) {
+      map['CreateBy'] = Variable<String>(createBy);
+    }
     return map;
   }
 
@@ -2117,6 +2135,9 @@ class DbDocumentRecord extends DataClass
       lastSync: lastSync == null && nullToAbsent
           ? const Value.absent()
           : Value(lastSync),
+      createBy: createBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createBy),
     );
   }
 
@@ -2148,6 +2169,7 @@ class DbDocumentRecord extends DataClass
       status: serializer.fromJson<int>(json['status']),
       unReadable: serializer.fromJson<String>(json['unReadable']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
+      createBy: serializer.fromJson<String?>(json['createBy']),
     );
   }
   @override
@@ -2177,6 +2199,7 @@ class DbDocumentRecord extends DataClass
       'status': serializer.toJson<int>(status),
       'unReadable': serializer.toJson<String>(unReadable),
       'lastSync': serializer.toJson<String?>(lastSync),
+      'createBy': serializer.toJson<String?>(createBy),
     };
   }
 
@@ -2203,7 +2226,8 @@ class DbDocumentRecord extends DataClass
           Value<String?> remark = const Value.absent(),
           int? status,
           String? unReadable,
-          Value<String?> lastSync = const Value.absent()}) =>
+          Value<String?> lastSync = const Value.absent(),
+          Value<String?> createBy = const Value.absent()}) =>
       DbDocumentRecord(
         uid: uid ?? this.uid,
         documentId: documentId.present ? documentId.value : this.documentId,
@@ -2232,6 +2256,7 @@ class DbDocumentRecord extends DataClass
         status: status ?? this.status,
         unReadable: unReadable ?? this.unReadable,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        createBy: createBy.present ? createBy.value : this.createBy,
       );
   DbDocumentRecord copyWithCompanion(DocumentRecordsCompanion data) {
     return DbDocumentRecord(
@@ -2268,6 +2293,7 @@ class DbDocumentRecord extends DataClass
       unReadable:
           data.unReadable.present ? data.unReadable.value : this.unReadable,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      createBy: data.createBy.present ? data.createBy.value : this.createBy,
     );
   }
 
@@ -2296,7 +2322,8 @@ class DbDocumentRecord extends DataClass
           ..write('remark: $remark, ')
           ..write('status: $status, ')
           ..write('unReadable: $unReadable, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('createBy: $createBy')
           ..write(')'))
         .toString();
   }
@@ -2325,7 +2352,8 @@ class DbDocumentRecord extends DataClass
         remark,
         status,
         unReadable,
-        lastSync
+        lastSync,
+        createBy
       ]);
   @override
   bool operator ==(Object other) =>
@@ -2353,7 +2381,8 @@ class DbDocumentRecord extends DataClass
           other.remark == this.remark &&
           other.status == this.status &&
           other.unReadable == this.unReadable &&
-          other.lastSync == this.lastSync);
+          other.lastSync == this.lastSync &&
+          other.createBy == this.createBy);
 }
 
 class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
@@ -2380,6 +2409,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
   final Value<int> status;
   final Value<String> unReadable;
   final Value<String?> lastSync;
+  final Value<String?> createBy;
   const DocumentRecordsCompanion({
     this.uid = const Value.absent(),
     this.documentId = const Value.absent(),
@@ -2404,6 +2434,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     this.status = const Value.absent(),
     this.unReadable = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.createBy = const Value.absent(),
   });
   DocumentRecordsCompanion.insert({
     this.uid = const Value.absent(),
@@ -2429,6 +2460,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     this.status = const Value.absent(),
     this.unReadable = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.createBy = const Value.absent(),
   });
   static Insertable<DbDocumentRecord> custom({
     Expression<int>? uid,
@@ -2454,6 +2486,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     Expression<int>? status,
     Expression<String>? unReadable,
     Expression<String>? lastSync,
+    Expression<String>? createBy,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -2479,6 +2512,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
       if (status != null) 'status': status,
       if (unReadable != null) 'unReadable': unReadable,
       if (lastSync != null) 'lastSync': lastSync,
+      if (createBy != null) 'CreateBy': createBy,
     });
   }
 
@@ -2505,7 +2539,8 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
       Value<String?>? remark,
       Value<int>? status,
       Value<String>? unReadable,
-      Value<String?>? lastSync}) {
+      Value<String?>? lastSync,
+      Value<String?>? createBy}) {
     return DocumentRecordsCompanion(
       uid: uid ?? this.uid,
       documentId: documentId ?? this.documentId,
@@ -2530,6 +2565,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
       status: status ?? this.status,
       unReadable: unReadable ?? this.unReadable,
       lastSync: lastSync ?? this.lastSync,
+      createBy: createBy ?? this.createBy,
     );
   }
 
@@ -2605,6 +2641,9 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     if (lastSync.present) {
       map['lastSync'] = Variable<String>(lastSync.value);
     }
+    if (createBy.present) {
+      map['CreateBy'] = Variable<String>(createBy.value);
+    }
     return map;
   }
 
@@ -2633,7 +2672,8 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
           ..write('remark: $remark, ')
           ..write('status: $status, ')
           ..write('unReadable: $unReadable, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('createBy: $createBy')
           ..write(')'))
         .toString();
   }
@@ -3217,6 +3257,12 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
   late final GeneratedColumn<String> lastSync = GeneratedColumn<String>(
       'lastSync', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _driftQueryStrMeta =
+      const VerificationMeta('driftQueryStr');
+  @override
+  late final GeneratedColumn<String> driftQueryStr = GeneratedColumn<String>(
+      'driftQueryStr', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -3274,6 +3320,7 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
         queryStr,
         status,
         lastSync,
+        driftQueryStr,
         note,
         value,
         remark,
@@ -3364,6 +3411,12 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
       context.handle(_lastSyncMeta,
           lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
     }
+    if (data.containsKey('driftQueryStr')) {
+      context.handle(
+          _driftQueryStrMeta,
+          driftQueryStr.isAcceptableOrUnknown(
+              data['driftQueryStr']!, _driftQueryStrMeta));
+    }
     if (data.containsKey('Note')) {
       context.handle(
           _noteMeta, note.isAcceptableOrUnknown(data['Note']!, _noteMeta));
@@ -3437,6 +3490,8 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
           .read(DriftSqlType.int, data['${effectivePrefix}status'])!,
       lastSync: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
+      driftQueryStr: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}driftQueryStr']),
       note: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}Note']),
       value: attachedDatabase.typeMapping
@@ -3477,6 +3532,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
   final String? queryStr;
   final int status;
   final String? lastSync;
+  final String? driftQueryStr;
   final String? note;
   final String? value;
   final String? remark;
@@ -3501,6 +3557,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       this.queryStr,
       required this.status,
       this.lastSync,
+      this.driftQueryStr,
       this.note,
       this.value,
       this.remark,
@@ -3554,6 +3611,9 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
     map['status'] = Variable<int>(status);
     if (!nullToAbsent || lastSync != null) {
       map['lastSync'] = Variable<String>(lastSync);
+    }
+    if (!nullToAbsent || driftQueryStr != null) {
+      map['driftQueryStr'] = Variable<String>(driftQueryStr);
     }
     if (!nullToAbsent || note != null) {
       map['Note'] = Variable<String>(note);
@@ -3621,6 +3681,9 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       lastSync: lastSync == null && nullToAbsent
           ? const Value.absent()
           : Value(lastSync),
+      driftQueryStr: driftQueryStr == null && nullToAbsent
+          ? const Value.absent()
+          : Value(driftQueryStr),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       value:
           value == null && nullToAbsent ? const Value.absent() : Value(value),
@@ -3661,6 +3724,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       queryStr: serializer.fromJson<String?>(json['queryStr']),
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
+      driftQueryStr: serializer.fromJson<String?>(json['driftQueryStr']),
       note: serializer.fromJson<String?>(json['note']),
       value: serializer.fromJson<String?>(json['value']),
       remark: serializer.fromJson<String?>(json['remark']),
@@ -3691,6 +3755,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       'queryStr': serializer.toJson<String?>(queryStr),
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
+      'driftQueryStr': serializer.toJson<String?>(driftQueryStr),
       'note': serializer.toJson<String?>(note),
       'value': serializer.toJson<String?>(value),
       'remark': serializer.toJson<String?>(remark),
@@ -3718,6 +3783,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           Value<String?> queryStr = const Value.absent(),
           int? status,
           Value<String?> lastSync = const Value.absent(),
+          Value<String?> driftQueryStr = const Value.absent(),
           Value<String?> note = const Value.absent(),
           Value<String?> value = const Value.absent(),
           Value<String?> remark = const Value.absent(),
@@ -3744,6 +3810,8 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
         queryStr: queryStr.present ? queryStr.value : this.queryStr,
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        driftQueryStr:
+            driftQueryStr.present ? driftQueryStr.value : this.driftQueryStr,
         note: note.present ? note.value : this.note,
         value: value.present ? value.value : this.value,
         remark: remark.present ? remark.value : this.remark,
@@ -3778,6 +3846,9 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       queryStr: data.queryStr.present ? data.queryStr.value : this.queryStr,
       status: data.status.present ? data.status.value : this.status,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      driftQueryStr: data.driftQueryStr.present
+          ? data.driftQueryStr.value
+          : this.driftQueryStr,
       note: data.note.present ? data.note.value : this.note,
       value: data.value.present ? data.value.value : this.value,
       remark: data.remark.present ? data.remark.value : this.remark,
@@ -3810,6 +3881,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           ..write('queryStr: $queryStr, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
+          ..write('driftQueryStr: $driftQueryStr, ')
           ..write('note: $note, ')
           ..write('value: $value, ')
           ..write('remark: $remark, ')
@@ -3839,6 +3911,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
         queryStr,
         status,
         lastSync,
+        driftQueryStr,
         note,
         value,
         remark,
@@ -3867,6 +3940,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           other.queryStr == this.queryStr &&
           other.status == this.status &&
           other.lastSync == this.lastSync &&
+          other.driftQueryStr == this.driftQueryStr &&
           other.note == this.note &&
           other.value == this.value &&
           other.remark == this.remark &&
@@ -3893,6 +3967,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
   final Value<String?> queryStr;
   final Value<int> status;
   final Value<String?> lastSync;
+  final Value<String?> driftQueryStr;
   final Value<String?> note;
   final Value<String?> value;
   final Value<String?> remark;
@@ -3917,6 +3992,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     this.queryStr = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.driftQueryStr = const Value.absent(),
     this.note = const Value.absent(),
     this.value = const Value.absent(),
     this.remark = const Value.absent(),
@@ -3942,6 +4018,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     this.queryStr = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.driftQueryStr = const Value.absent(),
     this.note = const Value.absent(),
     this.value = const Value.absent(),
     this.remark = const Value.absent(),
@@ -3967,6 +4044,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     Expression<String>? queryStr,
     Expression<int>? status,
     Expression<String>? lastSync,
+    Expression<String>? driftQueryStr,
     Expression<String>? note,
     Expression<String>? value,
     Expression<String>? remark,
@@ -3992,6 +4070,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       if (queryStr != null) 'queryStr': queryStr,
       if (status != null) 'status': status,
       if (lastSync != null) 'lastSync': lastSync,
+      if (driftQueryStr != null) 'driftQueryStr': driftQueryStr,
       if (note != null) 'Note': note,
       if (value != null) 'Value': value,
       if (remark != null) 'Remark': remark,
@@ -4019,6 +4098,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       Value<String?>? queryStr,
       Value<int>? status,
       Value<String?>? lastSync,
+      Value<String?>? driftQueryStr,
       Value<String?>? note,
       Value<String?>? value,
       Value<String?>? remark,
@@ -4043,6 +4123,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       queryStr: queryStr ?? this.queryStr,
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
+      driftQueryStr: driftQueryStr ?? this.driftQueryStr,
       note: note ?? this.note,
       value: value ?? this.value,
       remark: remark ?? this.remark,
@@ -4104,6 +4185,9 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     if (lastSync.present) {
       map['lastSync'] = Variable<String>(lastSync.value);
     }
+    if (driftQueryStr.present) {
+      map['driftQueryStr'] = Variable<String>(driftQueryStr.value);
+    }
     if (note.present) {
       map['Note'] = Variable<String>(note.value);
     }
@@ -4147,6 +4231,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
           ..write('queryStr: $queryStr, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
+          ..write('driftQueryStr: $driftQueryStr, ')
           ..write('note: $note, ')
           ..write('value: $value, ')
           ..write('remark: $remark, ')
@@ -6060,6 +6145,7 @@ typedef $$DocumentRecordsTableCreateCompanionBuilder = DocumentRecordsCompanion
   Value<int> status,
   Value<String> unReadable,
   Value<String?> lastSync,
+  Value<String?> createBy,
 });
 typedef $$DocumentRecordsTableUpdateCompanionBuilder = DocumentRecordsCompanion
     Function({
@@ -6086,6 +6172,7 @@ typedef $$DocumentRecordsTableUpdateCompanionBuilder = DocumentRecordsCompanion
   Value<int> status,
   Value<String> unReadable,
   Value<String?> lastSync,
+  Value<String?> createBy,
 });
 
 class $$DocumentRecordsTableFilterComposer
@@ -6166,6 +6253,9 @@ class $$DocumentRecordsTableFilterComposer
 
   ColumnFilters<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createBy => $composableBuilder(
+      column: $table.createBy, builder: (column) => ColumnFilters(column));
 }
 
 class $$DocumentRecordsTableOrderingComposer
@@ -6248,6 +6338,9 @@ class $$DocumentRecordsTableOrderingComposer
 
   ColumnOrderings<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createBy => $composableBuilder(
+      column: $table.createBy, builder: (column) => ColumnOrderings(column));
 }
 
 class $$DocumentRecordsTableAnnotationComposer
@@ -6327,6 +6420,9 @@ class $$DocumentRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get lastSync =>
       $composableBuilder(column: $table.lastSync, builder: (column) => column);
+
+  GeneratedColumn<String> get createBy =>
+      $composableBuilder(column: $table.createBy, builder: (column) => column);
 }
 
 class $$DocumentRecordsTableTableManager extends RootTableManager<
@@ -6379,6 +6475,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             Value<int> status = const Value.absent(),
             Value<String> unReadable = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> createBy = const Value.absent(),
           }) =>
               DocumentRecordsCompanion(
             uid: uid,
@@ -6404,6 +6501,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             status: status,
             unReadable: unReadable,
             lastSync: lastSync,
+            createBy: createBy,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -6429,6 +6527,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             Value<int> status = const Value.absent(),
             Value<String> unReadable = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> createBy = const Value.absent(),
           }) =>
               DocumentRecordsCompanion.insert(
             uid: uid,
@@ -6454,6 +6553,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             status: status,
             unReadable: unReadable,
             lastSync: lastSync,
+            createBy: createBy,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -6722,6 +6822,7 @@ typedef $$JobTagsTableCreateCompanionBuilder = JobTagsCompanion Function({
   Value<String?> queryStr,
   Value<int> status,
   Value<String?> lastSync,
+  Value<String?> driftQueryStr,
   Value<String?> note,
   Value<String?> value,
   Value<String?> remark,
@@ -6747,6 +6848,7 @@ typedef $$JobTagsTableUpdateCompanionBuilder = JobTagsCompanion Function({
   Value<String?> queryStr,
   Value<int> status,
   Value<String?> lastSync,
+  Value<String?> driftQueryStr,
   Value<String?> note,
   Value<String?> value,
   Value<String?> remark,
@@ -6812,6 +6914,9 @@ class $$JobTagsTableFilterComposer
 
   ColumnFilters<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get driftQueryStr => $composableBuilder(
+      column: $table.driftQueryStr, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get note => $composableBuilder(
       column: $table.note, builder: (column) => ColumnFilters(column));
@@ -6895,6 +7000,10 @@ class $$JobTagsTableOrderingComposer
   ColumnOrderings<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get driftQueryStr => $composableBuilder(
+      column: $table.driftQueryStr,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get note => $composableBuilder(
       column: $table.note, builder: (column) => ColumnOrderings(column));
 
@@ -6975,6 +7084,9 @@ class $$JobTagsTableAnnotationComposer
   GeneratedColumn<String> get lastSync =>
       $composableBuilder(column: $table.lastSync, builder: (column) => column);
 
+  GeneratedColumn<String> get driftQueryStr => $composableBuilder(
+      column: $table.driftQueryStr, builder: (column) => column);
+
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
 
@@ -7036,6 +7148,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             Value<String?> queryStr = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> driftQueryStr = const Value.absent(),
             Value<String?> note = const Value.absent(),
             Value<String?> value = const Value.absent(),
             Value<String?> remark = const Value.absent(),
@@ -7061,6 +7174,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             queryStr: queryStr,
             status: status,
             lastSync: lastSync,
+            driftQueryStr: driftQueryStr,
             note: note,
             value: value,
             remark: remark,
@@ -7086,6 +7200,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             Value<String?> queryStr = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> driftQueryStr = const Value.absent(),
             Value<String?> note = const Value.absent(),
             Value<String?> value = const Value.absent(),
             Value<String?> remark = const Value.absent(),
@@ -7111,6 +7226,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             queryStr: queryStr,
             status: status,
             lastSync: lastSync,
+            driftQueryStr: driftQueryStr,
             note: note,
             value: value,
             remark: remark,

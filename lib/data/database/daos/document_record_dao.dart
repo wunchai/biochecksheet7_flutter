@@ -20,11 +20,11 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase> with _$DocumentRec
       batch.insertAll(documentRecords, entries);
     });
   }
-
-// NEW: Method to get a single document record by its local UID
+ // Gets a single document record by its local UID.
   Future<DbDocumentRecord?> getDocumentRecordByUid(int uid) {
     return (select(documentRecords)..where((tbl) => tbl.uid.equals(uid))).getSingleOrNull();
   }
+
    // NEW: Delete all document records associated with a specific documentId
   Future<int> deleteAllRecordsByDocumentId(String documentId) {
     return (delete(documentRecords)..where((tbl) => tbl.documentId.equals(documentId))).go();
@@ -53,9 +53,11 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase> with _$DocumentRec
   Future<List<DbDocumentRecord>> getAllDocumentRecords() => select(documentRecords).get();
 
 
-  // Equivalent to suspend fun updateDocumentRecord(documentRecord: DbDocumentRecord)
-  Future<bool> updateDocumentRecord(DbDocumentRecord entry) => update(documentRecords).replace(entry);
-
+  
+  // Corrected: Update method to accept DocumentRecordsCompanion
+  Future<bool> updateDocumentRecord(DocumentRecordsCompanion entry) { // <<< เปลี่ยน Type จาก DbDocumentRecord เป็น DocumentRecordsCompanion
+    return update(documentRecords).replace(entry); // .replace() works with Companion
+  }
   // Equivalent to suspend fun deleteDocumentRecord(documentRecord: DbDocumentRecord)
   Future<int> deleteDocumentRecord(DbDocumentRecord entry) => delete(documentRecords).delete(entry);
 

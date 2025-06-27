@@ -75,4 +75,6 @@ class DocumentRecords extends Table {
 
   // @ColumnInfo(name = "lastSync") var lastSync: String? = null
   TextColumn get lastSync => text().named('lastSync').nullable()();
+
+   TextColumn get createBy => text().named('CreateBy').nullable()(); // 
 }

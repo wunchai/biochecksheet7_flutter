@@ -194,9 +194,15 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
           IconButton(
             icon: const Icon(Icons.save), // ไอคอนบันทึก
             onPressed: () {
-              // TODO: เรียกใช้ฟังก์ชันบันทึกการเปลี่ยนแปลงทั้งหมดใน ViewModel
-              print('Save records button pressed');
-              // viewModel.saveAllChanges();
+              final viewModel = Provider.of<DocumentRecordViewModel>(context, listen: false);
+              // Extract current values from controllers and selected combo box values
+              //final Map<int, String?> currentValues = allControllers.map((key, controller) => MapEntry(key, controller.text));
+              //final Map<int, String?> currentComboBoxValues = _selectedComboBoxValues;
+
+              viewModel.saveAllChanges(
+                allControllers: _controllers, // Pass the entire map of controllers
+                allComboBoxValues: _selectedComboBoxValues, // Pass the map of selected combo box values
+              );
             },
           ),
         ],

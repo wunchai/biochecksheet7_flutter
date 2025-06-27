@@ -51,6 +51,8 @@ class JobTags extends Table {
   // @ColumnInfo(name = "lastSync") var lastSync: String? = null
   TextColumn get lastSync => text().named('lastSync').nullable()();
 
+  // NEW: Add driftQueryStr for raw SQL queries with snake_case table/column names
+  TextColumn get driftQueryStr => text().named('driftQueryStr').nullable()();
    // NEW: Add fields from API response
   TextColumn get note => text().named('Note').nullable()();
   TextColumn get value => text().named('Value').nullable()(); // API has 'Value' as null

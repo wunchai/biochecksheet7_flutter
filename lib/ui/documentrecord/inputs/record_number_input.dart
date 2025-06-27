@@ -70,6 +70,9 @@ class _RecordNumberInputFieldState extends State<RecordNumberInputField> {
     } else if (specMax != null && specMax.isNotEmpty) {
       hint += ' (Max: $specMax)';
     }
+    
+    // Determine if calculation button should be shown
+    final bool showCalculateButton = (widget.jobTag?.valueType == 'Calculate' || widget.jobTag?.valueType == 'Formula');
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -83,12 +86,27 @@ class _RecordNumberInputFieldState extends State<RecordNumberInputField> {
               labelText: '${widget.jobTag?.tagName ?? 'ตัวเลข'} (${widget.jobTag?.unit ?? ''})',
               hintText: _isUnReadableChecked ? 'ไม่อ่านค่าได้' : hint, // Change hint when disabled
               border: const OutlineInputBorder(),
-              suffixIcon: IconButton(
+                // Add a Row for suffix icons if multiple buttons are needed
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min, // Use min size for the row
+                children: [
+                  // Calculate Button
+                  if (showCalculateButton) // Show only if valueType is Calculate or Formula
+                    IconButton(
+                      icon: const Icon(Icons.calculate), // Icon for calculation
+                      onPressed: _isUnReadableChecked ? null : () {
+                        // Call ViewModel's calculate method
+                        widget.viewModel.calculateRecordValue(widget.record.uid);
+                      },
+                    ),
+               IconButton(
                 icon: const Icon(Icons.check),
                 onPressed: _isUnReadableChecked ? null : () { // Disable check button too
                   widget.viewModel.updateRecordValue(
                       widget.record.uid, widget.controller.text, widget.record.remark);
                 },
+              ),
+                 ],
               ),
               errorText: widget.errorText, // Display error text directly from ViewModel
             ),
