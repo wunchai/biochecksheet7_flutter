@@ -12,6 +12,8 @@ class RecordComboBoxInputField extends StatefulWidget {
   final DocumentRecordViewModel viewModel;
   final String? initialSelectedValue;
   final String? errorText;
+  final ValueChanged<String?>
+      onChangedCallback; // Callback to notify parent about value change
   final bool isReadOnly; // <<< NEW parameter
 
   const RecordComboBoxInputField({
@@ -21,6 +23,7 @@ class RecordComboBoxInputField extends StatefulWidget {
     required this.viewModel,
     this.initialSelectedValue,
     this.errorText,
+    required this.onChangedCallback,
     required this.isReadOnly, // <<< NEW
   });
 
@@ -43,10 +46,10 @@ class _RecordComboBoxInputFieldState extends State<RecordComboBoxInputField> {
   @override
   void didUpdateWidget(covariant RecordComboBoxInputField oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // Update internal state if the initialSelectedValue from parent changes (e.g., from DB update)
     if (widget.initialSelectedValue != oldWidget.initialSelectedValue) {
-      // Update internal state if the initialSelectedValue from parent changes (e.g. from DB update)
       setState(() {
-        // << CRUCIAL: Call setState here to rebuild Dropdown with new value
+        // Call setState here to rebuild Dropdown with new value
         _currentSelectedValue = widget.initialSelectedValue;
       });
     }
@@ -55,9 +58,7 @@ class _RecordComboBoxInputFieldState extends State<RecordComboBoxInputField> {
   @override
   Widget build(BuildContext context) {
     List<String> options = [];
-    // The value displayed by the dropdown will come from _currentSelectedValue,
-    // which is initially set from widget.initialSelectedValue.
-    // When onChanged is called, _currentSelectedValue is updated internally.
+    String? displayInitialValue = widget.record.value;
 
     if (widget.jobTag?.tagSelectionValue != null &&
         widget.jobTag!.tagSelectionValue!.isNotEmpty) {
@@ -94,6 +95,8 @@ class _RecordComboBoxInputFieldState extends State<RecordComboBoxInputField> {
           labelText: widget.jobTag?.tagName ?? 'เลือกตัวเลือก',
           border: const OutlineInputBorder(),
           errorText: widget.errorText, // Display error text
+           // Hint text when read-only
+          hintText: widget.isReadOnly ? 'ไม่สามารถแก้ไขได้' : null, 
         ),
         items: options.map<DropdownMenuItem<String>>((String value) {
           return DropdownMenuItem<String>(
@@ -101,21 +104,18 @@ class _RecordComboBoxInputFieldState extends State<RecordComboBoxInputField> {
             child: Text(value),
           );
         }).toList(),
-        onChanged: widget.isReadOnly
-            ? null
-            : (String? newValue) {
+        onChanged: widget.isReadOnly ? null : (String? newValue) {
                 // <<< Disable when read-only
                 setState(() {
                   // Update internal state for immediate visual feedback
                   _currentSelectedValue = newValue;
                 });
-                // CRUCIAL CHANGE: Directly call ViewModel to update the record value.
-                // This ensures the value is saved to DB (and then refreshes the Stream).
-                // The ViewModel will then notifyListeners, which will cause parent to rebuild
-                // and pass the correct initialSelectedValue next time.
+                widget.onChangedCallback(newValue); // Call callback to update parent's map
                 widget.viewModel.updateRecordValue(
-                    widget.record.uid, newValue, widget.record.remark);
+                    widget.record.uid, newValue, widget.record.remark, newStatus:0);
               },
+               // Remove the dropdown icon when read-only for clearer visual feedback
+        icon: widget.isReadOnly ? const SizedBox.shrink() : const Icon(Icons.arrow_drop_down),
       ),
     );
   }

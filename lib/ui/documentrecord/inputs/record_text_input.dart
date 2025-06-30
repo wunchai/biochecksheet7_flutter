@@ -34,25 +34,24 @@ class _RecordTextInputFieldState extends State<RecordTextInputField> {
   @override
   void initState() {
     super.initState();
-    // Initialize controller text from record.value (only once)
-    // No need for this check if controller is already initialized with correct value by parent
+    // Controller is initialized by parent and passed correctly.
+    // No need to set text here.
+  }
+
+  @override
+  void didUpdateWidget(covariant RecordTextInputField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+   // Controller text is now managed by parent _buildInputField.
+    // No need for this line.
     // if (widget.controller.text != widget.record.value) {
     //   widget.controller.text = widget.record.value ?? '';
     // }
   }
 
   @override
-  void didUpdateWidget(covariant RecordTextInputField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // CRUCIAL FIX: Update controller's text if the underlying record's value changes.
-    // This happens when data from Stream updates, ensuring the TextField displays correct value.
-    if (widget.controller.text != widget.record.value) {
-      widget.controller.text = widget.record.value ?? '';
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    print(
+        'RecordTextInputField UID: ${widget.record.uid}, TagName: ${widget.jobTag?.tagName}, Enabled: ${!widget.isReadOnly}, ReadOnly: ${widget.isReadOnly}, Controller text: "${widget.controller.text}"'); // <<< Debugging
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: TextField(
@@ -72,7 +71,7 @@ class _RecordTextInputFieldState extends State<RecordTextInputField> {
                 : () {
                     // Disable button when read-only
                     widget.viewModel.updateRecordValue(widget.record.uid,
-                        widget.controller.text, widget.record.remark);
+                        widget.controller.text, widget.record.remark, newStatus:0);
                   },
           ),
           errorText: widget.errorText,
@@ -84,7 +83,7 @@ class _RecordTextInputFieldState extends State<RecordTextInputField> {
           if (!widget.isReadOnly) {
             // Only submit if not read-only
             widget.viewModel.updateRecordValue(
-                widget.record.uid, value, widget.record.remark);
+                widget.record.uid, value, widget.record.remark, newStatus:0);
           }
         },
       ),

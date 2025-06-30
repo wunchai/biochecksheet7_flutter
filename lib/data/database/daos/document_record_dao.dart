@@ -20,6 +20,16 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase> with _$DocumentRec
       batch.insertAll(documentRecords, entries);
     });
   }
+  // NEW: Method to get document records filtered by documentId, machineId, and status
+  Future<List<DbDocumentRecord>> getRecordsByStatus(String documentId, String machineId, int status) {
+    return (select(documentRecords)
+          ..where((tbl) =>
+              tbl.documentId.equals(documentId) &
+              tbl.machineId.equals(machineId) &
+              tbl.status.equals(status)))
+        .get();
+  }
+  
  // Gets a single document record by its local UID.
   Future<DbDocumentRecord?> getDocumentRecordByUid(int uid) {
     return (select(documentRecords)..where((tbl) => tbl.uid.equals(uid))).getSingleOrNull();

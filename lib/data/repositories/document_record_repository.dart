@@ -14,6 +14,8 @@ import 'package:collection/collection.dart'; // For IterableExtension, if needed
 
 // NEW: Import DocumentRecordApiService
 import 'package:biochecksheet7_flutter/data/network/document_record_api_service.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart'; // <<< NEW: Import DocumentDao
+import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // <<< NEW: Import DbDocument
 
 import 'dart:math'; // <<< NEW: Import for atan and pow
 
@@ -25,15 +27,17 @@ class DocumentRecordRepository {
   final DocumentRecordApiService
       _documentRecordApiService; // <<< เพิ่ม Dependency นี้
   final AppDatabase _appDatabase; // NEW: Add AppDatabase to access raw queries
-  // TODO: หากมี DocumentRecordApiService ก็เพิ่มที่นี่
-  // final DocumentRecordApiService _documentRecordApiService;
+  final DocumentDao _documentDao; // <<< CRUCIAL FIX: Declare DocumentDao here
+  
+
 
   DocumentRecordRepository({required AppDatabase appDatabase})
       : _documentRecordDao = appDatabase.documentRecordDao,
         _jobTagDao = appDatabase.jobTagDao, // NEW
         _documentRecordApiService =
             DocumentRecordApiService(), // <<< สร้าง instance
-        _appDatabase = appDatabase; // <<< Initialize AppDatabase
+        _appDatabase = appDatabase, // <<< Initialize AppDatabase
+        _documentDao = appDatabase.documentDao; // <<< Initialize DocumentDao here
   /// Loads document records for a specific document and machine,
   /// joined with their corresponding job tags and problems.
   /// This provides data for the DocumentRecordScreen.
@@ -391,6 +395,54 @@ class DocumentRecordRepository {
     } catch (e) {
       print('Error deleting record UID $uid: $e');
       throw Exception('Failed to delete record: $e');
+    }
+  }
+
+  /// Uploads records with Status 1 (Locally Validated) to the server.
+  /// After successful upload, updates their status to 2 (Posted).
+  Future<bool> uploadRecordsToServer({required String documentId, required String machineId, required String jobId}) async {
+    try {
+      // 1. Get records that are ready for upload (Status 1)
+      final recordsToUpload = await _documentRecordDao.getRecordsByStatus(documentId, machineId, 1);
+
+      if (recordsToUpload.isEmpty) {
+        print('No records found with Status 1 for DocID=$documentId, MachineID=$machineId to upload.');
+        return true; // Nothing to upload, consider it successful
+      }
+
+      // NEW: Get the main document details (createDate, userId)
+      final DbDocument? mainDocument = await _documentDao.getDocumentById(documentId);
+      if (mainDocument == null) {
+        throw Exception('Main document not found for documentId: $documentId. Cannot upload records.');
+      }
+
+      // 2. Call API service to upload these records, passing main document details
+      final uploadSuccess = await _documentRecordApiService.uploadRecords(
+        recordsToUpload,
+        documentCreateDate: mainDocument.createDate, // <<< Pass document's createDate
+        documentUserId: mainDocument.userId,         // <<< Pass document's userId
+      );
+
+      if (uploadSuccess) {
+        // 3. If upload successful, update status of these records to 2 (Posted)
+        for (final record in recordsToUpload) {
+          await _documentRecordDao.updateDocumentRecord(
+            DocumentRecordsCompanion(
+              uid: drift.Value(record.uid),
+              status: const drift.Value(2), // Set status to 2 (Posted)
+              lastSync: drift.Value(DateTime.now().toIso8601String()), // Update last sync timestamp
+            ),
+          );
+        }
+        print('Successfully uploaded ${recordsToUpload.length} records to server and updated status to 2.');
+        return true;
+      } else {
+        print('Failed to upload records to server.');
+        return false;
+      }
+    } catch (e) {
+      print('Error during records upload to server: $e');
+      throw Exception('Records upload failed: $e');
     }
   }
 }

@@ -1,21 +1,23 @@
 // lib/ui/documentrecord/widgets/remark_input_dialog.dart
 import 'package:flutter/material.dart';
 
-/// A StatefulWidget that provides a TextField for remark input
-/// and manages its own TextEditingController lifecycle.
+/// A StatelessWidget (or StatefulWidget that manages its own controller) that provides a TextField for remark input.
 /// This is designed to be used as the content of an AlertDialog.
-class RemarkInputDialog extends StatefulWidget {
+class RemarkInputDialogContent extends StatefulWidget { // Keeping StatefulWidget for potential future internal state
   // CRUCIAL CHANGE: Accept TextEditingController from outside
   final TextEditingController controller; 
 
-  const RemarkInputDialog({super.key, required this.controller});
+  const RemarkInputDialogContent({
+    super.key,
+    required this.controller, // Require the controller to be passed
+  });
 
   @override
-  State<RemarkInputDialog> createState() => _RemarkInputDialogState();
+  State<RemarkInputDialogContent> createState() => _RemarkInputDialogContentState();
 }
 
-class _RemarkInputDialogState extends State<RemarkInputDialog> {
-  // The controller is now passed from outside, so no need to manage here.
+class _RemarkInputDialogContentState extends State<RemarkInputDialogContent> {
+  // Controller is now passed from outside, so no need to manage it here.
   // We just use widget.controller directly.
 
   @override
@@ -29,5 +31,4 @@ class _RemarkInputDialogState extends State<RemarkInputDialog> {
       ),
     );
   }
-  // No need for getCurrentRemark() here as parent directly accesses controller
 }

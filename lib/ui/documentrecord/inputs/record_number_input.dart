@@ -31,20 +31,12 @@ class _RecordNumberInputFieldState extends State<RecordNumberInputField> {
   // Internal state for the Checkbox, reflects record.unReadable
   late bool _isUnReadableChecked;
 
-  @override
+    @override
   void initState() {
     super.initState();
-    // Initialize checkbox state from record's unReadable value
     _isUnReadableChecked = widget.record.unReadable == 'true';
-    // If unReadable is true, ensure controller is cleared initially
-    if (_isUnReadableChecked) {
-      widget.controller.clear();
-    } else {
-      // Ensure controller reflects actual record value if not unReadable
-      if (widget.controller.text != widget.record.value) {
-        widget.controller.text = widget.record.value ?? '';
-      }
-    }
+    // Controller is initialized by parent and passed correctly.
+    // No need to set text here.
   }
 
   @override
@@ -54,11 +46,14 @@ class _RecordNumberInputFieldState extends State<RecordNumberInputField> {
     if (widget.record.unReadable != oldWidget.record.unReadable) {
       _isUnReadableChecked = widget.record.unReadable == 'true';
     }
-    // Update controller text if record.value changes and not unReadable
-    if (!_isUnReadableChecked &&
-        widget.controller.text != widget.record.value) {
-      widget.controller.text = widget.record.value ?? '';
-    }
+    // Controller text is now managed by parent _buildInputField.
+    // No need for these lines.
+    // if (!_isUnReadableChecked && widget.controller.text != widget.record.value) {
+    //   widget.controller.text = widget.record.value ?? '';
+    // }
+    // if (_isUnReadableChecked && widget.controller.text.isNotEmpty) {
+    //   widget.controller.clear();
+    // }
   }
 
   @override
@@ -80,11 +75,11 @@ class _RecordNumberInputFieldState extends State<RecordNumberInputField> {
     // Determine if calculation button should be shown
     final bool showCalculateButton = (widget.jobTag?.valueType == 'Calculate' ||
         widget.jobTag?.valueType == 'Formula');
+    final bool isEnabled = !widget.isReadOnly && !_isUnReadableChecked;
+    final bool isReallyReadOnly = widget.isReadOnly || _isUnReadableChecked;
 
-    final bool isEnabled = !widget.isReadOnly &&
-        !_isUnReadableChecked; // Enabled only if NOT read-only AND NOT unReadable
     print(
-        'isEnabled: $isEnabled isReadOnly: ${widget.isReadOnly} _isUnReadableChecked: $_isUnReadableChecked'); // Debugging output
+        'RecordNumberInputField UID: ${widget.record.uid}, TagName: ${widget.jobTag?.tagName}, Enabled: $isEnabled, ReadOnlyProp: $isReallyReadOnly, widget.isReadOnly: ${widget.isReadOnly}, _isUnReadableChecked: $_isUnReadableChecked, Controller text: "${widget.controller.text}"'); // <<< Debugging
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Column(
@@ -93,9 +88,8 @@ class _RecordNumberInputFieldState extends State<RecordNumberInputField> {
         children: [
           TextField(
             controller: widget.controller,
-            enabled: isEnabled, // <<< Use isEnabled
-            readOnly: widget.isReadOnly ||
-                _isUnReadableChecked, // <<< Make read-only based on either
+            enabled: isEnabled,
+            readOnly: isReallyReadOnly,
             decoration: InputDecoration(
               labelText:
                   '${widget.jobTag?.tagName ?? 'ตัวเลข'} (${widget.jobTag?.unit ?? ''})',
@@ -129,7 +123,7 @@ class _RecordNumberInputFieldState extends State<RecordNumberInputField> {
                             widget.viewModel.updateRecordValue(
                                 widget.record.uid,
                                 widget.controller.text,
-                                widget.record.remark);
+                                widget.record.remark, newStatus:0);
                           }
                         : null,
                   ),
@@ -143,7 +137,7 @@ class _RecordNumberInputFieldState extends State<RecordNumberInputField> {
               if (isEnabled) {
                 // Only submit if not unReadable
                 widget.viewModel.updateRecordValue(
-                    widget.record.uid, value, widget.record.remark);
+                    widget.record.uid, value, widget.record.remark, newStatus:0);
               }
             },
           ),

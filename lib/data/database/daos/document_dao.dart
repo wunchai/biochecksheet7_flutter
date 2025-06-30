@@ -27,7 +27,11 @@ class DocumentDao extends DatabaseAccessor<AppDatabase> with _$DocumentDaoMixin 
   // Equivalent to suspend fun getAllDocument(): List<DbDocument>
   Stream<List<DbDocument>> watchAllDocuments() => select(documents).watch();
   Future<List<DbDocument>> getAllDocuments() => select(documents).get();
-
+  
+  // NEW: Method to get a single document by its documentId
+  Future<DbDocument?> getDocumentById(String documentId) {
+    return (select(documents)..where((tbl) => tbl.documentId.equals(documentId))).getSingleOrNull();
+  }
 
   // Equivalent to suspend fun updateDocument(document: DbDocument)
   Future<bool> updateDocument(DbDocument entry) => update(documents).replace(entry);

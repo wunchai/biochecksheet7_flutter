@@ -19,7 +19,7 @@ import 'package:biochecksheet7_flutter/data/database/daos/job_tag_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/problem_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/sync_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart'; // <<< เพิ่ม import นี้
-
+import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart'; // <<< เพิ่ม import นี้
 // Import table companions for insertion
 import 'package:biochecksheet7_flutter/data/database/tables/user_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart';
@@ -28,6 +28,7 @@ import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/sync_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // <<< เพิ่ม import นี้
+import 'package:biochecksheet7_flutter/data/network/document_record_api_service.dart';
 import 'package:drift/drift.dart' as drift;
 
 class DataSyncService {
@@ -39,7 +40,7 @@ class DataSyncService {
   final ProblemApiService _problemApiService;
   final SyncMetadataApiService _syncMetadataApiService;
   final DocumentApiService _documentApiService; // <<< เพิ่ม Dependency
-
+  final DocumentRecordApiService _documentRecordApiService; // <<< เพิ่ม Dependency นี้
   // DAOs (now direct instances)
   final UserDao _userDao;
   final JobDao _jobDao;
@@ -48,6 +49,7 @@ class DataSyncService {
   final ProblemDao _problemDao;
   final SyncDao _syncDao;
   final DocumentDao _documentDao; // <<< เพิ่ม Dependency นี้
+  final DocumentRecordDao _documentRecordDao; // <<< เพิ่ม Dependency นี้
 
   // Constructor now takes a resolved AppDatabase instance
   DataSyncService({
@@ -59,6 +61,7 @@ class DataSyncService {
     ProblemApiService? problemApiService,
     SyncMetadataApiService? syncMetadataApiService,
     DocumentApiService? documentApiService,
+    DocumentRecordApiService? documentRecordApiService, // <<< เพิ่มใน Constructor
   })  : _userApiService = userApiService ?? UserApiService(),
         _jobApiService = jobApiService ?? JobApiService(),
         _jobMachineApiService = jobMachineApiService ?? JobMachineApiService(),
@@ -68,6 +71,7 @@ class DataSyncService {
             syncMetadataApiService ?? SyncMetadataApiService(),
         _documentApiService =
             documentApiService ?? DocumentApiService(), // <<< สร้าง instance
+        _documentRecordApiService = documentRecordApiService ?? DocumentRecordApiService(), // <<< สร้าง instance
         _userDao = appDatabase.userDao, // Access dao directly
         _jobDao = appDatabase.jobDao, // Access dao directly
         _documentMachineDao =
@@ -75,7 +79,8 @@ class DataSyncService {
         _jobTagDao = appDatabase.jobTagDao, // Access dao directly
         _problemDao = appDatabase.problemDao, // Access dao directly
         _syncDao = appDatabase.syncDao, // Access dao directly
-        _documentDao = appDatabase.documentDao; // <<< สร้าง instance
+        _documentDao = appDatabase.documentDao, // <<< สร้าง instance
+        _documentRecordDao = appDatabase.documentRecordDao; // Ensure this is initialized
 
   // Removed old unused imports for tables as they are handled by DAO imports now
   // Removed unused methods (`_syncJobMachinesData`, `_syncJobTagsData`, `_syncProblemsData`, `_syncMetadataData`)
