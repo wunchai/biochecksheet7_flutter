@@ -11,21 +11,27 @@ class RecordComboBoxInputField extends StatefulWidget {
   final DbJobTag? jobTag;
   final DocumentRecordViewModel viewModel;
   final String? initialSelectedValue;
-  final String? errorText; // NEW: Parameter to receive error text from ViewModel
+  final String? errorText;
+  final bool isReadOnly; // <<< NEW parameter
+
   const RecordComboBoxInputField({
     super.key,
     required this.record,
     required this.jobTag,
     required this.viewModel,
     this.initialSelectedValue,
-     this.errorText, // NEW: Make it optional
+    this.errorText,
+    required this.isReadOnly, // <<< NEW
   });
 
   @override
-  State<RecordComboBoxInputField> createState() => _RecordComboBoxInputFieldState();
+  State<RecordComboBoxInputField> createState() =>
+      _RecordComboBoxInputFieldState();
 }
 
 class _RecordComboBoxInputFieldState extends State<RecordComboBoxInputField> {
+  // _currentSelectedValue จะยังคงใช้เป็น internal state ของ Dropdown
+  // แต่การอัปเดตจริงจะผ่าน ViewModel ไปยัง DB และ Stream
   String? _currentSelectedValue;
 
   @override
@@ -37,49 +43,57 @@ class _RecordComboBoxInputFieldState extends State<RecordComboBoxInputField> {
   @override
   void didUpdateWidget(covariant RecordComboBoxInputField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // CRUCIAL: Update internal state ONLY if the new initialSelectedValue is different
-    // This handles cases where the parent rebuilds but the value hasn't changed.
     if (widget.initialSelectedValue != oldWidget.initialSelectedValue) {
-      _currentSelectedValue = widget.initialSelectedValue;
+      // Update internal state if the initialSelectedValue from parent changes (e.g. from DB update)
+      setState(() {
+        // << CRUCIAL: Call setState here to rebuild Dropdown with new value
+        _currentSelectedValue = widget.initialSelectedValue;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     List<String> options = [];
-    String? displayInitialValue = widget.record.value; // Get value from record directly
+    // The value displayed by the dropdown will come from _currentSelectedValue,
+    // which is initially set from widget.initialSelectedValue.
+    // When onChanged is called, _currentSelectedValue is updated internally.
 
-    if (widget.jobTag?.tagSelectionValue != null && widget.jobTag!.tagSelectionValue!.isNotEmpty) {
+    if (widget.jobTag?.tagSelectionValue != null &&
+        widget.jobTag!.tagSelectionValue!.isNotEmpty) {
       try {
         final dynamic decoded = jsonDecode(widget.jobTag!.tagSelectionValue!);
         if (decoded is List) {
-          options = decoded.map((item) => item['value']?.toString() ?? '').toList();
+          options =
+              decoded.map((item) => item['value']?.toString() ?? '').toList();
         } else {
-          options = widget.jobTag!.tagSelectionValue!.split(',').map((s) => s.trim()).toList();
+          options = widget.jobTag!.tagSelectionValue!
+              .split(',')
+              .map((s) => s.trim())
+              .toList();
         }
       } catch (e) {
-        options = widget.jobTag!.tagSelectionValue!.split(',').map((s) => s.trim()).toList();
+        options = widget.jobTag!.tagSelectionValue!
+            .split(',')
+            .map((s) => s.trim())
+            .toList();
       }
     }
-    
-    // Ensure the displayInitialValue is in the options list, otherwise set to null
-    if (displayInitialValue != null && !options.contains(displayInitialValue)) {
-        displayInitialValue = null;
-    }
-    // Update _currentSelectedValue if it somehow got out of sync or if the record.value updated
-    if (_currentSelectedValue != displayInitialValue) {
-      _currentSelectedValue = displayInitialValue;
-    }
 
+    // Ensure that _currentSelectedValue is still a valid option
+    if (_currentSelectedValue != null &&
+        !options.contains(_currentSelectedValue)) {
+      _currentSelectedValue = null;
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: DropdownButtonFormField<String>(
-        value: _currentSelectedValue, // Use internal state
+        value: _currentSelectedValue, // Use internal state for display
         decoration: InputDecoration(
           labelText: widget.jobTag?.tagName ?? 'เลือกตัวเลือก',
           border: const OutlineInputBorder(),
-           errorText: widget.errorText, // <<< เพิ่มบรรทัดนี้
+          errorText: widget.errorText, // Display error text
         ),
         items: options.map<DropdownMenuItem<String>>((String value) {
           return DropdownMenuItem<String>(
@@ -87,12 +101,21 @@ class _RecordComboBoxInputFieldState extends State<RecordComboBoxInputField> {
             child: Text(value),
           );
         }).toList(),
-        onChanged: (String? newValue) {
-          setState(() {
-            _currentSelectedValue = newValue;
-          });
-          widget.viewModel.updateRecordValue(widget.record.uid, newValue, widget.record.remark);
-        },
+        onChanged: widget.isReadOnly
+            ? null
+            : (String? newValue) {
+                // <<< Disable when read-only
+                setState(() {
+                  // Update internal state for immediate visual feedback
+                  _currentSelectedValue = newValue;
+                });
+                // CRUCIAL CHANGE: Directly call ViewModel to update the record value.
+                // This ensures the value is saved to DB (and then refreshes the Stream).
+                // The ViewModel will then notifyListeners, which will cause parent to rebuild
+                // and pass the correct initialSelectedValue next time.
+                widget.viewModel.updateRecordValue(
+                    widget.record.uid, newValue, widget.record.remark);
+              },
       ),
     );
   }

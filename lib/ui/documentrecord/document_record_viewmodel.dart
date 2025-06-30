@@ -8,7 +8,6 @@ import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart'; // For DbProblem
 import 'package:drift/drift.dart' as drift; // Alias drift
 
-
 // NEW: Import for charts
 import 'package:fl_chart/fl_chart.dart'; // For FlSpot
 import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart'; // <<< NEW: Import LoginRepository for userId
@@ -25,9 +24,10 @@ class DocumentRecordViewModel extends ChangeNotifier {
   String? _jobId; // NEW: Need jobId to initialize records from job tags
 
   Stream<List<DocumentRecordWithTagAndProblem>>? _recordsStream;
-  Stream<List<DocumentRecordWithTagAndProblem>>? get recordsStream => _recordsStream;
+  Stream<List<DocumentRecordWithTagAndProblem>>? get recordsStream =>
+      _recordsStream;
 
- // NEW: Stream for chart data
+  // NEW: Stream for chart data
   Stream<List<FlSpot>>? _chartDataStream;
   Stream<List<FlSpot>>? get chartDataStream => _chartDataStream;
 
@@ -44,13 +44,13 @@ class DocumentRecordViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
- // NEW: Map to store validation errors for each record's UID
+  // NEW: Map to store validation errors for each record's UID
   final Map<int, String?> _recordErrors = {};
   Map<int, String?> get recordErrors => _recordErrors;
 
-
   // Currently selected document (for copy/delete operations)
-  DbDocumentRecord? _selectedDocument; // Note: This is DbDocumentRecord, not DbDocument
+  DbDocumentRecord?
+      _selectedDocument; // Note: This is DbDocumentRecord, not DbDocument
   DbDocumentRecord? get selectedDocument => _selectedDocument;
 
   //NEW: Stream for online chart data
@@ -61,56 +61,63 @@ class DocumentRecordViewModel extends ChangeNotifier {
     _selectedDocument = doc;
     notifyListeners();
   }
+
   void clearSelection() {
     _selectedDocument = null;
     notifyListeners();
   }
 
-
   DocumentRecordViewModel({required AppDatabase appDatabase})
-      : _documentRecordRepository = DocumentRecordRepository(appDatabase: appDatabase),
-   _loginRepository = LoginRepository(); // รับ instance Singleton ที่มีอยู่
+      : _documentRecordRepository =
+            DocumentRecordRepository(appDatabase: appDatabase),
+        _loginRepository =
+            LoginRepository(); // รับ instance Singleton ที่มีอยู่
   /// Loads document records for the specified documentId and machineId.
-  Future<void> loadRecords(String documentId, String machineId, String jobId) async {
+  Future<void> loadRecords(
+      String documentId, String machineId, String jobId) async {
     _isLoading = true;
     _documentId = documentId;
     _machineId = machineId;
-     _jobId = jobId; // Store jobId
+    _jobId = jobId; // Store jobId
     _statusMessage = "Fetching records...";
     notifyListeners();
 
     try {
-       print('DocumentRecordViewModel: loadRecords called with DocID=$documentId, MachineID=$machineId, JobID=$jobId'); // <<< Debugging
-        
-        await _documentRecordRepository.initializeRecordsFromJobTags(
+      print(
+          'DocumentRecordViewModel: loadRecords called with DocID=$documentId, MachineID=$machineId, JobID=$jobId'); // <<< Debugging
+
+      await _documentRecordRepository.initializeRecordsFromJobTags(
         jobId: _jobId!, // Use stored jobId
         documentId: _documentId!, // Use stored documentId
         machineId: _machineId!, // Use stored machineId
       );
       _statusMessage = "Records initialized/checked.";
-        print('DocumentRecordViewModel: Records initialized. Now loading from DB.'); // <<< Debugging
-     
+      print(
+          'DocumentRecordViewModel: Records initialized. Now loading from DB.'); // <<< Debugging
+
       _recordsStream = _documentRecordRepository.loadRecordsForDocumentMachine(
         documentId: documentId,
         machineId: machineId,
       );
 
       _recordsStream?.listen((data) {
-        print("DocumentRecordViewModel Stream: Received ${data.length} records.");
+        print(
+            "DocumentRecordViewModel Stream: Received ${data.length} records.");
         if (data.isEmpty) {
-          print("DocumentRecordViewModel Stream: No records found after loading.");
+          print(
+              "DocumentRecordViewModel Stream: No records found after loading.");
         } else {
           for (var recordWithTag in data) {
-            print("  Record: UID=${recordWithTag.documentRecord.uid}, TagName=${recordWithTag.jobTag?.tagName}, Value=${recordWithTag.documentRecord.value}, TagType=${recordWithTag.jobTag?.tagType}");
+            print(
+                "  Record: UID=${recordWithTag.documentRecord.uid}, TagName=${recordWithTag.jobTag?.tagName}, Value=${recordWithTag.documentRecord.value}, TagType=${recordWithTag.jobTag?.tagType}");
           }
         }
       }, onError: (error) {
         print("DocumentRecordViewModel Stream Error: $error");
       });
 
-
-
-      _statusMessage = "Records for Document ID: $documentId, Machine ID: $machineId loaded.";
+      _statusMessage =
+          "Records for Document ID: $documentId, Machine ID: $machineId loaded.";
     } catch (e) {
       _statusMessage = "Failed to load records: $e";
       print("Error loading records: $e");
@@ -120,7 +127,7 @@ class DocumentRecordViewModel extends ChangeNotifier {
     }
   }
 
-   /// Refreshes records by re-loading them from the repository.
+  /// Refreshes records by re-loading them from the repository.
   Future<void> refreshRecords() async {
     _isLoading = true;
     _syncMessage = "Refreshing records...";
@@ -136,7 +143,8 @@ class DocumentRecordViewModel extends ChangeNotifier {
         );
         await loadRecords(_documentId!, _machineId!, _jobId!);
       } else {
-        _statusMessage = "Cannot refresh: documentId, machineId or jobId is missing.";
+        _statusMessage =
+            "Cannot refresh: documentId, machineId or jobId is missing.";
       }
       _syncMessage = "Records refreshed!";
     } on Exception catch (e) {
@@ -149,12 +157,11 @@ class DocumentRecordViewModel extends ChangeNotifier {
     }
   }
 
-
-
   // Corrected: Loads chart data for a specific tag within the current job and machine.
   Future<void> loadChartData(String tagId) async {
     if (_documentId == null || _machineId == null || _jobId == null) {
-      _syncMessage = "Cannot load chart: Missing documentId, machineId, or jobId.";
+      _syncMessage =
+          "Cannot load chart: Missing documentId, machineId, or jobId.";
       notifyListeners();
       return;
     }
@@ -169,7 +176,8 @@ class DocumentRecordViewModel extends ChangeNotifier {
         tagId,
       );
       _statusMessage = "Chart data for Tag ID: $tagId loaded.";
-      print('DocumentRecordViewModel: Chart data stream initialized for Tag ID: $tagId');
+      print(
+          'DocumentRecordViewModel: Chart data stream initialized for Tag ID: $tagId');
     } catch (e) {
       _statusMessage = "Failed to load chart data: $e";
       print("Error loading chart data: $e");
@@ -179,10 +187,11 @@ class DocumentRecordViewModel extends ChangeNotifier {
     }
   }
 
-   // NEW: Loads chart data for a specific tag from API (online)
+  // NEW: Loads chart data for a specific tag from API (online)
   Future<void> loadOnlineChartData(String tagId) async {
     if (_documentId == null || _machineId == null || _jobId == null) {
-      _syncMessage = "Cannot load online chart: Missing documentId, machineId, or jobId.";
+      _syncMessage =
+          "Cannot load online chart: Missing documentId, machineId, or jobId.";
       notifyListeners();
       return;
     }
@@ -191,13 +200,15 @@ class DocumentRecordViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _onlineChartDataStream = _documentRecordRepository.getOnlineChartDataStream(
+      _onlineChartDataStream =
+          _documentRecordRepository.getOnlineChartDataStream(
         _jobId!,
         _machineId!,
         tagId,
       );
       _statusMessage = "Online chart data for Tag ID: $tagId loaded.";
-      print('DocumentRecordViewModel: Online chart data stream initialized for Tag ID: $tagId');
+      print(
+          'DocumentRecordViewModel: Online chart data stream initialized for Tag ID: $tagId');
     } catch (e) {
       _statusMessage = "Failed to load online chart data: $e";
       print("Error loading online chart data: $e");
@@ -206,10 +217,12 @@ class DocumentRecordViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
-/// Updates the value and/or remark of a specific record locally.
+
+  /// Updates the value and/or remark of a specific record locally.
   /// Updates the value and/or remark of a specific record locally.
   /// Includes validation based on tagType and jobTag specifications.
-  Future<bool> updateRecordValue(int uid, String? newValue, String? newRemark) async {
+  Future<bool> updateRecordValue(
+      int uid, String? newValue, String? newRemark) async {
     _isLoading = true;
     _syncMessage = null;
     _recordErrors[uid] = null;
@@ -217,9 +230,25 @@ class DocumentRecordViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final recordWithTag = (await _documentRecordRepository.loadRecordsForDocumentMachine(
-        documentId: _documentId!, machineId: _machineId!,
-      ).first).firstWhere((element) => element.documentRecord.uid == uid);
+      final recordWithTag = (await _documentRecordRepository
+              .loadRecordsForDocumentMachine(
+                documentId: _documentId!,
+                machineId: _machineId!,
+              )
+              .first)
+          .firstWhere((element) => element.documentRecord.uid == uid);
+
+      // Get current record's status from DB for comparison
+      final DbDocumentRecord? currentRecordInDB =
+          await _documentRecordRepository.getRecordByUid(uid);
+      int statusToSet = currentRecordInDB?.status ??
+          0; // Default to 0 if not found, or use current
+
+      // Set status to 0 if record is being edited AND is not already 2 (Posted)
+      if (statusToSet != 2) {
+        // Do not change status if already Posted
+        statusToSet = 0;
+      }
 
       final DbJobTag? jobTag = recordWithTag.jobTag;
       final String tagType = jobTag?.tagType ?? '';
@@ -267,8 +296,10 @@ class DocumentRecordViewModel extends ChangeNotifier {
         newValue: newValue,
         newRemark: newRemark,
         userId: currentUserId,
+        newStatus: statusToSet, // <<< ส่ง Status ที่ปรับแล้ว
       );
-      _syncMessage = success ? "อัปเดตบันทึกสำเร็จ!" : "ไม่สามารถอัปเดตบันทึกได้.";
+      _syncMessage =
+          success ? "อัปเดตบันทึกสำเร็จ!" : "ไม่สามารถอัปเดตบันทึกได้.";
       _statusMessage = success ? "บันทึกอัปเดตแล้ว." : "อัปเดตล้มเหลว.";
       notifyListeners();
       return success;
@@ -294,28 +325,50 @@ class DocumentRecordViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final recordWithTag = (await _documentRecordRepository.loadRecordsForDocumentMachine(
-        documentId: _documentId!, machineId: _machineId!,
-      ).first).firstWhere((element) => element.documentRecord.uid == uid);
+      final recordWithTag = (await _documentRecordRepository
+              .loadRecordsForDocumentMachine(
+                documentId: _documentId!,
+                machineId: _machineId!,
+              )
+              .first)
+          .firstWhere((element) => element.documentRecord.uid == uid);
 
       String? currentValue = recordWithTag.documentRecord.value;
       String? currentRemark = recordWithTag.documentRecord.remark;
       String newUnReadableStatus = isUnReadable ? 'true' : 'false';
       String? newValueToSet = isUnReadable ? '' : currentValue;
 
+      // Get current record's status from DB for comparison
+      final DbDocumentRecord? currentRecordInDB =
+          await _documentRecordRepository.getRecordByUid(uid);
+      int statusToSet = currentRecordInDB?.status ??
+          0; // Default to 0 if not found, or use current
+
+      // Set status to 0 if record is being edited AND is not already 2 (Posted)
+      if (statusToSet != 2) {
+        // Do not change status if already Posted
+        statusToSet = 0;
+      }
+
       final String? currentUserId = _loginRepository.loggedInUser?.userId;
 
       // Corrected: Call the single updateRecordValue method in repository
-      final success = await _documentRecordRepository.updateRecordValue( // <<< Call the single method
+      final success = await _documentRecordRepository.updateRecordValue(
+        // <<< Call the single method
         uid: uid,
-        newValue: newValueToSet, // Pass the new value (cleared if unReadable is true)
+        newValue:
+            newValueToSet, // Pass the new value (cleared if unReadable is true)
         newRemark: currentRemark,
         newUnReadable: newUnReadableStatus, // Pass the unReadable status
         userId: currentUserId,
+        newStatus: statusToSet, // <<< ส่ง Status ที่ปรับแล้ว
       );
 
-      _syncMessage = success ? "สถานะ 'ไม่อ่านค่าได้' อัปเดตสำเร็จ!" : "ไม่สามารถอัปเดตสถานะ 'ไม่อ่านค่าได้' ได้.";
-      _statusMessage = success ? "สถานะ 'ไม่อ่านค่าได้' อัปเดตแล้ว." : "อัปเดตสถานะล้มเหลว.";
+      _syncMessage = success
+          ? "สถานะ 'ไม่อ่านค่าได้' อัปเดตสำเร็จ!"
+          : "ไม่สามารถอัปเดตสถานะ 'ไม่อ่านค่าได้' ได้.";
+      _statusMessage =
+          success ? "สถานะ 'ไม่อ่านค่าได้' อัปเดตแล้ว." : "อัปเดตสถานะล้มเหลว.";
       notifyListeners();
       return success;
     } on Exception catch (e) {
@@ -332,7 +385,7 @@ class DocumentRecordViewModel extends ChangeNotifier {
 
   // NEW: Method to save all changes from the screen (triggered by Save button)
   // NEW: Method to save all changes from the screen (triggered by Save button)
- 
+
   Future<bool> deleteRecord(int uid) async {
     _isLoading = true;
     _syncMessage = null;
@@ -354,8 +407,8 @@ class DocumentRecordViewModel extends ChangeNotifier {
     }
   }
 
-    // NEW: Method to trigger calculation for a specific record
- Future<void> calculateRecordValue(int uid) async {
+  // NEW: Method to trigger calculation for a specific record
+  Future<void> calculateRecordValue(int uid) async {
     _isLoading = true;
     _syncMessage = null;
     _recordErrors[uid] = null;
@@ -363,15 +416,23 @@ class DocumentRecordViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final recordWithTag = (await _documentRecordRepository.loadRecordsForDocumentMachine(
-        documentId: _documentId!, machineId: _machineId!,
-      ).first).firstWhere((element) => element.documentRecord.uid == uid);
+      final recordWithTag = (await _documentRecordRepository
+              .loadRecordsForDocumentMachine(
+                documentId: _documentId!,
+                machineId: _machineId!,
+              )
+              .first)
+          .firstWhere((element) => element.documentRecord.uid == uid);
 
       final DbDocumentRecord record = recordWithTag.documentRecord;
       final DbJobTag? jobTag = recordWithTag.jobTag;
 
-      if (jobTag == null || jobTag.valueType == null || jobTag.driftQueryStr == null || jobTag.driftQueryStr!.isEmpty) {
-        _syncMessage = "ไม่สามารถคำนวณได้: ข้อมูล Tag, ประเภท หรือ QueryStr (สำหรับ Drift) ไม่ครบถ้วน.";
+      if (jobTag == null ||
+          jobTag.valueType == null ||
+          jobTag.driftQueryStr == null ||
+          jobTag.driftQueryStr!.isEmpty) {
+        _syncMessage =
+            "ไม่สามารถคำนวณได้: ข้อมูล Tag, ประเภท หรือ QueryStr (สำหรับ Drift) ไม่ครบถ้วน.";
         _statusMessage = "คำนวณล้มเหลว.";
         _recordErrors[uid] = "Tag/DriftQueryStr Missing";
         return;
@@ -379,13 +440,14 @@ class DocumentRecordViewModel extends ChangeNotifier {
 
       String? calculatedValue;
       String? errorMessage;
-      print( "Calculating record value for UID: $uid, JobTag: ${jobTag.tagName}, ValueType: ${jobTag.valueType}");
+      print(
+          "Calculating record value for UID: $uid, JobTag: ${jobTag.tagName}, ValueType: ${jobTag.valueType}");
       if (jobTag.valueType == 'Calculate') {
         // Corrected: Pass documentId and machineId as parameters for the SQL query
         final result = await _documentRecordRepository.executeSqlCalculation(
           jobTag.driftQueryStr!,
           documentId: _documentId!, // <<< Pass documentId
-          machineId: _machineId!,  // <<< Pass machineId
+          machineId: _machineId!, // <<< Pass machineId
         );
         if (result != null) {
           calculatedValue = result.toString();
@@ -395,7 +457,8 @@ class DocumentRecordViewModel extends ChangeNotifier {
       } else if (jobTag.valueType == 'Formula') {
         // Evaluate predefined formula using driftQueryStr
         final result = await _documentRecordRepository.evaluateFormula(
-          jobTag.queryStr!, // Still use original queryStr for general formula name
+          jobTag
+              .queryStr!, // Still use original queryStr for general formula name
           documentId: _documentId!,
           machineId: _machineId!,
           jobId: _jobId!,
@@ -415,8 +478,11 @@ class DocumentRecordViewModel extends ChangeNotifier {
           uid: record.uid,
           newValue: calculatedValue,
           newRemark: record.remark,
+          newStatus: 0, // <<< เมื่อคำนวณแล้ว ค่าเปลี่ยน, Status เป็น 0
         );
-        _syncMessage = success ? "คำนวณและอัปเดตค่าสำเร็จ!" : "คำนวณสำเร็จ แต่อัปเดตค่าไม่ได้.";
+        _syncMessage = success
+            ? "คำนวณและอัปเดตค่าสำเร็จ!"
+            : "คำนวณสำเร็จ แต่อัปเดตค่าไม่ได้.";
         _statusMessage = "ค่าถูกคำนวณแล้ว.";
       } else {
         _recordErrors[uid] = errorMessage;
@@ -433,7 +499,8 @@ class DocumentRecordViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
-   /// Method เพื่อบันทึกการเปลี่ยนแปลงทั้งหมดจากหน้าจอ (ถูกเรียกโดยปุ่ม Save)
+
+  /// Method เพื่อบันทึกการเปลี่ยนแปลงทั้งหมดจากหน้าจอ (ถูกเรียกโดยปุ่ม Save)
   /// Method เพื่อบันทึกการเปลี่ยนแปลงทั้งหมดจากหน้าจอ (ถูกเรียกโดยปุ่ม Save)
   Future<bool> saveAllChanges({
     required Map<int, TextEditingController> allControllers,
@@ -444,7 +511,7 @@ class DocumentRecordViewModel extends ChangeNotifier {
     _statusMessage = "กำลังบันทึกการเปลี่ยนแปลงทั้งหมด...";
     notifyListeners();
 
-     // NEW: เรียกฟังก์ชัน Validate ก่อนบันทึก
+    // NEW: เรียกฟังก์ชัน Validate ก่อนบันทึก
     final bool validationPassed = await _validateAllRecordsForValidation(
       allControllers: allControllers,
       allComboBoxValues: allComboBoxValues,
@@ -455,6 +522,7 @@ class DocumentRecordViewModel extends ChangeNotifier {
       notifyListeners();
       _statusMessage = "บันทึกข้อมูลล้มเหลว: โปรดแก้ไขข้อผิดพลาดก่อน.";
       _syncMessage = "มีข้อผิดพลาดในการ Validate. โปรดตรวจสอบ.";
+      print("DocumentRecordViewModel: Validation failed, not saving changes.");
       return false; // หยุดการทำงานถ้า Validation ไม่ผ่าน
     }
 
@@ -463,7 +531,7 @@ class DocumentRecordViewModel extends ChangeNotifier {
     final String? currentUserId = _loginRepository.loggedInUser?.userId;
 
     // ดึง Snapshot ของ Records ปัจจุบันจาก Stream (เพื่อให้ได้ข้อมูล JobTag ที่ถูกต้อง)
-    final List<DocumentRecordWithTagAndProblem> currentRecordsSnapshot = 
+    final List<DocumentRecordWithTagAndProblem> currentRecordsSnapshot =
         await (_recordsStream?.first ?? Future.value([]));
 
     if (currentRecordsSnapshot.isEmpty) {
@@ -472,45 +540,73 @@ class DocumentRecordViewModel extends ChangeNotifier {
       notifyListeners();
       return true; // ไม่มีอะไรให้บันทึก
     }
-    
+
     for (final recordWithTag in currentRecordsSnapshot) {
       final DbDocumentRecord record = recordWithTag.documentRecord;
       final DbJobTag? jobTag = recordWithTag.jobTag;
 
       String? uiValue;
-      String? uiRemark = record.remark; // Default to existing remark
-
-      // ดึงค่าจาก UI Controller/Map
       if (jobTag?.tagType == 'ComboBox' || jobTag?.tagType == 'CheckBox') {
-        uiValue = allComboBoxValues[record.uid];
+        uiValue = record.value; //allComboBoxValues[record.uid]?.trim();
+        print(
+            'saveAllChanges ComboBox/CheckBox for record UID ${record.uid}:TagName ${jobTag?.tagName}: Record value ${record.value}, UI value: "$uiValue"');
       } else {
-        uiValue = allControllers[record.uid]?.text;
+        uiValue = record.value; //allControllers[record.uid]?.text.trim();
+        print(
+            'saveAllChanges TextField for record UID ${record.uid}: TagName ${jobTag?.tagName}:Record value ${record.value}, UI value: "$uiValue"');
       }
-      
-      // ดึง Remark จาก UI Controller (หาก Remark มี TextField แยกใน ListItem)
-      // หรือใช้ Record.remark เดิมถ้า Remark อัปเดตผ่าน popup เท่านั้น
-      // สำหรับตอนนี้ สมมติว่า Remark อัปเดตผ่าน popup และถูกเก็บใน record.remark อยู่แล้ว
-      // ถ้ามีการแก้ไข Remark โดยตรงบน ListView ต้องมี controller แยก.
-      // uiRemark = allControllers[record.uid]?.text; // ถ้า Remark มี TextField แยก
+      String? uiRemark = record.remark?.trim();
 
       // เปรียบเทียบกับค่าล่าสุดใน DB (ดึงมาใหม่เพื่อความแม่นยำ)
-      final DbDocumentRecord? latestRecordInDB = await _documentRecordRepository.getRecordByUid(record.uid);
-      
-      bool valueChanged = uiValue != (latestRecordInDB?.value ?? '');
-      bool remarkChanged = uiRemark != (latestRecordInDB?.remark ?? ''); // เปรียบเทียบกับค่า remark ปัจจุบัน
-      // สำหรับ unReadable, ตรวจสอบสถานะใหม่จาก UI (ถ้าเป็น Number type และ empty/not empty)
-      String newUnReadableStatus = (jobTag?.tagType == 'Number' && (uiValue?.isEmpty ?? false)) ? 'true' : 'false';
-      bool unReadableStatusChanged = newUnReadableStatus != (latestRecordInDB?.unReadable ?? 'false');
+      final DbDocumentRecord? latestRecordInDB =
+          await _documentRecordRepository.getRecordByUid(record.uid);
 
+      bool valueChanged = uiValue != (latestRecordInDB?.value ?? '');
+      bool remarkChanged = uiRemark !=
+          (latestRecordInDB?.remark ?? ''); // เปรียบเทียบกับค่า remark ปัจจุบัน
+      // สำหรับ unReadable, ตรวจสอบสถานะใหม่จาก UI (ถ้าเป็น Number type และ empty/not empty)
+      String newUnReadableStatus =
+          (jobTag?.tagType == 'Number' && (uiValue?.isEmpty ?? false))
+              ? 'true'
+              : 'false';
+      bool unReadableStatusChanged =
+          newUnReadableStatus != (latestRecordInDB?.unReadable ?? 'false');
+
+      // Check if this record passed its individual validation
+      bool recordPassedIndividualValidation =
+          (_recordErrors[record.uid] == null);
       // ตรวจสอบว่ามีการเปลี่ยนแปลงจริงในค่า, หมายเหตุ, หรือสถานะ unReadable
-      if (valueChanged || remarkChanged || unReadableStatusChanged) {
+
+      // Only update if there's an actual change in value, remark, unReadable,
+      // OR if the record is currently valid AND its status is not yet 1.
+      /*
+      if (recordPassedIndividualValidation &&
+          (valueChanged ||
+              remarkChanged ||
+              unReadableStatusChanged ||
+              (latestRecordInDB?.status != 1))) {
         bool success;
         success = await _documentRecordRepository.updateRecordValue(
           uid: record.uid,
           newValue: uiValue,
-          newRemark: uiRemark, // ใช้ uiRemark ที่อาจจะดึงมาใหม่ หรือ record.remark เดิม
-          newUnReadable: (jobTag?.tagType == 'Number') ? newUnReadableStatus : null, // ส่งสถานะ unReadable เฉพาะ Number type
+          newRemark: uiRemark,
+          newUnReadable:
+              (jobTag?.tagType == 'Number') ? newUnReadableStatus : null,
           userId: currentUserId,
+          newStatus: 1, // <<< เมื่อ Validate ผ่านแล้ว บันทึก Status เป็น 1
+        );
+        */
+
+      if (recordPassedIndividualValidation) {
+        bool success;
+        success = await _documentRecordRepository.updateRecordValue(
+          uid: record.uid,
+          newValue: uiValue,
+          newRemark: uiRemark,
+          newUnReadable:
+              (jobTag?.tagType == 'Number') ? newUnReadableStatus : null,
+          userId: currentUserId,
+          newStatus: 1, // <<< เมื่อ Validate ผ่านแล้ว บันทึก Status เป็น 1
         );
 
         if (success) {
@@ -518,26 +614,30 @@ class DocumentRecordViewModel extends ChangeNotifier {
           _recordErrors[record.uid] = null; // ล้าง Error สำหรับ Record นี้
         } else {
           allSucceeded = false;
-          _recordErrors.putIfAbsent(record.uid, () => "บันทึกข้อมูลล้มเหลว"); // เก็บ Error
+          _recordErrors.putIfAbsent(
+              record.uid, () => "บันทึกข้อมูลล้มเหลว"); // เก็บ Error
         }
       }
     }
 
     if (allSucceeded) {
-      _syncMessage = "บันทึกการเปลี่ยนแปลงทั้งหมดสำเร็จ ($updatedCount รายการ)!";
+      _syncMessage =
+          "บันทึกการเปลี่ยนแปลงทั้งหมดสำเร็จ ($updatedCount รายการ)!";
       _statusMessage = "บันทึกข้อมูลเรียบร้อย.";
     } else {
-      _syncMessage = "บันทึกการเปลี่ยนแปลงบางรายการล้มเหลว. โปรดตรวจสอบข้อผิดพลาด.";
+      _syncMessage =
+          "บันทึกการเปลี่ยนแปลงบางรายการล้มเหลว. โปรดตรวจสอบข้อผิดพลาด.";
       _statusMessage = "บันทึกข้อมูลล้มเหลว.";
     }
     notifyListeners(); // แจ้ง UI ให้ Refresh/Rebuild
-    await loadRecords(_documentId!, _machineId!, _jobId!); // โหลดบันทึกจาก DB ใหม่ เพื่อให้ UI แสดงผลสถานะล่าสุด
+    await loadRecords(_documentId!, _machineId!,
+        _jobId!); // โหลดบันทึกจาก DB ใหม่ เพื่อให้ UI แสดงผลสถานะล่าสุด
     return allSucceeded;
   }
 
 // NEW: แยกฟังก์ชัน Validation สำหรับข้อมูลประเภทตัวเลข.
   // คืนค่าข้อความ Error หาก Validation ไม่ผ่าน, คืนค่า null หากผ่าน.
-    /// คืนค่าข้อความ Error หาก Validation ไม่ผ่าน, คืนค่า null หากผ่าน.
+  /// คืนค่าข้อความ Error หาก Validation ไม่ผ่าน, คืนค่า null หากผ่าน.
   String? _validateNumberInput(int uid, String? newValue, DbJobTag? jobTag) {
     final String? specMin = jobTag?.specMin;
     final String? specMax = jobTag?.specMax;
@@ -566,8 +666,8 @@ class DocumentRecordViewModel extends ChangeNotifier {
     }
     return null; // Validation ผ่าน
   }
-  
-   // NEW: ฟังก์ชัน Validate โดยเฉพาะ (เทียบเท่า btValidate)
+
+  // NEW: ฟังก์ชัน Validate โดยเฉพาะ (เทียบเท่า btValidate)
   // จะตรวจสอบความครบถ้วนและอัปเดต userId สำหรับ TagType='User'
   Future<bool> _validateAllRecordsForValidation({
     required Map<int, TextEditingController> allControllers,
@@ -577,72 +677,95 @@ class DocumentRecordViewModel extends ChangeNotifier {
     bool allRecordsValid = true;
     final String? currentUserId = _loginRepository.loggedInUser?.userId;
 
-    final List<DocumentRecordWithTagAndProblem> currentRecordsSnapshot = 
+    final List<DocumentRecordWithTagAndProblem> currentRecordsSnapshot =
         await (_recordsStream?.first ?? Future.value([]));
 
     for (final recordWithTag in currentRecordsSnapshot) {
       final DbDocumentRecord record = recordWithTag.documentRecord;
       final DbJobTag? jobTag = recordWithTag.jobTag;
-      
-      // ดึงค่าปัจจุบันจาก UI เพื่อตรวจสอบ
+
       String? uiValue;
       if (jobTag?.tagType == 'ComboBox' || jobTag?.tagType == 'CheckBox') {
-        uiValue = allComboBoxValues[record.uid];
+        //uiValue = allComboBoxValues[record.uid]?.trim();
+        uiValue = record.value?.trim();
+
+        print(
+            'Validating ComboBox/CheckBox for record UID ${record.uid}:TagName ${jobTag?.tagName}: Record value ${record.value}, UI value: "$uiValue"');
       } else {
-        uiValue = allControllers[record.uid]?.text;
+        uiValue = record.value?.trim();
+        print(
+            'Validating TextField for record UID ${record.uid}: TagName ${jobTag?.tagName}:Record value ${record.value}, UI value: "$uiValue"');
       }
-      String? uiRemark = record.remark; // ดึง remark ล่าสุดจาก record
-
-
+      String? uiRemark = record.remark?.trim();
       String? validationErrorForThisRecord; // Error สำหรับ Record ปัจจุบันนี้
 
       // --- 1. Auto-populate User ID for 'User' TagType (เทียบเท่า updateUserTag) ---
       if (jobTag?.tagType == 'User') {
-        if (currentUserId != null && currentUserId.isNotEmpty && (uiValue == null || uiValue.isEmpty)) {
+        if (currentUserId != null &&
+            currentUserId.isNotEmpty &&
+            (uiValue == null || uiValue.isEmpty)) {
           uiValue = currentUserId; // กำหนด userId อัตโนมัติ
-          allControllers[record.uid]?.text = currentUserId; // อัปเดต UI Controller ด้วย
+          allControllers[record.uid]?.text =
+              currentUserId; // อัปเดต UI Controller ด้วย
           // บันทึกลง DB ทันที (เพราะถือว่าเป็นการเปลี่ยนแปลงที่สำคัญ)
           await _documentRecordRepository.updateRecordValue(
             uid: record.uid,
             newValue: currentUserId,
             newRemark: record.remark,
             userId: currentUserId,
+            newStatus: 0, // ตั้ง Status เป็น 0 เมื่อมีการแก้ไข/Auto-populate
           );
-          print('Auto-filled User ID for record UID ${record.uid}: $currentUserId');
-        } else if ((uiValue == null || uiValue.isEmpty) && (currentUserId == null || currentUserId.isEmpty)) {
+          print(
+              'Auto-filled User ID for record UID ${record.uid}: $currentUserId');
+        } else if ((uiValue == null || uiValue.isEmpty) &&
+            (currentUserId == null || currentUserId.isEmpty)) {
           // ถ้าเป็น User Tag และช่องว่างเปล่า และไม่มี userId ผู้ใช้ปัจจุบัน
-          validationErrorForThisRecord = "กรุณาเข้าสู่ระบบ หรือ ซิงค์ข้อมูลผู้ใช้ เพื่อกรอก User ID อัตโนมัติ.";
+          validationErrorForThisRecord =
+              "กรุณาเข้าสู่ระบบ หรือ ซิงค์ข้อมูลผู้ใช้ เพื่อกรอก User ID อัตโนมัติ.";
           allRecordsValid = false;
         }
       }
 
       // --- 2. Required Field Validation (สำหรับทุก Record ยกเว้น Number ที่เลือก N/A) ---
       // ตรวจสอบว่า Record นี้ถูกตั้งค่าว่า unReadable หรือไม่ (สำหรับ Number Type)
-      final DbDocumentRecord? latestRecordInDB = await _documentRecordRepository.getRecordByUid(record.uid);
-      bool isCurrentlyUnReadable = (jobTag?.tagType == 'Number' && (latestRecordInDB?.unReadable == 'true'));
+      final DbDocumentRecord? latestRecordInDB =
+          await _documentRecordRepository.getRecordByUid(record.uid);
+      bool isCurrentlyUnReadable = (jobTag?.tagType == 'Number' &&
+          (latestRecordInDB?.unReadable == 'true'));
 
-      if (validationErrorForThisRecord == null && (uiValue == null || uiValue.isEmpty)) {
+      if (uiValue == null || uiValue.isEmpty) {
         if (jobTag?.tagType == 'Number') {
-          if (!isCurrentlyUnReadable) { // ถ้าเป็น Number แต่ไม่ใช่ unReadable, และว่างเปล่า = Error
+          if (!isCurrentlyUnReadable) {
             validationErrorForThisRecord = "จำเป็นต้องกรอกข้อมูลตัวเลข.";
+            allRecordsValid = false;
           }
-        } else if (jobTag?.tagType != 'Problem') { // Tag Type อื่นๆ (Text, ComboBox, CheckBox) ถือเป็น Required ถ้าว่างเปล่า
+        } else if (jobTag?.tagType != 'Problem') {
           validationErrorForThisRecord = "จำเป็นต้องกรอกข้อมูล.";
-        }
-        // Problem Tags อาจไม่จำเป็นต้องกรอกเสมอไป (ตามการตั้งค่าเดิมของคุณ)
-      }
-      
-      // --- 3. Mandatory Remark for N/A Number ---
-      if (validationErrorForThisRecord == null && jobTag?.tagType == 'Number' && isCurrentlyUnReadable) {
-        if (uiRemark == null || uiRemark.isEmpty) {
-          validationErrorForThisRecord = "เมื่อ 'ไม่อ่านค่าได้' ต้องระบุหมายเหตุ.";
+          allRecordsValid = false;
         }
       }
 
-      // --- 4. Type-specific validation (สำหรับค่าที่ไม่ว่างเปล่า และยังไม่มี Error) ---
-      if (validationErrorForThisRecord == null && uiValue != null && uiValue.isNotEmpty) {
+      // --- 3. Mandatory Remark for N/A Number ---
+      if (validationErrorForThisRecord == null &&
+          jobTag?.tagType == 'Number' &&
+          isCurrentlyUnReadable) {
+        if (uiRemark == null || uiRemark.isEmpty) {
+          validationErrorForThisRecord =
+              "เมื่อ 'ไม่อ่านค่าได้' ต้องระบุหมายเหตุ.";
+          allRecordsValid = false;
+        }
+      }
+
+      // --- 4. Type-specific validation ---
+      if (validationErrorForThisRecord == null &&
+          uiValue != null &&
+          uiValue.isNotEmpty) {
         if (jobTag?.tagType == 'Number') {
-          validationErrorForThisRecord = _validateNumberInput(record.uid, uiValue, jobTag); // ตรวจสอบรูปแบบและช่วง
+          validationErrorForThisRecord =
+              _validateNumberInput(record.uid, uiValue, jobTag);
+          if (validationErrorForThisRecord != null) {
+            allRecordsValid = false;
+          }
         }
       }
 
@@ -651,13 +774,98 @@ class DocumentRecordViewModel extends ChangeNotifier {
       // กำหนด Error หรือล้าง Error สำหรับ Record นี้
       if (validationErrorForThisRecord != null) {
         _recordErrors[record.uid] = validationErrorForThisRecord;
-        allRecordsValid = false;
+        notifyListeners(); // แจ้ง UI ให้แสดงผล Validation Errors
       } else {
-        _recordErrors[record.uid] = null; // Clear any existing error for this record
+        _recordErrors[record.uid] = null;
       }
     }
 
-    notifyListeners(); // แจ้ง UI ให้แสดงผล Validation Errors
     return allRecordsValid;
+  }
+
+  /// NEW: Method เพื่อตรวจสอบและเปลี่ยนสถานะของ Records เป็น 2 (Posted).
+  /// จะทำงานก็ต่อเมื่อทุก Record มี Status เป็น 1.
+  Future<bool> postRecords() async {
+    _isLoading = true;
+    _syncMessage = null;
+    _statusMessage = "กำลังตรวจสอบเพื่อส่งข้อมูล...";
+    notifyListeners();
+
+    try {
+      final List<DocumentRecordWithTagAndProblem> currentRecords =
+          await (_recordsStream?.first ?? Future.value([]));
+
+      if (currentRecords.isEmpty) {
+        _syncMessage = "ไม่มีบันทึกให้ส่งข้อมูล.";
+        _statusMessage = "ส่งข้อมูลล้มเหลว.";
+        return false;
+      }
+
+      // Step 1: ตรวจสอบว่าทุก Record มี Status เป็น 1
+      bool allRecordsAreStatus1 = true;
+      String? validationErrorForPost;
+      for (final recordWithTag in currentRecords) {
+        final DbDocumentRecord record = recordWithTag.documentRecord;
+        if (record.status != 1) {
+          allRecordsAreStatus1 = false;
+          validationErrorForPost =
+              "ไม่สามารถส่งข้อมูลได้: บางบันทึกยังไม่ได้ถูกบันทึก/Validate (Status ไม่ใช่ 1).";
+          _recordErrors[record.uid] =
+              "Status ต้องเป็น 1 ก่อนส่งข้อมูล"; // Highlight record with wrong status
+          break;
+        }
+      }
+
+      if (!allRecordsAreStatus1) {
+        _syncMessage = validationErrorForPost;
+        _statusMessage = "ส่งข้อมูลล้มเหลว.";
+        return false;
+      }
+
+      // Step 2: หากทุก Record มี Status เป็น 1, ทำการอัปเดต Status เป็น 2
+      int postedCount = 0;
+      for (final recordWithTag in currentRecords) {
+        final DbDocumentRecord record = recordWithTag.documentRecord;
+        final String? currentUserId = _loginRepository.loggedInUser?.userId;
+
+        // Update status to 2 (Posted)
+        final success = await _documentRecordRepository.updateRecordValue(
+          uid: record.uid,
+          newValue: record.value, // Keep current value
+          newRemark: record.remark, // Keep current remark
+          newUnReadable: record.unReadable, // Keep current unReadable status
+          userId: currentUserId, // Update createBy if desired on post
+          newStatus: 2, // CRUCIAL: Set status to 2
+        );
+
+        if (success) {
+          postedCount++;
+        } else {
+          allRecordsAreStatus1 = false; // Mark as failed if any update fails
+          _recordErrors[record.uid] = "ไม่สามารถอัปเดตเป็น Status 2 ได้";
+        }
+      }
+
+      if (allRecordsAreStatus1) {
+        _syncMessage =
+            "ส่งข้อมูลสำเร็จ! ($postedCount รายการถูกอัปเดตเป็น Status 2).";
+        _statusMessage = "ข้อมูลถูกส่งแล้ว.";
+        await loadRecords(_documentId!, _machineId!,
+            _jobId!); // Reload to show new status/read-only state
+        return true;
+      } else {
+        _syncMessage = "มีข้อผิดพลาดในการอัปเดต Status เป็น 2. โปรดตรวจสอบ.";
+        _statusMessage = "ส่งข้อมูลล้มเหลว.";
+        return false;
+      }
+    } on Exception catch (e) {
+      _syncMessage = "ข้อผิดพลาดในการส่งข้อมูล: $e";
+      _statusMessage = "ส่งข้อมูลล้มเหลว.";
+      print("Error posting records: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

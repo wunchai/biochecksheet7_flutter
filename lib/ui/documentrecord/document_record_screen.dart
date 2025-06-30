@@ -21,7 +21,7 @@ class DocumentRecordScreen extends StatefulWidget {
   final String title; // ชื่อหน้าจอที่จะแสดงใน AppBar
   final String documentId; // รหัสเอกสารที่จะแสดงบันทึก
   final String machineId; // รหัสเครื่องจักรที่เกี่ยวข้องกับบันทึก
-   final String jobId; // NEW: Required jobId to initialize records
+  final String jobId; // NEW: Required jobId to initialize records
 
   const DocumentRecordScreen({
     super.key,
@@ -41,11 +41,10 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
   // Map เพื่อเก็บค่าที่เลือกสำหรับ ComboBox
   final Map<int, String?> _selectedComboBoxValues = {};
 
-
   @override
   void initState() {
     super.initState();
-    
+
     // เรียกโหลดบันทึกเมื่อหน้าจอเริ่มต้น
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<DocumentRecordViewModel>(context, listen: false)
@@ -61,7 +60,8 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
   }
 
 // NEW: Method to show the Record Details Dialog
-  void _showRecordDetailsDialog(BuildContext context, DocumentRecordWithTagAndProblem recordWithTag) {
+  void _showRecordDetailsDialog(
+      BuildContext context, DocumentRecordWithTagAndProblem recordWithTag) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -70,13 +70,25 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
     );
   }
 
- // CORRECTED: Show dialog for Remark input
-  Future<void> _showRemarkInputDialog(BuildContext context, DbDocumentRecord record, DocumentRecordViewModel viewModel) async {
+  // CORRECTED: Show dialog for Remark input
+  Future<void> _showRemarkInputDialog(BuildContext context,
+      DbDocumentRecord record, DocumentRecordViewModel viewModel) async {
     // CRUCIAL CHANGE: Get/create the controller from the _controllers map.
     // This ties the remark controller's lifecycle to the screen's state.
+    if (record.status == 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content:
+                Text('ไม่สามารถแก้ไขหมายเหตุได้: บันทึกถูกส่งข้อมูลแล้ว.')),
+      );
+      return;
+    }
+
     final TextEditingController remarkController = _controllers.putIfAbsent(
       record.uid, // Use record UID as key
-      () => TextEditingController(text: record.remark), // Create if not exists, initialize with current remark
+      () => TextEditingController(
+          text: record
+              .remark), // Create if not exists, initialize with current remark
     );
 
     // Ensure the text is updated if the record's remark changed before opening dialog.
@@ -99,9 +111,10 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
             ),
             TextButton(
               child: const Text('บันทึก'),
-              onPressed: () {
-                final String newRemarkValue = remarkController.text;
-                Navigator.of(context).pop(newRemarkValue);
+              onPressed: () async {
+                await viewModel.updateRecordValue(
+                    record.uid, record.value, remarkController.text);
+                Navigator.of(context).pop(remarkController.text);
               },
             ),
           ],
@@ -111,23 +124,26 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
 
     // After the dialog closes, process the returned remark value
     if (resultRemark != null) {
-      await viewModel.updateRecordValue(record.uid, record.value, resultRemark);
+      // await viewModel.updateRecordValue(record.uid, record.value, resultRemark);
     }
     // CRUCIAL CHANGE: DO NOT call remarkController.dispose() here.
     // Its disposal is handled by the _controllers.forEach in the main dispose() method.
   }
 
- // Corrected: Show dialog for chart display
-  void _showChartDialog(BuildContext context, String tagId, DbJobTag? jobTag, DocumentRecordViewModel viewModel) {
+  // Corrected: Show dialog for chart display
+  void _showChartDialog(BuildContext context, String tagId, DbJobTag? jobTag,
+      DocumentRecordViewModel viewModel) {
     // CRUCIAL CHANGE: Pass jobId to loadChartData
     viewModel.loadChartData(tagId); // Load chart data for the specific tag
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('กราฟ: ${jobTag?.tagName ?? 'N/A'} (${jobTag?.unit ?? ''})'),
-          content: SizedBox( // Give chart a fixed size within dialog
+          title:
+              Text('กราฟ: ${jobTag?.tagName ?? 'N/A'} (${jobTag?.unit ?? ''})'),
+          content: SizedBox(
+            // Give chart a fixed size within dialog
             width: MediaQuery.of(context).size.width * 0.8,
             height: MediaQuery.of(context).size.height * 0.4,
             child: RecordLineChart(
@@ -147,19 +163,24 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
       },
     );
   }
- // NEW: Show dialog for Online Chart display
-  void _showOnlineChartDialog(BuildContext context, String tagId, DbJobTag? jobTag, DocumentRecordViewModel viewModel) {
+
+  // NEW: Show dialog for Online Chart display
+  void _showOnlineChartDialog(BuildContext context, String tagId,
+      DbJobTag? jobTag, DocumentRecordViewModel viewModel) {
     viewModel.loadOnlineChartData(tagId); // Trigger loading online chart data
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('กราฟประวัติ: ${jobTag?.tagName ?? 'N/A'} (${jobTag?.unit ?? ''})'),
-          content: SizedBox( // Give chart a fixed size within dialog
+          title: Text(
+              'กราฟประวัติ: ${jobTag?.tagName ?? 'N/A'} (${jobTag?.unit ?? ''})'),
+          content: SizedBox(
+            // Give chart a fixed size within dialog
             width: MediaQuery.of(context).size.width * 0.8,
             height: MediaQuery.of(context).size.height * 0.4,
             child: RecordLineChart(
-              chartDataStream: viewModel.onlineChartDataStream!, // Pass the online chart stream
+              chartDataStream: viewModel
+                  .onlineChartDataStream!, // Pass the online chart stream
               jobTag: jobTag, // Pass job tag for labels
             ),
           ),
@@ -194,17 +215,67 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
           IconButton(
             icon: const Icon(Icons.save), // ไอคอนบันทึก
             onPressed: () {
-              final viewModel = Provider.of<DocumentRecordViewModel>(context, listen: false);
+              final viewModel =
+                  Provider.of<DocumentRecordViewModel>(context, listen: false);
               // Extract current values from controllers and selected combo box values
               //final Map<int, String?> currentValues = allControllers.map((key, controller) => MapEntry(key, controller.text));
               //final Map<int, String?> currentComboBoxValues = _selectedComboBoxValues;
 
               viewModel.saveAllChanges(
-                allControllers: _controllers, // Pass the entire map of controllers
-                allComboBoxValues: _selectedComboBoxValues, // Pass the map of selected combo box values
+                allControllers:
+                    _controllers, // Pass the entire map of controllers
+                allComboBoxValues:
+                    _selectedComboBoxValues, // Pass the map of selected combo box values
               );
             },
           ),
+          // NEW: Post Button
+          Consumer<DocumentRecordViewModel>(
+              builder: (context, viewModel, child) {
+            // Determine if Post button should be enabled
+            // It should be disabled if any record status is 0 or if all are already 2
+            bool canPost = true;
+            bool allArePosted = true;
+            if (viewModel.recordsStream != null) {
+              viewModel.recordsStream!.first.then((records) {
+                // Wait for the first emission of records
+                if (records.isEmpty) {
+                  canPost = false;
+                  allArePosted = false;
+                } else {
+                  for (var r in records) {
+                    if (r.documentRecord.status != 1) {
+                      // Check if all are status 1
+                      canPost = false;
+                    }
+                    if (r.documentRecord.status != 2) {
+                      // Check if all are status 2
+                      allArePosted = false;
+                    }
+                  }
+                }
+                // This setState will trigger rebuild after stream emits.
+                // This is not the most efficient way, consider moving logic to ViewModel if complex.
+                // For now, this will show the button state.
+                if (canPost && allArePosted) {
+                  // Already posted
+                  canPost = false;
+                }
+                if (mounted) setState(() {}); // Rebuild to update button state
+              });
+            } else {
+              canPost = false; // No records yet
+            }
+
+            return IconButton(
+              icon: const Icon(Icons.send), // Icon for "Post"
+              onPressed: viewModel.isLoading || !canPost
+                  ? null // Disable if loading or cannot post
+                  : () {
+                      viewModel.postRecords(); // Call postRecords method
+                    },
+            );
+          }),
         ],
       ),
       body: Consumer<DocumentRecordViewModel>(
@@ -227,10 +298,13 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
                 // Column หลักสำหรับจัดเรียง UI ในแนวตั้ง
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(16.0), // Padding รอบข้อความสถานะ
+                    padding:
+                        const EdgeInsets.all(16.0), // Padding รอบข้อความสถานะ
                     child: Text(
                       viewModel.statusMessage, // แสดงข้อความสถานะจาก ViewModel
-                      style: Theme.of(context).textTheme.headlineSmall, // ใช้สไตล์หัวข้อ
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall, // ใช้สไตล์หัวข้อ
                       textAlign: TextAlign.center, // จัดข้อความกึ่งกลาง
                     ),
                   ),
@@ -242,99 +316,167 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
                       builder: (context, snapshot) {
                         if (viewModel.isLoading && !snapshot.hasData) {
                           // แสดง CircularProgressIndicator ถ้ากำลังโหลดข้อมูลเริ่มต้น
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                              child: CircularProgressIndicator());
                         } else if (snapshot.hasError) {
                           // แสดงข้อผิดพลาดถ้า stream มีปัญหา
-                          return Center(child: Text('ข้อผิดพลาด: ${snapshot.error}'));
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(
+                              child: Text('ข้อผิดพลาด: ${snapshot.error}'));
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
                           // แสดงข้อความถ้าไม่พบบันทึกสำหรับเอกสารและเครื่องจักรนี้
-                          return const Center(child: Text('ไม่พบบันทึกสำหรับเอกสารและเครื่องจักรนี้.'));
+                          return const Center(
+                              child: Text(
+                                  'ไม่พบบันทึกสำหรับเอกสารและเครื่องจักรนี้.'));
                         } else {
                           // ถ้ามีข้อมูล, สร้างรายการบันทึก
                           final records = snapshot.data!;
                           return ListView.builder(
                             itemCount: records.length, // จำนวนบันทึกในรายการ
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0), // Padding สำหรับทั้งรายการ
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0), // Padding สำหรับทั้งรายการ
                             itemBuilder: (context, index) {
                               final recordWithTag = records[index];
-                              final DbDocumentRecord record = recordWithTag.documentRecord;
-                              final DbJobTag? jobTag = recordWithTag.jobTag; // รายละเอียด Tag
-                              final DbProblem? problem = null; // รายละเอียด Problem
+                              final DbDocumentRecord record =
+                                  recordWithTag.documentRecord;
+                              final DbJobTag? jobTag =
+                                  recordWithTag.jobTag; // รายละเอียด Tag
+                              final DbProblem? problem =
+                                  null; // รายละเอียด Problem
+                              // Determine if input fields should be read-only (if status is 2)
+                              final bool isRecordReadOnly =
+                                  record.status == 2; // <<< NEW
 
                               // แสดงแต่ละบันทึกเป็น Card คล้ายกับ document_record_fragment_item.xml
                               return Card(
-                                margin: const EdgeInsets.symmetric(vertical: 8.0), // ระยะห่างแนวตั้งระหว่าง Card
+                                margin: const EdgeInsets.symmetric(
+                                    vertical:
+                                        8.0), // ระยะห่างแนวตั้งระหว่าง Card
                                 elevation: 4.0, // เพิ่มเงาให้กับ Card
-                                 child: InkWell(
-                                  onTap: () {
-                                    // CRUCIAL CHANGE: Show details dialog on tap
-                                    _showRecordDetailsDialog(context, recordWithTag); // <<< แก้ไขตรงนี้
-                                    // No longer handling selection state here, single tap directly shows details.
-                                  },
-                                  onLongPress: () {
-                                    // Long press also shows details, or could be used for other context menu actions
-                                    _showRecordDetailsDialog(context, recordWithTag); // <<< แก้ไขตรงนี้
-                                  },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0), // Padding ภายในเนื้อหา Card
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start, // จัดข้อความชิดซ้าย
-                                       children: [
-                                      Row( // Use Row to place TagName and Chart button side by side
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              jobTag?.tagName ?? 'N/A',
-                                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                child: InkWell(
+                                  onTap: isRecordReadOnly
+                                      ? () => _showRecordDetailsDialog(
+                                          context, recordWithTag)
+                                      : () {
+                                          _showRecordDetailsDialog(
+                                              context, recordWithTag);
+                                        },
+                                  onLongPress: isRecordReadOnly
+                                      ? () => _showRecordDetailsDialog(
+                                          context, recordWithTag)
+                                      : () {
+                                          _showRecordDetailsDialog(
+                                              context, recordWithTag);
+                                        },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(
+                                        16.0), // Padding ภายในเนื้อหา Card
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment
+                                          .start, // จัดข้อความชิดซ้าย
+                                      children: [
+                                        Row(
+                                          // Use Row to place TagName and Chart button side by side
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                jobTag?.tagName ?? 'N/A',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium
+                                                    ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                              ),
                                             ),
-                                          ),
-                                          // NEW: Chart Button (only for Number type tags)
-                                          if (jobTag?.tagType == 'Number')
-                                            IconButton(
-                                              icon: const Icon(Icons.show_chart),
-                                              onPressed: () {
-                                                _showChartDialog(context, record.tagId ?? '', jobTag, viewModel);
-                                              },
-                                            ),
-                                             // NEW: Online Chart Button (only for Number type tags)
+                                            // NEW: Chart Button (only for Number type tags)
                                             if (jobTag?.tagType == 'Number')
                                               IconButton(
-                                                icon: const Icon(Icons.history), // Example icon for history
+                                                icon: const Icon(
+                                                    Icons.show_chart),
                                                 onPressed: () {
-                                                  _showOnlineChartDialog(context, record.tagId ?? '', jobTag, viewModel);
+                                                  _showChartDialog(
+                                                      context,
+                                                      record.tagId ?? '',
+                                                      jobTag,
+                                                      viewModel);
                                                 },
                                               ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8.0),
-                                      
-                                      // CRUCIAL CHANGE: Pass errorText to _buildInputField
-                                      _buildInputField(context, record, jobTag, problem, viewModel, 
-                                          errorText: viewModel.recordErrors[record.uid]), // <<< เพิ่ม errorText ตรงนี้
+                                            // NEW: Online Chart Button (only for Number type tags)
+                                            if (jobTag?.tagType == 'Number')
+                                              IconButton(
+                                                icon: const Icon(Icons
+                                                    .history), // Example icon for history
+                                                onPressed: () {
+                                                  _showOnlineChartDialog(
+                                                      context,
+                                                      record.tagId ?? '',
+                                                      jobTag,
+                                                      viewModel);
+                                                },
+                                              ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8.0),
 
+                                        // CRUCIAL CHANGE: Pass errorText to _buildInputField
+                                        _buildInputField(context, record,
+                                            jobTag, problem, viewModel,
+                                            errorText: viewModel
+                                                .recordErrors[record.uid],
+                                            isRecordReadOnly:
+                                                isRecordReadOnly), // <<< เพิ่ม errorText ตรงนี้
 
-                                      // แสดงค่าปัจจุบันและหมายเหตุจากบันทึก (ถ้ามี)
-                                      if (record.value != null && record.value!.isNotEmpty)
-                                        Text('ค่าปัจจุบัน: ${record.value}', style: Theme.of(context).textTheme.bodySmall),
-
-                                         // NEW: Button for Remark
+                                        // แสดงค่าปัจจุบันและหมายเหตุจากบันทึก (ถ้ามี)
+                                        if (record.value != null &&
+                                            record.value!.isNotEmpty)
+                                          Text('ค่าปัจจุบัน: ${record.value}',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall),
+                                        if (record.remark != null &&
+                                            record.remark!.isNotEmpty)
+                                          Text('หมายเหตุ: ${record.remark}',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall),
+                                        // NEW: Display record status
                                         Align(
                                           alignment: Alignment.centerRight,
-                                          child: TextButton(
-                                            onPressed: () => _showRemarkInputDialog(context, record, viewModel),
-                                            child: Text(record.remark != null && record.remark!.isNotEmpty
-                                                ? 'แก้ไขหมายเหตุ' // If remark exists
-                                                : 'เพิ่มหมายเหตุ', // If no remark
+                                          child: Text('สถานะ: ${record.status}',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                        ),
+                                        // NEW: Button for Remark
+                                        if (!isRecordReadOnly) // Hide remark button if read-only
+                                          Align(
+                                            alignment: Alignment.centerRight,
+                                            child: TextButton(
+                                              onPressed: () =>
+                                                  _showRemarkInputDialog(
+                                                      context,
+                                                      record,
+                                                      viewModel),
+                                              child: Text(
+                                                record.remark != null &&
+                                                        record
+                                                            .remark!.isNotEmpty
+                                                    ? 'แก้ไขหมายเหตุ'
+                                                    : 'เพิ่มหมายเหตุ',
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      if (record.remark != null && record.remark!.isNotEmpty)
-                                        Text('หมายเหตุ: ${record.remark}', style: Theme.of(context).textTheme.bodySmall),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
                               );
                             },
                           );
@@ -348,7 +490,8 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
               if (viewModel.isLoading)
                 Container(
                   color: Colors.black.withOpacity(0.5), // พื้นหลังสีดำโปร่งแสง
-                  alignment: Alignment.center, // จัดวาง CircularProgressIndicator ตรงกลาง
+                  alignment: Alignment
+                      .center, // จัดวาง CircularProgressIndicator ตรงกลาง
                   child: const CircularProgressIndicator(), // Loading spinner
                 ),
             ],
@@ -359,48 +502,63 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
   }
 
   // --- Helper method เพื่อสร้างช่องป้อนข้อมูลแบบ Dynamic ตาม tagType ---
-  Widget _buildInputField(BuildContext context, DbDocumentRecord record, DbJobTag? jobTag, DbProblem? problem, DocumentRecordViewModel viewModel,{String? errorText}) {
+  Widget _buildInputField(BuildContext context, DbDocumentRecord record,
+      DbJobTag? jobTag, DbProblem? problem, DocumentRecordViewModel viewModel,
+      {String? errorText, required bool isRecordReadOnly}) {
     final String tagType = jobTag?.tagType ?? '';
-    
+
     // Switch on tagType to return different input widgets
     switch (tagType) {
       case 'Number':
         return RecordNumberInputField(
           record: record, jobTag: jobTag, viewModel: viewModel,
-          controller: _controllers.putIfAbsent(record.uid, () => TextEditingController(text: record.value)),
+          controller: _controllers.putIfAbsent(
+              record.uid, () => TextEditingController(text: record.value)),
           errorText: errorText, // <<< Pass errorText
+          isReadOnly: isRecordReadOnly, // <<< Pass isReadOnly
         );
       case 'ComboBox':
         return RecordComboBoxInputField(
           record: record, jobTag: jobTag, viewModel: viewModel,
-          initialSelectedValue: _selectedComboBoxValues.putIfAbsent(record.uid, () => record.value),
+          initialSelectedValue: _selectedComboBoxValues.putIfAbsent(
+              record.uid, () => record.value),
           errorText: errorText, // <<< Pass errorText
+          isReadOnly: isRecordReadOnly, // <<< Pass isReadOnly
         );
       case 'Text': // Single line text
         return RecordTextInputField(
           record: record, jobTag: jobTag, viewModel: viewModel,
-          controller: _controllers.putIfAbsent(record.uid, () => TextEditingController(text: record.value)),
+          controller: _controllers.putIfAbsent(
+              record.uid, () => TextEditingController(text: record.value)),
           errorText: errorText, // <<< Pass errorText
+          isReadOnly: isRecordReadOnly, // <<< Pass isReadOnly
         );
       case 'Message': // Multi-line text (like 'ข้อความยาวๆ')
         return RecordTextInputField(
           record: record, jobTag: jobTag, viewModel: viewModel,
-          controller: _controllers.putIfAbsent(record.uid, () => TextEditingController(text: record.value)),
+          controller: _controllers.putIfAbsent(
+              record.uid, () => TextEditingController(text: record.value)),
           isMultiline: true,
           errorText: errorText, // <<< Pass errorText
+          isReadOnly: isRecordReadOnly, // <<< Pass isReadOnly
         );
-       case 'CheckBox': // NEW: Handle CheckBox TagType
-        return RecordComboBoxInputField( // Reuse ComboBox for now, as it handles selection from a list
+      case 'CheckBox': // NEW: Handle CheckBox TagType
+        return RecordComboBoxInputField(
+          // Reuse ComboBox for now, as it handles selection from a list
           record: record, jobTag: jobTag, viewModel: viewModel,
-          initialSelectedValue: _selectedComboBoxValues.putIfAbsent(record.uid, () => record.value),
+          initialSelectedValue: _selectedComboBoxValues.putIfAbsent(
+              record.uid, () => record.value),
           errorText: viewModel.recordErrors[record.uid],
+          isReadOnly: isRecordReadOnly, // <<< Pass isReadOnly
         );
       default:
         // Default to a basic text field for unknown types
         return RecordTextInputField(
           record: record, jobTag: jobTag, viewModel: viewModel,
-          controller: _controllers.putIfAbsent(record.uid, () => TextEditingController(text: record.value)),
+          controller: _controllers.putIfAbsent(
+              record.uid, () => TextEditingController(text: record.value)),
           errorText: errorText, // <<< Pass errorText
+          isReadOnly: isRecordReadOnly, // <<< Pass isReadOnly
         );
     }
   }

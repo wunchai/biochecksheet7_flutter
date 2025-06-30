@@ -12,7 +12,9 @@ class RecordProblemInputField extends StatefulWidget {
   final DbProblem? problem; // The problem object associated with the record
   final DocumentRecordViewModel viewModel;
   final TextEditingController controller; // Pass the controller
-   final String? errorText; // NEW: Parameter to receive error text from ViewModel
+  final String?
+      errorText; // NEW: Parameter to receive error text from ViewModel
+  final bool isReadOnly; // <<< NEW parameter
 
   const RecordProblemInputField({
     super.key,
@@ -21,11 +23,13 @@ class RecordProblemInputField extends StatefulWidget {
     required this.problem,
     required this.viewModel,
     required this.controller,
-     this.errorText, // NEW: Make it optional
+    this.errorText, // NEW: Make it optional
+    required this.isReadOnly, // <<< NEW
   });
 
   @override
-  State<RecordProblemInputField> createState() => _RecordProblemInputFieldState();
+  State<RecordProblemInputField> createState() =>
+      _RecordProblemInputFieldState();
 }
 
 class _RecordProblemInputFieldState extends State<RecordProblemInputField> {
@@ -55,23 +59,37 @@ class _RecordProblemInputFieldState extends State<RecordProblemInputField> {
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: TextField(
         controller: widget.controller,
-        readOnly: true, // Typically, problem selection is via a picker, so it's read-only.
+        readOnly:
+            true, // Typically, problem selection is via a picker, so it's read-only.
+        enabled: !widget.isReadOnly, // <<< Disable the field if it's read-only
+
         decoration: InputDecoration(
           labelText: widget.jobTag?.tagName ?? 'เลือกปัญหา',
-          hintText: widget.problem?.problemName ?? 'แตะเพื่อเลือกปัญหา', // Show problem name or hint
+          hintText: widget.isReadOnly
+              ? 'ไม่สามารถแก้ไขได้'
+              : (widget.problem?.problemName ?? 'แตะเพื่อเลือกปัญหา'),
           border: const OutlineInputBorder(),
           suffixIcon: IconButton(
             icon: const Icon(Icons.edit), // Icon to open problem picker
-            onPressed: () {
-              // TODO: Implement logic to open a dialog or navigate to a screen to select a problem
-              print('Open problem picker for record UID: ${widget.record.uid}');
-              // After selection, you would update the ViewModel with the selected Problem ID (e.g., viewModel.updateRecordValue(record.uid, selectedProblemId, record.remark))
-            },
+            onPressed: widget.isReadOnly
+                ? null
+                : () {
+                    // <<< Disable button when read-only
+                    // TODO: Implement logic to open a dialog or navigate to a screen to select a problem
+                    print(
+                        'Open problem picker for record UID: ${widget.record.uid}');
+                    // After selection, you would update the ViewModel with the selected Problem ID (e.g., viewModel.updateRecordValue(record.uid, selectedProblemId, record.remark))
+                  },
           ),
         ),
         onSubmitted: (value) {
           // This might not be used if readOnly is true, but good to have
-          widget.viewModel.updateRecordValue(widget.record.uid, value, widget.record.remark);
+          if (!widget.isReadOnly) {
+            // Only submit if not read-only
+
+            widget.viewModel.updateRecordValue(
+                widget.record.uid, value, widget.record.remark);
+          }
         },
       ),
     );

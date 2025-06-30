@@ -11,7 +11,9 @@ class RecordTextInputField extends StatefulWidget {
   final DocumentRecordViewModel viewModel;
   final bool isMultiline;
   final TextEditingController controller; // Pass the controller
-  final String? errorText; // NEW: Parameter to receive error text from ViewModel
+  final String?
+      errorText; // NEW: Parameter to receive error text from ViewModel
+  final bool isReadOnly; // <<< NEW parameter
 
   const RecordTextInputField({
     super.key,
@@ -20,7 +22,8 @@ class RecordTextInputField extends StatefulWidget {
     required this.viewModel,
     required this.controller,
     this.isMultiline = false,
-     this.errorText, // NEW: Make it optional
+    this.errorText, // NEW: Make it optional
+    required this.isReadOnly, // <<< NEW
   });
 
   @override
@@ -31,16 +34,18 @@ class _RecordTextInputFieldState extends State<RecordTextInputField> {
   @override
   void initState() {
     super.initState();
-    // Initialize controller text from record.value
-    if (widget.controller.text != widget.record.value) {
-      widget.controller.text = widget.record.value ?? '';
-    }
+    // Initialize controller text from record.value (only once)
+    // No need for this check if controller is already initialized with correct value by parent
+    // if (widget.controller.text != widget.record.value) {
+    //   widget.controller.text = widget.record.value ?? '';
+    // }
   }
 
   @override
   void didUpdateWidget(covariant RecordTextInputField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Update controller text if record.value changes (e.g., after refresh)
+    // CRUCIAL FIX: Update controller's text if the underlying record's value changes.
+    // This happens when data from Stream updates, ensuring the TextField displays correct value.
     if (widget.controller.text != widget.record.value) {
       widget.controller.text = widget.record.value ?? '';
     }
@@ -52,22 +57,35 @@ class _RecordTextInputFieldState extends State<RecordTextInputField> {
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: TextField(
         controller: widget.controller,
+        enabled: !widget.isReadOnly, // <<< Disable when read-only
+        readOnly: widget.isReadOnly, // <<< Make read-only when read-only
         decoration: InputDecoration(
           labelText: widget.jobTag?.tagName ?? 'ป้อนค่า',
-          hintText: 'ป้อนข้อความ',
+          hintText: widget.isReadOnly
+              ? 'ไม่สามารถแก้ไขได้'
+              : 'ป้อนข้อความ', // Hint when read-only
           border: const OutlineInputBorder(),
           suffixIcon: IconButton(
             icon: const Icon(Icons.check),
-            onPressed: () {
-              widget.viewModel.updateRecordValue(
-                  widget.record.uid, widget.controller.text, widget.record.remark);
-            },
+            onPressed: widget.isReadOnly
+                ? null
+                : () {
+                    // Disable button when read-only
+                    widget.viewModel.updateRecordValue(widget.record.uid,
+                        widget.controller.text, widget.record.remark);
+                  },
           ),
+          errorText: widget.errorText,
         ),
-        keyboardType: widget.isMultiline ? TextInputType.multiline : TextInputType.text,
+        keyboardType:
+            widget.isMultiline ? TextInputType.multiline : TextInputType.text,
         maxLines: widget.isMultiline ? null : 1, // null for unlimited lines
         onSubmitted: (value) {
-          widget.viewModel.updateRecordValue(widget.record.uid, value, widget.record.remark);
+          if (!widget.isReadOnly) {
+            // Only submit if not read-only
+            widget.viewModel.updateRecordValue(
+                widget.record.uid, value, widget.record.remark);
+          }
         },
       ),
     );

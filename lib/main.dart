@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-
 // Import all table definitions (should be present from previous steps)
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
@@ -11,7 +10,6 @@ import 'package:biochecksheet7_flutter/ui/login/login_viewmodel.dart';
 import 'package:biochecksheet7_flutter/ui/login/login_screen.dart';
 import 'package:biochecksheet7_flutter/ui/home/home_viewmodel.dart';
 import 'package:biochecksheet7_flutter/ui/home/home_screen.dart';
-
 
 // TODO: You will need to create these screens later
 import 'package:biochecksheet7_flutter/ui/dashboard/dashboard_viewmodel.dart'; // <<< Import ViewModel
@@ -35,7 +33,6 @@ import 'package:biochecksheet7_flutter/ui/documentrecord/document_record_screen.
 // Import MainWrapperScreen
 import 'package:biochecksheet7_flutter/ui/main_wrapper/main_wrapper_screen.dart'; // <<< Import MainWrapperScreen
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -57,14 +54,25 @@ Future<void> main() async {
                 loginRepository: loginRepository)), // Pass loginRepository
         ChangeNotifierProvider(
             create: (_) => HomeViewModel(appDatabase: db)), // Pass appDatabase
-        ChangeNotifierProvider(create: (_) => DashboardViewModel()), // <<< Add DashboardViewModel
-        ChangeNotifierProvider(create: (_) => NotificationsViewModel()), // <<< Add NotificationsViewModel
-        ChangeNotifierProvider(create: (_) => DocumentViewModel(appDatabase: db)), // <<< Add DocumentViewModel
-        ChangeNotifierProvider(create: (_) => DocumentMachineViewModel(appDatabase: db)), // <<< Add DocumentMachineViewModel
-        ChangeNotifierProvider(create: (_) => DocumentRecordViewModel(appDatabase: db)), // <<< Add DocumentRecordViewModel
+        ChangeNotifierProvider(
+            create: (_) => DashboardViewModel()), // <<< Add DashboardViewModel
+        ChangeNotifierProvider(
+            create: (_) =>
+                NotificationsViewModel()), // <<< Add NotificationsViewModel
+        ChangeNotifierProvider(
+            create: (_) => DocumentViewModel(
+                appDatabase: db)), // <<< Add DocumentViewModel
+        ChangeNotifierProvider(
+            create: (_) => DocumentMachineViewModel(
+                appDatabase: db)), // <<< Add DocumentMachineViewModel
+        ChangeNotifierProvider(
+            create: (_) => DocumentRecordViewModel(
+                appDatabase: db)), // <<< Add DocumentRecordViewModel
       ],
       child: MyApp(
-        initialRoute: loginRepository.isLoggedIn ? '/main_wrapper' : '/login', // <<< เปลี่ยน initialRoute
+        initialRoute: loginRepository.isLoggedIn
+            ? '/main_wrapper'
+            : '/login', // <<< เปลี่ยน initialRoute
       ),
     ),
   );
@@ -86,15 +94,18 @@ class MyApp extends StatelessWidget {
       initialRoute: initialRoute,
       routes: {
         '/login': (context) => const LoginScreen(),
-         '/main_wrapper': (context) => const MainWrapperScreen(), // <<< เพิ่ม Route สำหรับ MainWrapperScreen
+        '/main_wrapper': (context) =>
+            const MainWrapperScreen(), // <<< เพิ่ม Route สำหรับ MainWrapperScreen
         '/home': (context) => const HomeScreen(title: 'Home Screen'),
         '/dashboard': (context) =>
             const PlaceholderScreen(title: 'Dashboard Screen'),
         '/notifications': (context) =>
             const PlaceholderScreen(title: 'Notifications Screen'),
-        '/document': (context) => const DocumentScreen(title: 'Document Screen'), // <<< Add Document Screen Route
+        '/document': (context) => const DocumentScreen(
+            title: 'Document Screen'), // <<< Add Document Screen Route
         '/document_machine': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
           return DocumentMachineScreen(
             title: args?['title'] ?? 'Machines',
             jobId: args?['jobId'] ?? '',
@@ -102,7 +113,8 @@ class MyApp extends StatelessWidget {
           );
         },
         '/document_record': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
           return DocumentRecordScreen(
             title: args?['title'] ?? 'Document Record',
             documentId: args?['documentId'] ?? '',
