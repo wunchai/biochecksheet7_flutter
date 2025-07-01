@@ -1742,6 +1742,14 @@ class $DocumentRecordsTable extends DocumentRecords
   late final GeneratedColumn<String> createBy = GeneratedColumn<String>(
       'CreateBy', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _syncStatusMeta =
+      const VerificationMeta('syncStatus');
+  @override
+  late final GeneratedColumn<int> syncStatus = GeneratedColumn<int>(
+      'syncStatus', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -1767,7 +1775,8 @@ class $DocumentRecordsTable extends DocumentRecords
         status,
         unReadable,
         lastSync,
-        createBy
+        createBy,
+        syncStatus
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1889,6 +1898,12 @@ class $DocumentRecordsTable extends DocumentRecords
       context.handle(_createByMeta,
           createBy.isAcceptableOrUnknown(data['CreateBy']!, _createByMeta));
     }
+    if (data.containsKey('syncStatus')) {
+      context.handle(
+          _syncStatusMeta,
+          syncStatus.isAcceptableOrUnknown(
+              data['syncStatus']!, _syncStatusMeta));
+    }
     return context;
   }
 
@@ -1946,6 +1961,8 @@ class $DocumentRecordsTable extends DocumentRecords
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
       createBy: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}CreateBy']),
+      syncStatus: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}syncStatus'])!,
     );
   }
 
@@ -1981,6 +1998,7 @@ class DbDocumentRecord extends DataClass
   final String unReadable;
   final String? lastSync;
   final String? createBy;
+  final int syncStatus;
   const DbDocumentRecord(
       {required this.uid,
       this.documentId,
@@ -2005,7 +2023,8 @@ class DbDocumentRecord extends DataClass
       required this.status,
       required this.unReadable,
       this.lastSync,
-      this.createBy});
+      this.createBy,
+      required this.syncStatus});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2075,6 +2094,7 @@ class DbDocumentRecord extends DataClass
     if (!nullToAbsent || createBy != null) {
       map['CreateBy'] = Variable<String>(createBy);
     }
+    map['syncStatus'] = Variable<int>(syncStatus);
     return map;
   }
 
@@ -2138,6 +2158,7 @@ class DbDocumentRecord extends DataClass
       createBy: createBy == null && nullToAbsent
           ? const Value.absent()
           : Value(createBy),
+      syncStatus: Value(syncStatus),
     );
   }
 
@@ -2170,6 +2191,7 @@ class DbDocumentRecord extends DataClass
       unReadable: serializer.fromJson<String>(json['unReadable']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
       createBy: serializer.fromJson<String?>(json['createBy']),
+      syncStatus: serializer.fromJson<int>(json['syncStatus']),
     );
   }
   @override
@@ -2200,6 +2222,7 @@ class DbDocumentRecord extends DataClass
       'unReadable': serializer.toJson<String>(unReadable),
       'lastSync': serializer.toJson<String?>(lastSync),
       'createBy': serializer.toJson<String?>(createBy),
+      'syncStatus': serializer.toJson<int>(syncStatus),
     };
   }
 
@@ -2227,7 +2250,8 @@ class DbDocumentRecord extends DataClass
           int? status,
           String? unReadable,
           Value<String?> lastSync = const Value.absent(),
-          Value<String?> createBy = const Value.absent()}) =>
+          Value<String?> createBy = const Value.absent(),
+          int? syncStatus}) =>
       DbDocumentRecord(
         uid: uid ?? this.uid,
         documentId: documentId.present ? documentId.value : this.documentId,
@@ -2257,6 +2281,7 @@ class DbDocumentRecord extends DataClass
         unReadable: unReadable ?? this.unReadable,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
         createBy: createBy.present ? createBy.value : this.createBy,
+        syncStatus: syncStatus ?? this.syncStatus,
       );
   DbDocumentRecord copyWithCompanion(DocumentRecordsCompanion data) {
     return DbDocumentRecord(
@@ -2294,6 +2319,8 @@ class DbDocumentRecord extends DataClass
           data.unReadable.present ? data.unReadable.value : this.unReadable,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
       createBy: data.createBy.present ? data.createBy.value : this.createBy,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
     );
   }
 
@@ -2323,7 +2350,8 @@ class DbDocumentRecord extends DataClass
           ..write('status: $status, ')
           ..write('unReadable: $unReadable, ')
           ..write('lastSync: $lastSync, ')
-          ..write('createBy: $createBy')
+          ..write('createBy: $createBy, ')
+          ..write('syncStatus: $syncStatus')
           ..write(')'))
         .toString();
   }
@@ -2353,7 +2381,8 @@ class DbDocumentRecord extends DataClass
         status,
         unReadable,
         lastSync,
-        createBy
+        createBy,
+        syncStatus
       ]);
   @override
   bool operator ==(Object other) =>
@@ -2382,7 +2411,8 @@ class DbDocumentRecord extends DataClass
           other.status == this.status &&
           other.unReadable == this.unReadable &&
           other.lastSync == this.lastSync &&
-          other.createBy == this.createBy);
+          other.createBy == this.createBy &&
+          other.syncStatus == this.syncStatus);
 }
 
 class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
@@ -2410,6 +2440,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
   final Value<String> unReadable;
   final Value<String?> lastSync;
   final Value<String?> createBy;
+  final Value<int> syncStatus;
   const DocumentRecordsCompanion({
     this.uid = const Value.absent(),
     this.documentId = const Value.absent(),
@@ -2435,6 +2466,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     this.unReadable = const Value.absent(),
     this.lastSync = const Value.absent(),
     this.createBy = const Value.absent(),
+    this.syncStatus = const Value.absent(),
   });
   DocumentRecordsCompanion.insert({
     this.uid = const Value.absent(),
@@ -2461,6 +2493,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     this.unReadable = const Value.absent(),
     this.lastSync = const Value.absent(),
     this.createBy = const Value.absent(),
+    this.syncStatus = const Value.absent(),
   });
   static Insertable<DbDocumentRecord> custom({
     Expression<int>? uid,
@@ -2487,6 +2520,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     Expression<String>? unReadable,
     Expression<String>? lastSync,
     Expression<String>? createBy,
+    Expression<int>? syncStatus,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -2513,6 +2547,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
       if (unReadable != null) 'unReadable': unReadable,
       if (lastSync != null) 'lastSync': lastSync,
       if (createBy != null) 'CreateBy': createBy,
+      if (syncStatus != null) 'syncStatus': syncStatus,
     });
   }
 
@@ -2540,7 +2575,8 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
       Value<int>? status,
       Value<String>? unReadable,
       Value<String?>? lastSync,
-      Value<String?>? createBy}) {
+      Value<String?>? createBy,
+      Value<int>? syncStatus}) {
     return DocumentRecordsCompanion(
       uid: uid ?? this.uid,
       documentId: documentId ?? this.documentId,
@@ -2566,6 +2602,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
       unReadable: unReadable ?? this.unReadable,
       lastSync: lastSync ?? this.lastSync,
       createBy: createBy ?? this.createBy,
+      syncStatus: syncStatus ?? this.syncStatus,
     );
   }
 
@@ -2644,6 +2681,9 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     if (createBy.present) {
       map['CreateBy'] = Variable<String>(createBy.value);
     }
+    if (syncStatus.present) {
+      map['syncStatus'] = Variable<int>(syncStatus.value);
+    }
     return map;
   }
 
@@ -2673,7 +2713,8 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
           ..write('status: $status, ')
           ..write('unReadable: $unReadable, ')
           ..write('lastSync: $lastSync, ')
-          ..write('createBy: $createBy')
+          ..write('createBy: $createBy, ')
+          ..write('syncStatus: $syncStatus')
           ..write(')'))
         .toString();
   }
@@ -5352,6 +5393,720 @@ class UsersCompanion extends UpdateCompanion<DbUser> {
   }
 }
 
+class $ImagesTable extends Images with TableInfo<$ImagesTable, DbImage> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ImagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uidMeta = const VerificationMeta('uid');
+  @override
+  late final GeneratedColumn<int> uid = GeneratedColumn<int>(
+      'uid', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _guidMeta = const VerificationMeta('guid');
+  @override
+  late final GeneratedColumn<String> guid = GeneratedColumn<String>(
+      'guid', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _imageIndexMeta =
+      const VerificationMeta('imageIndex');
+  @override
+  late final GeneratedColumn<String> imageIndex = GeneratedColumn<String>(
+      'imageIndex', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _pictureMeta =
+      const VerificationMeta('picture');
+  @override
+  late final GeneratedColumn<String> picture = GeneratedColumn<String>(
+      'picture', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _imageUriMeta =
+      const VerificationMeta('imageUri');
+  @override
+  late final GeneratedColumn<String> imageUri = GeneratedColumn<String>(
+      'imageUri', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _filenameMeta =
+      const VerificationMeta('filename');
+  @override
+  late final GeneratedColumn<String> filename = GeneratedColumn<String>(
+      'filename', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _filepathMeta =
+      const VerificationMeta('filepath');
+  @override
+  late final GeneratedColumn<String> filepath = GeneratedColumn<String>(
+      'filepath', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _documentIdMeta =
+      const VerificationMeta('documentId');
+  @override
+  late final GeneratedColumn<String> documentId = GeneratedColumn<String>(
+      'documentId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _jobIdMeta = const VerificationMeta('jobId');
+  @override
+  late final GeneratedColumn<String> jobId = GeneratedColumn<String>(
+      'jobId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _machineIdMeta =
+      const VerificationMeta('machineId');
+  @override
+  late final GeneratedColumn<String> machineId = GeneratedColumn<String>(
+      'machineId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
+  @override
+  late final GeneratedColumn<String> tagId = GeneratedColumn<String>(
+      'tagId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createDateMeta =
+      const VerificationMeta('createDate');
+  @override
+  late final GeneratedColumn<String> createDate = GeneratedColumn<String>(
+      'createDate', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+      'status', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _lastSyncMeta =
+      const VerificationMeta('lastSync');
+  @override
+  late final GeneratedColumn<String> lastSync = GeneratedColumn<String>(
+      'lastSync', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusSyncMeta =
+      const VerificationMeta('statusSync');
+  @override
+  late final GeneratedColumn<int> statusSync = GeneratedColumn<int>(
+      'statusSync', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        uid,
+        guid,
+        imageIndex,
+        picture,
+        imageUri,
+        filename,
+        filepath,
+        documentId,
+        jobId,
+        machineId,
+        tagId,
+        createDate,
+        status,
+        lastSync,
+        statusSync
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'images';
+  @override
+  VerificationContext validateIntegrity(Insertable<DbImage> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uid')) {
+      context.handle(
+          _uidMeta, uid.isAcceptableOrUnknown(data['uid']!, _uidMeta));
+    }
+    if (data.containsKey('guid')) {
+      context.handle(
+          _guidMeta, guid.isAcceptableOrUnknown(data['guid']!, _guidMeta));
+    }
+    if (data.containsKey('imageIndex')) {
+      context.handle(
+          _imageIndexMeta,
+          imageIndex.isAcceptableOrUnknown(
+              data['imageIndex']!, _imageIndexMeta));
+    }
+    if (data.containsKey('picture')) {
+      context.handle(_pictureMeta,
+          picture.isAcceptableOrUnknown(data['picture']!, _pictureMeta));
+    }
+    if (data.containsKey('imageUri')) {
+      context.handle(_imageUriMeta,
+          imageUri.isAcceptableOrUnknown(data['imageUri']!, _imageUriMeta));
+    }
+    if (data.containsKey('filename')) {
+      context.handle(_filenameMeta,
+          filename.isAcceptableOrUnknown(data['filename']!, _filenameMeta));
+    }
+    if (data.containsKey('filepath')) {
+      context.handle(_filepathMeta,
+          filepath.isAcceptableOrUnknown(data['filepath']!, _filepathMeta));
+    }
+    if (data.containsKey('documentId')) {
+      context.handle(
+          _documentIdMeta,
+          documentId.isAcceptableOrUnknown(
+              data['documentId']!, _documentIdMeta));
+    }
+    if (data.containsKey('jobId')) {
+      context.handle(
+          _jobIdMeta, jobId.isAcceptableOrUnknown(data['jobId']!, _jobIdMeta));
+    }
+    if (data.containsKey('machineId')) {
+      context.handle(_machineIdMeta,
+          machineId.isAcceptableOrUnknown(data['machineId']!, _machineIdMeta));
+    }
+    if (data.containsKey('tagId')) {
+      context.handle(
+          _tagIdMeta, tagId.isAcceptableOrUnknown(data['tagId']!, _tagIdMeta));
+    }
+    if (data.containsKey('createDate')) {
+      context.handle(
+          _createDateMeta,
+          createDate.isAcceptableOrUnknown(
+              data['createDate']!, _createDateMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('lastSync')) {
+      context.handle(_lastSyncMeta,
+          lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
+    }
+    if (data.containsKey('statusSync')) {
+      context.handle(
+          _statusSyncMeta,
+          statusSync.isAcceptableOrUnknown(
+              data['statusSync']!, _statusSyncMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uid};
+  @override
+  DbImage map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DbImage(
+      uid: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}uid'])!,
+      guid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}guid']),
+      imageIndex: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}imageIndex']),
+      picture: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}picture']),
+      imageUri: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}imageUri']),
+      filename: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}filename']),
+      filepath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}filepath']),
+      documentId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}documentId']),
+      jobId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}jobId']),
+      machineId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}machineId']),
+      tagId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagId']),
+      createDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}createDate']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}status'])!,
+      lastSync: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
+      statusSync: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}statusSync'])!,
+    );
+  }
+
+  @override
+  $ImagesTable createAlias(String alias) {
+    return $ImagesTable(attachedDatabase, alias);
+  }
+}
+
+class DbImage extends DataClass implements Insertable<DbImage> {
+  final int uid;
+  final String? guid;
+  final String? imageIndex;
+  final String? picture;
+  final String? imageUri;
+  final String? filename;
+  final String? filepath;
+  final String? documentId;
+  final String? jobId;
+  final String? machineId;
+  final String? tagId;
+  final String? createDate;
+  final int status;
+  final String? lastSync;
+  final int statusSync;
+  const DbImage(
+      {required this.uid,
+      this.guid,
+      this.imageIndex,
+      this.picture,
+      this.imageUri,
+      this.filename,
+      this.filepath,
+      this.documentId,
+      this.jobId,
+      this.machineId,
+      this.tagId,
+      this.createDate,
+      required this.status,
+      this.lastSync,
+      required this.statusSync});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uid'] = Variable<int>(uid);
+    if (!nullToAbsent || guid != null) {
+      map['guid'] = Variable<String>(guid);
+    }
+    if (!nullToAbsent || imageIndex != null) {
+      map['imageIndex'] = Variable<String>(imageIndex);
+    }
+    if (!nullToAbsent || picture != null) {
+      map['picture'] = Variable<String>(picture);
+    }
+    if (!nullToAbsent || imageUri != null) {
+      map['imageUri'] = Variable<String>(imageUri);
+    }
+    if (!nullToAbsent || filename != null) {
+      map['filename'] = Variable<String>(filename);
+    }
+    if (!nullToAbsent || filepath != null) {
+      map['filepath'] = Variable<String>(filepath);
+    }
+    if (!nullToAbsent || documentId != null) {
+      map['documentId'] = Variable<String>(documentId);
+    }
+    if (!nullToAbsent || jobId != null) {
+      map['jobId'] = Variable<String>(jobId);
+    }
+    if (!nullToAbsent || machineId != null) {
+      map['machineId'] = Variable<String>(machineId);
+    }
+    if (!nullToAbsent || tagId != null) {
+      map['tagId'] = Variable<String>(tagId);
+    }
+    if (!nullToAbsent || createDate != null) {
+      map['createDate'] = Variable<String>(createDate);
+    }
+    map['status'] = Variable<int>(status);
+    if (!nullToAbsent || lastSync != null) {
+      map['lastSync'] = Variable<String>(lastSync);
+    }
+    map['statusSync'] = Variable<int>(statusSync);
+    return map;
+  }
+
+  ImagesCompanion toCompanion(bool nullToAbsent) {
+    return ImagesCompanion(
+      uid: Value(uid),
+      guid: guid == null && nullToAbsent ? const Value.absent() : Value(guid),
+      imageIndex: imageIndex == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imageIndex),
+      picture: picture == null && nullToAbsent
+          ? const Value.absent()
+          : Value(picture),
+      imageUri: imageUri == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imageUri),
+      filename: filename == null && nullToAbsent
+          ? const Value.absent()
+          : Value(filename),
+      filepath: filepath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(filepath),
+      documentId: documentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(documentId),
+      jobId:
+          jobId == null && nullToAbsent ? const Value.absent() : Value(jobId),
+      machineId: machineId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(machineId),
+      tagId:
+          tagId == null && nullToAbsent ? const Value.absent() : Value(tagId),
+      createDate: createDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createDate),
+      status: Value(status),
+      lastSync: lastSync == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSync),
+      statusSync: Value(statusSync),
+    );
+  }
+
+  factory DbImage.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DbImage(
+      uid: serializer.fromJson<int>(json['uid']),
+      guid: serializer.fromJson<String?>(json['guid']),
+      imageIndex: serializer.fromJson<String?>(json['imageIndex']),
+      picture: serializer.fromJson<String?>(json['picture']),
+      imageUri: serializer.fromJson<String?>(json['imageUri']),
+      filename: serializer.fromJson<String?>(json['filename']),
+      filepath: serializer.fromJson<String?>(json['filepath']),
+      documentId: serializer.fromJson<String?>(json['documentId']),
+      jobId: serializer.fromJson<String?>(json['jobId']),
+      machineId: serializer.fromJson<String?>(json['machineId']),
+      tagId: serializer.fromJson<String?>(json['tagId']),
+      createDate: serializer.fromJson<String?>(json['createDate']),
+      status: serializer.fromJson<int>(json['status']),
+      lastSync: serializer.fromJson<String?>(json['lastSync']),
+      statusSync: serializer.fromJson<int>(json['statusSync']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uid': serializer.toJson<int>(uid),
+      'guid': serializer.toJson<String?>(guid),
+      'imageIndex': serializer.toJson<String?>(imageIndex),
+      'picture': serializer.toJson<String?>(picture),
+      'imageUri': serializer.toJson<String?>(imageUri),
+      'filename': serializer.toJson<String?>(filename),
+      'filepath': serializer.toJson<String?>(filepath),
+      'documentId': serializer.toJson<String?>(documentId),
+      'jobId': serializer.toJson<String?>(jobId),
+      'machineId': serializer.toJson<String?>(machineId),
+      'tagId': serializer.toJson<String?>(tagId),
+      'createDate': serializer.toJson<String?>(createDate),
+      'status': serializer.toJson<int>(status),
+      'lastSync': serializer.toJson<String?>(lastSync),
+      'statusSync': serializer.toJson<int>(statusSync),
+    };
+  }
+
+  DbImage copyWith(
+          {int? uid,
+          Value<String?> guid = const Value.absent(),
+          Value<String?> imageIndex = const Value.absent(),
+          Value<String?> picture = const Value.absent(),
+          Value<String?> imageUri = const Value.absent(),
+          Value<String?> filename = const Value.absent(),
+          Value<String?> filepath = const Value.absent(),
+          Value<String?> documentId = const Value.absent(),
+          Value<String?> jobId = const Value.absent(),
+          Value<String?> machineId = const Value.absent(),
+          Value<String?> tagId = const Value.absent(),
+          Value<String?> createDate = const Value.absent(),
+          int? status,
+          Value<String?> lastSync = const Value.absent(),
+          int? statusSync}) =>
+      DbImage(
+        uid: uid ?? this.uid,
+        guid: guid.present ? guid.value : this.guid,
+        imageIndex: imageIndex.present ? imageIndex.value : this.imageIndex,
+        picture: picture.present ? picture.value : this.picture,
+        imageUri: imageUri.present ? imageUri.value : this.imageUri,
+        filename: filename.present ? filename.value : this.filename,
+        filepath: filepath.present ? filepath.value : this.filepath,
+        documentId: documentId.present ? documentId.value : this.documentId,
+        jobId: jobId.present ? jobId.value : this.jobId,
+        machineId: machineId.present ? machineId.value : this.machineId,
+        tagId: tagId.present ? tagId.value : this.tagId,
+        createDate: createDate.present ? createDate.value : this.createDate,
+        status: status ?? this.status,
+        lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        statusSync: statusSync ?? this.statusSync,
+      );
+  DbImage copyWithCompanion(ImagesCompanion data) {
+    return DbImage(
+      uid: data.uid.present ? data.uid.value : this.uid,
+      guid: data.guid.present ? data.guid.value : this.guid,
+      imageIndex:
+          data.imageIndex.present ? data.imageIndex.value : this.imageIndex,
+      picture: data.picture.present ? data.picture.value : this.picture,
+      imageUri: data.imageUri.present ? data.imageUri.value : this.imageUri,
+      filename: data.filename.present ? data.filename.value : this.filename,
+      filepath: data.filepath.present ? data.filepath.value : this.filepath,
+      documentId:
+          data.documentId.present ? data.documentId.value : this.documentId,
+      jobId: data.jobId.present ? data.jobId.value : this.jobId,
+      machineId: data.machineId.present ? data.machineId.value : this.machineId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+      createDate:
+          data.createDate.present ? data.createDate.value : this.createDate,
+      status: data.status.present ? data.status.value : this.status,
+      lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      statusSync:
+          data.statusSync.present ? data.statusSync.value : this.statusSync,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DbImage(')
+          ..write('uid: $uid, ')
+          ..write('guid: $guid, ')
+          ..write('imageIndex: $imageIndex, ')
+          ..write('picture: $picture, ')
+          ..write('imageUri: $imageUri, ')
+          ..write('filename: $filename, ')
+          ..write('filepath: $filepath, ')
+          ..write('documentId: $documentId, ')
+          ..write('jobId: $jobId, ')
+          ..write('machineId: $machineId, ')
+          ..write('tagId: $tagId, ')
+          ..write('createDate: $createDate, ')
+          ..write('status: $status, ')
+          ..write('lastSync: $lastSync, ')
+          ..write('statusSync: $statusSync')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      uid,
+      guid,
+      imageIndex,
+      picture,
+      imageUri,
+      filename,
+      filepath,
+      documentId,
+      jobId,
+      machineId,
+      tagId,
+      createDate,
+      status,
+      lastSync,
+      statusSync);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DbImage &&
+          other.uid == this.uid &&
+          other.guid == this.guid &&
+          other.imageIndex == this.imageIndex &&
+          other.picture == this.picture &&
+          other.imageUri == this.imageUri &&
+          other.filename == this.filename &&
+          other.filepath == this.filepath &&
+          other.documentId == this.documentId &&
+          other.jobId == this.jobId &&
+          other.machineId == this.machineId &&
+          other.tagId == this.tagId &&
+          other.createDate == this.createDate &&
+          other.status == this.status &&
+          other.lastSync == this.lastSync &&
+          other.statusSync == this.statusSync);
+}
+
+class ImagesCompanion extends UpdateCompanion<DbImage> {
+  final Value<int> uid;
+  final Value<String?> guid;
+  final Value<String?> imageIndex;
+  final Value<String?> picture;
+  final Value<String?> imageUri;
+  final Value<String?> filename;
+  final Value<String?> filepath;
+  final Value<String?> documentId;
+  final Value<String?> jobId;
+  final Value<String?> machineId;
+  final Value<String?> tagId;
+  final Value<String?> createDate;
+  final Value<int> status;
+  final Value<String?> lastSync;
+  final Value<int> statusSync;
+  const ImagesCompanion({
+    this.uid = const Value.absent(),
+    this.guid = const Value.absent(),
+    this.imageIndex = const Value.absent(),
+    this.picture = const Value.absent(),
+    this.imageUri = const Value.absent(),
+    this.filename = const Value.absent(),
+    this.filepath = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.machineId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.status = const Value.absent(),
+    this.lastSync = const Value.absent(),
+    this.statusSync = const Value.absent(),
+  });
+  ImagesCompanion.insert({
+    this.uid = const Value.absent(),
+    this.guid = const Value.absent(),
+    this.imageIndex = const Value.absent(),
+    this.picture = const Value.absent(),
+    this.imageUri = const Value.absent(),
+    this.filename = const Value.absent(),
+    this.filepath = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.machineId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.status = const Value.absent(),
+    this.lastSync = const Value.absent(),
+    this.statusSync = const Value.absent(),
+  });
+  static Insertable<DbImage> custom({
+    Expression<int>? uid,
+    Expression<String>? guid,
+    Expression<String>? imageIndex,
+    Expression<String>? picture,
+    Expression<String>? imageUri,
+    Expression<String>? filename,
+    Expression<String>? filepath,
+    Expression<String>? documentId,
+    Expression<String>? jobId,
+    Expression<String>? machineId,
+    Expression<String>? tagId,
+    Expression<String>? createDate,
+    Expression<int>? status,
+    Expression<String>? lastSync,
+    Expression<int>? statusSync,
+  }) {
+    return RawValuesInsertable({
+      if (uid != null) 'uid': uid,
+      if (guid != null) 'guid': guid,
+      if (imageIndex != null) 'imageIndex': imageIndex,
+      if (picture != null) 'picture': picture,
+      if (imageUri != null) 'imageUri': imageUri,
+      if (filename != null) 'filename': filename,
+      if (filepath != null) 'filepath': filepath,
+      if (documentId != null) 'documentId': documentId,
+      if (jobId != null) 'jobId': jobId,
+      if (machineId != null) 'machineId': machineId,
+      if (tagId != null) 'tagId': tagId,
+      if (createDate != null) 'createDate': createDate,
+      if (status != null) 'status': status,
+      if (lastSync != null) 'lastSync': lastSync,
+      if (statusSync != null) 'statusSync': statusSync,
+    });
+  }
+
+  ImagesCompanion copyWith(
+      {Value<int>? uid,
+      Value<String?>? guid,
+      Value<String?>? imageIndex,
+      Value<String?>? picture,
+      Value<String?>? imageUri,
+      Value<String?>? filename,
+      Value<String?>? filepath,
+      Value<String?>? documentId,
+      Value<String?>? jobId,
+      Value<String?>? machineId,
+      Value<String?>? tagId,
+      Value<String?>? createDate,
+      Value<int>? status,
+      Value<String?>? lastSync,
+      Value<int>? statusSync}) {
+    return ImagesCompanion(
+      uid: uid ?? this.uid,
+      guid: guid ?? this.guid,
+      imageIndex: imageIndex ?? this.imageIndex,
+      picture: picture ?? this.picture,
+      imageUri: imageUri ?? this.imageUri,
+      filename: filename ?? this.filename,
+      filepath: filepath ?? this.filepath,
+      documentId: documentId ?? this.documentId,
+      jobId: jobId ?? this.jobId,
+      machineId: machineId ?? this.machineId,
+      tagId: tagId ?? this.tagId,
+      createDate: createDate ?? this.createDate,
+      status: status ?? this.status,
+      lastSync: lastSync ?? this.lastSync,
+      statusSync: statusSync ?? this.statusSync,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uid.present) {
+      map['uid'] = Variable<int>(uid.value);
+    }
+    if (guid.present) {
+      map['guid'] = Variable<String>(guid.value);
+    }
+    if (imageIndex.present) {
+      map['imageIndex'] = Variable<String>(imageIndex.value);
+    }
+    if (picture.present) {
+      map['picture'] = Variable<String>(picture.value);
+    }
+    if (imageUri.present) {
+      map['imageUri'] = Variable<String>(imageUri.value);
+    }
+    if (filename.present) {
+      map['filename'] = Variable<String>(filename.value);
+    }
+    if (filepath.present) {
+      map['filepath'] = Variable<String>(filepath.value);
+    }
+    if (documentId.present) {
+      map['documentId'] = Variable<String>(documentId.value);
+    }
+    if (jobId.present) {
+      map['jobId'] = Variable<String>(jobId.value);
+    }
+    if (machineId.present) {
+      map['machineId'] = Variable<String>(machineId.value);
+    }
+    if (tagId.present) {
+      map['tagId'] = Variable<String>(tagId.value);
+    }
+    if (createDate.present) {
+      map['createDate'] = Variable<String>(createDate.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (lastSync.present) {
+      map['lastSync'] = Variable<String>(lastSync.value);
+    }
+    if (statusSync.present) {
+      map['statusSync'] = Variable<int>(statusSync.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ImagesCompanion(')
+          ..write('uid: $uid, ')
+          ..write('guid: $guid, ')
+          ..write('imageIndex: $imageIndex, ')
+          ..write('picture: $picture, ')
+          ..write('imageUri: $imageUri, ')
+          ..write('filename: $filename, ')
+          ..write('filepath: $filepath, ')
+          ..write('documentId: $documentId, ')
+          ..write('jobId: $jobId, ')
+          ..write('machineId: $machineId, ')
+          ..write('tagId: $tagId, ')
+          ..write('createDate: $createDate, ')
+          ..write('status: $status, ')
+          ..write('lastSync: $lastSync, ')
+          ..write('statusSync: $statusSync')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5366,6 +6121,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ProblemsTable problems = $ProblemsTable(this);
   late final $SyncsTable syncs = $SyncsTable(this);
   late final $UsersTable users = $UsersTable(this);
+  late final $ImagesTable images = $ImagesTable(this);
   late final JobDao jobDao = JobDao(this as AppDatabase);
   late final DocumentDao documentDao = DocumentDao(this as AppDatabase);
   late final DocumentMachineDao documentMachineDao =
@@ -5377,6 +6133,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final ProblemDao problemDao = ProblemDao(this as AppDatabase);
   late final SyncDao syncDao = SyncDao(this as AppDatabase);
   late final UserDao userDao = UserDao(this as AppDatabase);
+  late final ImageDao imageDao = ImageDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5390,7 +6147,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         jobTags,
         problems,
         syncs,
-        users
+        users,
+        images
       ];
 }
 
@@ -6146,6 +6904,7 @@ typedef $$DocumentRecordsTableCreateCompanionBuilder = DocumentRecordsCompanion
   Value<String> unReadable,
   Value<String?> lastSync,
   Value<String?> createBy,
+  Value<int> syncStatus,
 });
 typedef $$DocumentRecordsTableUpdateCompanionBuilder = DocumentRecordsCompanion
     Function({
@@ -6173,6 +6932,7 @@ typedef $$DocumentRecordsTableUpdateCompanionBuilder = DocumentRecordsCompanion
   Value<String> unReadable,
   Value<String?> lastSync,
   Value<String?> createBy,
+  Value<int> syncStatus,
 });
 
 class $$DocumentRecordsTableFilterComposer
@@ -6256,6 +7016,9 @@ class $$DocumentRecordsTableFilterComposer
 
   ColumnFilters<String> get createBy => $composableBuilder(
       column: $table.createBy, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnFilters(column));
 }
 
 class $$DocumentRecordsTableOrderingComposer
@@ -6341,6 +7104,9 @@ class $$DocumentRecordsTableOrderingComposer
 
   ColumnOrderings<String> get createBy => $composableBuilder(
       column: $table.createBy, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
 }
 
 class $$DocumentRecordsTableAnnotationComposer
@@ -6423,6 +7189,9 @@ class $$DocumentRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get createBy =>
       $composableBuilder(column: $table.createBy, builder: (column) => column);
+
+  GeneratedColumn<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => column);
 }
 
 class $$DocumentRecordsTableTableManager extends RootTableManager<
@@ -6476,6 +7245,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             Value<String> unReadable = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
             Value<String?> createBy = const Value.absent(),
+            Value<int> syncStatus = const Value.absent(),
           }) =>
               DocumentRecordsCompanion(
             uid: uid,
@@ -6502,6 +7272,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             unReadable: unReadable,
             lastSync: lastSync,
             createBy: createBy,
+            syncStatus: syncStatus,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -6528,6 +7299,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             Value<String> unReadable = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
             Value<String?> createBy = const Value.absent(),
+            Value<int> syncStatus = const Value.absent(),
           }) =>
               DocumentRecordsCompanion.insert(
             uid: uid,
@@ -6554,6 +7326,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             unReadable: unReadable,
             lastSync: lastSync,
             createBy: createBy,
+            syncStatus: syncStatus,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -7805,6 +8578,315 @@ typedef $$UsersTableProcessedTableManager = ProcessedTableManager<
     (DbUser, BaseReferences<_$AppDatabase, $UsersTable, DbUser>),
     DbUser,
     PrefetchHooks Function()>;
+typedef $$ImagesTableCreateCompanionBuilder = ImagesCompanion Function({
+  Value<int> uid,
+  Value<String?> guid,
+  Value<String?> imageIndex,
+  Value<String?> picture,
+  Value<String?> imageUri,
+  Value<String?> filename,
+  Value<String?> filepath,
+  Value<String?> documentId,
+  Value<String?> jobId,
+  Value<String?> machineId,
+  Value<String?> tagId,
+  Value<String?> createDate,
+  Value<int> status,
+  Value<String?> lastSync,
+  Value<int> statusSync,
+});
+typedef $$ImagesTableUpdateCompanionBuilder = ImagesCompanion Function({
+  Value<int> uid,
+  Value<String?> guid,
+  Value<String?> imageIndex,
+  Value<String?> picture,
+  Value<String?> imageUri,
+  Value<String?> filename,
+  Value<String?> filepath,
+  Value<String?> documentId,
+  Value<String?> jobId,
+  Value<String?> machineId,
+  Value<String?> tagId,
+  Value<String?> createDate,
+  Value<int> status,
+  Value<String?> lastSync,
+  Value<int> statusSync,
+});
+
+class $$ImagesTableFilterComposer
+    extends Composer<_$AppDatabase, $ImagesTable> {
+  $$ImagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get guid => $composableBuilder(
+      column: $table.guid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get imageIndex => $composableBuilder(
+      column: $table.imageIndex, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get picture => $composableBuilder(
+      column: $table.picture, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get imageUri => $composableBuilder(
+      column: $table.imageUri, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get filename => $composableBuilder(
+      column: $table.filename, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get filepath => $composableBuilder(
+      column: $table.filepath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get jobId => $composableBuilder(
+      column: $table.jobId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagId => $composableBuilder(
+      column: $table.tagId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lastSync => $composableBuilder(
+      column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get statusSync => $composableBuilder(
+      column: $table.statusSync, builder: (column) => ColumnFilters(column));
+}
+
+class $$ImagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ImagesTable> {
+  $$ImagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get guid => $composableBuilder(
+      column: $table.guid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get imageIndex => $composableBuilder(
+      column: $table.imageIndex, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get picture => $composableBuilder(
+      column: $table.picture, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get imageUri => $composableBuilder(
+      column: $table.imageUri, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get filename => $composableBuilder(
+      column: $table.filename, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get filepath => $composableBuilder(
+      column: $table.filepath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get jobId => $composableBuilder(
+      column: $table.jobId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagId => $composableBuilder(
+      column: $table.tagId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get lastSync => $composableBuilder(
+      column: $table.lastSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get statusSync => $composableBuilder(
+      column: $table.statusSync, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ImagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ImagesTable> {
+  $$ImagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get uid =>
+      $composableBuilder(column: $table.uid, builder: (column) => column);
+
+  GeneratedColumn<String> get guid =>
+      $composableBuilder(column: $table.guid, builder: (column) => column);
+
+  GeneratedColumn<String> get imageIndex => $composableBuilder(
+      column: $table.imageIndex, builder: (column) => column);
+
+  GeneratedColumn<String> get picture =>
+      $composableBuilder(column: $table.picture, builder: (column) => column);
+
+  GeneratedColumn<String> get imageUri =>
+      $composableBuilder(column: $table.imageUri, builder: (column) => column);
+
+  GeneratedColumn<String> get filename =>
+      $composableBuilder(column: $table.filename, builder: (column) => column);
+
+  GeneratedColumn<String> get filepath =>
+      $composableBuilder(column: $table.filepath, builder: (column) => column);
+
+  GeneratedColumn<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => column);
+
+  GeneratedColumn<String> get jobId =>
+      $composableBuilder(column: $table.jobId, builder: (column) => column);
+
+  GeneratedColumn<String> get machineId =>
+      $composableBuilder(column: $table.machineId, builder: (column) => column);
+
+  GeneratedColumn<String> get tagId =>
+      $composableBuilder(column: $table.tagId, builder: (column) => column);
+
+  GeneratedColumn<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get lastSync =>
+      $composableBuilder(column: $table.lastSync, builder: (column) => column);
+
+  GeneratedColumn<int> get statusSync => $composableBuilder(
+      column: $table.statusSync, builder: (column) => column);
+}
+
+class $$ImagesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ImagesTable,
+    DbImage,
+    $$ImagesTableFilterComposer,
+    $$ImagesTableOrderingComposer,
+    $$ImagesTableAnnotationComposer,
+    $$ImagesTableCreateCompanionBuilder,
+    $$ImagesTableUpdateCompanionBuilder,
+    (DbImage, BaseReferences<_$AppDatabase, $ImagesTable, DbImage>),
+    DbImage,
+    PrefetchHooks Function()> {
+  $$ImagesTableTableManager(_$AppDatabase db, $ImagesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ImagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ImagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ImagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            Value<String?> guid = const Value.absent(),
+            Value<String?> imageIndex = const Value.absent(),
+            Value<String?> picture = const Value.absent(),
+            Value<String?> imageUri = const Value.absent(),
+            Value<String?> filename = const Value.absent(),
+            Value<String?> filepath = const Value.absent(),
+            Value<String?> documentId = const Value.absent(),
+            Value<String?> jobId = const Value.absent(),
+            Value<String?> machineId = const Value.absent(),
+            Value<String?> tagId = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<String?> lastSync = const Value.absent(),
+            Value<int> statusSync = const Value.absent(),
+          }) =>
+              ImagesCompanion(
+            uid: uid,
+            guid: guid,
+            imageIndex: imageIndex,
+            picture: picture,
+            imageUri: imageUri,
+            filename: filename,
+            filepath: filepath,
+            documentId: documentId,
+            jobId: jobId,
+            machineId: machineId,
+            tagId: tagId,
+            createDate: createDate,
+            status: status,
+            lastSync: lastSync,
+            statusSync: statusSync,
+          ),
+          createCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            Value<String?> guid = const Value.absent(),
+            Value<String?> imageIndex = const Value.absent(),
+            Value<String?> picture = const Value.absent(),
+            Value<String?> imageUri = const Value.absent(),
+            Value<String?> filename = const Value.absent(),
+            Value<String?> filepath = const Value.absent(),
+            Value<String?> documentId = const Value.absent(),
+            Value<String?> jobId = const Value.absent(),
+            Value<String?> machineId = const Value.absent(),
+            Value<String?> tagId = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<String?> lastSync = const Value.absent(),
+            Value<int> statusSync = const Value.absent(),
+          }) =>
+              ImagesCompanion.insert(
+            uid: uid,
+            guid: guid,
+            imageIndex: imageIndex,
+            picture: picture,
+            imageUri: imageUri,
+            filename: filename,
+            filepath: filepath,
+            documentId: documentId,
+            jobId: jobId,
+            machineId: machineId,
+            tagId: tagId,
+            createDate: createDate,
+            status: status,
+            lastSync: lastSync,
+            statusSync: statusSync,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ImagesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ImagesTable,
+    DbImage,
+    $$ImagesTableFilterComposer,
+    $$ImagesTableOrderingComposer,
+    $$ImagesTableAnnotationComposer,
+    $$ImagesTableCreateCompanionBuilder,
+    $$ImagesTableUpdateCompanionBuilder,
+    (DbImage, BaseReferences<_$AppDatabase, $ImagesTable, DbImage>),
+    DbImage,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -7826,4 +8908,6 @@ class $AppDatabaseManager {
       $$SyncsTableTableManager(_db, _db.syncs);
   $$UsersTableTableManager get users =>
       $$UsersTableTableManager(_db, _db.users);
+  $$ImagesTableTableManager get images =>
+      $$ImagesTableTableManager(_db, _db.images);
 }

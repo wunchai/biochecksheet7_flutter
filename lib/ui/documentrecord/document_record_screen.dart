@@ -16,6 +16,9 @@ import 'package:biochecksheet7_flutter/ui/documentrecord/widgets/record_detail_d
 import 'package:biochecksheet7_flutter/ui/documentrecord/widgets/remark_input_dialog.dart'; // <<< Changed from remark_input_dialog.dart to widgets/remark_input_dialog.dart
 import 'package:biochecksheet7_flutter/ui/documentrecord/widgets/record_line_chart.dart'; // For chart widget
 import 'package:biochecksheet7_flutter/ui/documentrecord/widgets/document_record_app_bar.dart'; // For custom AppBar
+// NEW: Import ImageRecordScreen for navigation
+import 'package:biochecksheet7_flutter/ui/imagerecord/image_record_screen.dart';
+
 
 /// หน้าจอนี้แสดงรายการบันทึกสำหรับเอกสารและเครื่องจักรที่ระบุ
 /// เทียบเท่ากับ DocumentRecordActivity.kt ในโปรเจกต์ Kotlin เดิม
@@ -347,6 +350,25 @@ print('Result Remark: $resultRemark');
                                                       viewModel);
                                                 },
                                               ),
+                                               // NEW: Image Button (for any tag type)
+                                            IconButton(
+                                              icon: const Icon(Icons.image), // Icon for image
+                                              onPressed: isRecordReadOnly ? null : () { // Disable if read-only
+                                                // Navigate to ImageRecordScreen, passing all relevant IDs
+                                                Navigator.pushNamed(
+                                                  context,
+                                                  '/image_record',
+                                                  arguments: {
+                                                    'title': 'รูปภาพ: ${jobTag?.tagName ?? 'N/A'}',
+                                                    'documentId': widget.documentId,
+                                                    'machineId': widget.machineId,
+                                                    'jobId': widget.jobId,
+                                                    'tagId': record.tagId, // Pass the tagId of this record
+                                                  },
+                                                );
+                                                print('Image button pressed for Tag ID: ${record.tagId}');
+                                              },
+                                            ),
                                           ],
                                         ),
                                         const SizedBox(height: 8.0),

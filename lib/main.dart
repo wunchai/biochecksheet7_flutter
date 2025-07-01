@@ -1,6 +1,8 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:path_provider/path_provider.dart'; // <<< NEW: Import path_provider
+import 'dart:io'; // For File class, if needed for direct file operations
 
 // Import all table definitions (should be present from previous steps)
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
@@ -30,12 +32,26 @@ import 'package:biochecksheet7_flutter/ui/documentmachine/document_machine_scree
 // Import DocumentRecord components
 import 'package:biochecksheet7_flutter/ui/documentrecord/document_record_viewmodel.dart'; // <<< Import ViewModel
 import 'package:biochecksheet7_flutter/ui/documentrecord/document_record_screen.dart'; // Already imported, just for context
+
+// NEW: Import ImageRecord components
+import 'package:biochecksheet7_flutter/ui/imagerecord/image_viewmodel.dart'; // <<< Import ViewModel
+import 'package:biochecksheet7_flutter/ui/imagerecord/image_record_screen.dart'; // <<< Import Screen
+
+
 // Import MainWrapperScreen
 import 'package:biochecksheet7_flutter/ui/main_wrapper/main_wrapper_screen.dart'; // <<< Import MainWrapperScreen
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  // NEW: Print database path for debugging
+  try {
+    final dbFolder = await getApplicationDocumentsDirectory();
+    final dbPath = File('${dbFolder.path}/db.sqlite'); // Assuming 'db.sqlite'
+    print('Database path (db.sqlite): ${dbPath.path}'); // <<< CRUCIAL: Print path
+    print('Database directory: ${dbFolder.path}'); // <<< Print directory
+  } catch (e) {
+    print('Error getting database path: $e');
+  }
   // Initialize AppDatabase instance first, await it.
   final db = await AppDatabase.instance();
 
@@ -68,6 +84,7 @@ Future<void> main() async {
         ChangeNotifierProvider(
             create: (_) => DocumentRecordViewModel(
                 appDatabase: db)), // <<< Add DocumentRecordViewModel
+       ChangeNotifierProvider(create: (_) => ImageViewModel(appDatabase: db)), // <<< NEW: Add ImageViewModel
       ],
       child: MyApp(
         initialRoute: loginRepository.isLoggedIn
@@ -122,7 +139,19 @@ class MyApp extends StatelessWidget {
             jobId: args?['jobId'] ?? '',
           );
         },
+         // NEW: Add route for ImageRecordScreen
+        '/image_record': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          return ImageRecordScreen(
+            title: args?['title'] ?? 'Image Records',
+            documentId: args?['documentId'] ?? '',
+            machineId: args?['machineId'] ?? '',
+            jobId: args?['jobId'] ?? '',
+            tagId: args?['tagId'] ?? '',
+          );
+        },
       },
+      
     );
   }
 }

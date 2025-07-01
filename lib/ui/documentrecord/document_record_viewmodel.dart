@@ -23,7 +23,9 @@ class DocumentRecordViewModel extends ChangeNotifier {
   String? get machineId => _machineId;
   String? _jobId; // เก็บ Job ID ปัจจุบัน
   String? get jobId => _jobId;
-
+  String? _searchQuery; // เก็บ Search Query สำหรับการกรองข้อมูล
+  String? get searchQuery => _searchQuery;
+  
   Stream<List<DocumentRecordWithTagAndProblem>>? _recordsStream; // Stream ของบันทึกที่จะแสดงผล
   Stream<List<DocumentRecordWithTagAndProblem>>? get recordsStream => _recordsStream;
 
@@ -114,6 +116,17 @@ class DocumentRecordViewModel extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+/// Sets the search query and reloads documents based on the new query.
+  /// This method is called from the DocumentRecordAppBar when the search text changes.
+  void setSearchQuery(String query) {
+    // Only update if the query has actually changed to avoid unnecessary rebuilds.
+    if (_searchQuery != query) {
+      _searchQuery = query;
+      // Reload records with the current documentId, machineId, jobId, and the new search filter.
+      // This will trigger the StreamBuilder in DocumentRecordScreen to update.
+      loadRecords(_documentId!, _machineId!, _jobId!);
     }
   }
 
@@ -762,13 +775,13 @@ class DocumentRecordViewModel extends ChangeNotifier {
   }
 
   /// NEW: Method เพื่อส่งข้อมูลบันทึกที่ Validate แล้วขึ้น Server.
+    /// Method เพื่อส่งข้อมูลบันทึกที่ Validate แล้วขึ้น Server.
   Future<bool> uploadAllChangesToServer() async {
     _isLoading = true;
     _syncMessage = null;
     _statusMessage = "กำลังส่งข้อมูลบันทึกขึ้น Server...";
     notifyListeners();
 
-    // ตรวจสอบว่ามี DocumentId, MachineId, JobId ครบถ้วน
     if (_documentId == null || _machineId == null || _jobId == null) {
       _syncMessage = "ไม่สามารถส่งข้อมูลได้: ข้อมูล Document/Machine/Job ID ไม่ครบถ้วน.";
       _statusMessage = "ส่งข้อมูลล้มเหลว.";
@@ -778,7 +791,6 @@ class DocumentRecordViewModel extends ChangeNotifier {
     }
 
     try {
-      // เรียก Repository เพื่ออัปโหลด Records ที่มี Status 1
       final success = await _documentRecordRepository.uploadRecordsToServer(
         documentId: _documentId!,
         machineId: _machineId!,
@@ -788,7 +800,7 @@ class DocumentRecordViewModel extends ChangeNotifier {
       if (success) {
         _syncMessage = "ส่งข้อมูลขึ้น Server สำเร็จแล้ว!";
         _statusMessage = "ข้อมูลถูกส่งแล้ว.";
-        // Reload records to reflect updated status (to 2)
+        // Reload records to reflect updated status (to 2) and syncStatus
         await loadRecords(_documentId!, _machineId!, _jobId!);
       } else {
         _syncMessage = "ไม่สามารถส่งข้อมูลขึ้น Server ได้.";

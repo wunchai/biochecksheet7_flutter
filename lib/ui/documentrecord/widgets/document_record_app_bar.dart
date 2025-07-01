@@ -183,7 +183,7 @@ class _DocumentRecordAppBarState extends State<DocumentRecordAppBar> {
               ),
               style: const TextStyle(color: Colors.white, fontSize: 18.0),
               onChanged: (value) {
-                //_viewModel.setSearchQuery(value);
+                _viewModel.setSearchQuery(value);
               },
               autofocus: true,
             )

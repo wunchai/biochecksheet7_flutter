@@ -402,44 +402,59 @@ class DocumentRecordRepository {
   /// After successful upload, updates their status to 2 (Posted).
   Future<bool> uploadRecordsToServer({required String documentId, required String machineId, required String jobId}) async {
     try {
-      // 1. Get records that are ready for upload (Status 1)
-      final recordsToUpload = await _documentRecordDao.getRecordsByStatus(documentId, machineId, 1);
+      // 1. Get records that are ready for upload (Status 1 or 2)
+      final allRecordsForDocMachine = await _documentRecordDao.getDocumentRecordsList(documentId, machineId).first;
+      final recordsToUpload = allRecordsForDocMachine.where((r) => r.documentRecord.status == 1 || r.documentRecord.status == 2).map((r) => r.documentRecord).toList();
+
 
       if (recordsToUpload.isEmpty) {
-        print('No records found with Status 1 for DocID=$documentId, MachineID=$machineId to upload.');
+        print('No records found with Status 1 or 2 for DocID=$documentId, MachineID=$machineId to upload.');
         return true; // Nothing to upload, consider it successful
       }
 
-      // NEW: Get the main document details (createDate, userId)
+      // 2. Get the main document details (createDate, userId)
       final DbDocument? mainDocument = await _documentDao.getDocumentById(documentId);
       if (mainDocument == null) {
         throw Exception('Main document not found for documentId: $documentId. Cannot upload records.');
       }
 
-      // 2. Call API service to upload these records, passing main document details
-      final uploadSuccess = await _documentRecordApiService.uploadRecords(
+      // 3. Call API service to upload these records
+      // CRUCIAL FIX: Expect List<UploadRecordResult> from API service
+      final List<UploadRecordResult> uploadResults = await _documentRecordApiService.uploadRecords(
         recordsToUpload,
-        documentCreateDate: mainDocument.createDate, // <<< Pass document's createDate
-        documentUserId: mainDocument.userId,         // <<< Pass document's userId
+        documentCreateDate: mainDocument.createDate,
+        documentUserId: mainDocument.userId,
       );
 
-      if (uploadSuccess) {
-        // 3. If upload successful, update status of these records to 2 (Posted)
-        for (final record in recordsToUpload) {
-          await _documentRecordDao.updateDocumentRecord(
-            DocumentRecordsCompanion(
-              uid: drift.Value(record.uid),
-              status: const drift.Value(2), // Set status to 2 (Posted)
-              lastSync: drift.Value(DateTime.now().toIso8601String()), // Update last sync timestamp
-            ),
-          );
+      // 4. Process upload results and update syncStatus in local DB
+      bool overallUploadSuccess = true;
+      for (final apiResult in uploadResults) {
+        final int recordUid = apiResult.uid;
+        final int apiResultCode = apiResult.result; // Assuming 3 for success
+
+        // Determine new syncStatus based on API result
+        int newSyncStatus = 0; // Default to 0 (failed/not synced)
+        if (apiResultCode == 3) { // Assuming 3 means success from API
+          newSyncStatus = 1; // Set to 1 (Synced)
         }
-        print('Successfully uploaded ${recordsToUpload.length} records to server and updated status to 2.');
-        return true;
-      } else {
-        print('Failed to upload records to server.');
-        return false;
+
+        // Update record's status to 2 and syncStatus based on API response
+        final success = await _documentRecordDao.updateDocumentRecord(
+          DocumentRecordsCompanion(
+            uid: drift.Value(recordUid),
+            status: const drift.Value(2), // Always set to 2 (Posted) after attempting upload
+            syncStatus: drift.Value(newSyncStatus), // Update syncStatus based on API result
+            lastSync: drift.Value(DateTime.now().toIso8601String()), // Update last sync timestamp
+          ),
+        );
+        if (!success) {
+          overallUploadSuccess = false; // If any local DB update fails, mark overall as failed
+          print('Failed to update local syncStatus for UID $recordUid');
+        }
       }
+
+      print('Processed ${uploadResults.length} upload results. Overall success: $overallUploadSuccess');
+      return overallUploadSuccess;
     } catch (e) {
       print('Error during records upload to server: $e');
       throw Exception('Records upload failed: $e');

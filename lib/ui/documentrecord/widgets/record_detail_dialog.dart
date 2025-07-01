@@ -56,6 +56,7 @@ class RecordDetailDialog extends StatelessWidget {
             _buildDetailRow('Status (Tag)', jobTag?.status?.toString()), // Status จาก JobTag
             _buildDetailRow('Record Status', record.status?.toString()), // Status จาก Record
             _buildDetailRow('ไม่อ่านค่าได้', record.unReadable), // <<< NEW: Add unReadable
+            _buildDetailRow('Sync Status', record.syncStatus.toString()), // <<< NEW: แสดง Sync Status
           ],
         ),
       ),

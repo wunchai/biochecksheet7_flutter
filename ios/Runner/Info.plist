@@ -44,6 +44,12 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
+	<true/>	
+    <key>NSCameraUsageDescription</key>
+    <string>This app needs camera access to take photos of records.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This app needs photo library access to save photos.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app needs microphone access to record videos (if video is enabled).</string>
 </dict>
 </plist>

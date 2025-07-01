@@ -1,9 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
     <application
         android:label="biochecksheet7_flutter"
         android:name="${applicationName}"
         android:enableOnBackInvokedCallback="true"
+        android:requestLegacyExternalStorage="true" > <!-- เพิ่มบรรทัดนี้สำหรับ Android 10+ -->
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

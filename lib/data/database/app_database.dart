@@ -17,6 +17,7 @@ import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/sync_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/user_table.dart';
+import 'package:biochecksheet7_flutter/data/database/tables/image_table.dart'; // <<< NEW: Import Image table
 
 // Import DAO definitions
 import 'package:biochecksheet7_flutter/data/database/daos/job_dao.dart';
@@ -28,6 +29,7 @@ import 'package:biochecksheet7_flutter/data/database/daos/job_tag_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/problem_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/sync_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/user_dao.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart'; // <<< NEW: Import ImageDao
 
 // This line tells drift to generate a file named app_database.g.dart
 part 'app_database.g.dart';
@@ -43,6 +45,7 @@ part 'app_database.g.dart';
     Problems,
     Syncs,
     Users,
+    Images, // <<< NEW: Add Images table
   ],
   daos: [
     JobDao,
@@ -54,6 +57,7 @@ part 'app_database.g.dart';
     ProblemDao,
     SyncDao,
     UserDao,
+    ImageDao, // <<< NEW: Add ImageDao
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -65,7 +69,9 @@ class AppDatabase extends _$AppDatabase {
     _instance ??= AppDatabase._(await platform_connection.connect());
     return _instance!;
   }
-
+ // NEW: Add getter for ImageDao
+  ImageDao get imageDao => ImageDao(this); // <<< NEW: Add ImageDao getter
+  
   @override
   int get schemaVersion => 1;
 }

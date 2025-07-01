@@ -9,6 +9,21 @@ import 'package:biochecksheet7_flutter/data/database/tables/document_record_tabl
 
 const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
 
+// NEW: Define a data class for API upload response (if API returns specific format)
+class UploadRecordResult {
+  final int uid;
+  final int result; // Assuming 3 for success, other for failure
+
+  UploadRecordResult({required this.uid, required this.result});
+
+  factory UploadRecordResult.fromJson(Map<String, dynamic> json) {
+    return UploadRecordResult(
+      uid: json['uid'] as int, // Assuming 'uid' is the key for local UID
+      result: int.tryParse(json['result']?.toString() ?? '0') ?? 0, // <<< แก้ไขตรงนี้
+    );
+  }
+}
+
 class DocumentRecordApiService {
   /// Fetches historical record data from API for charting.
   /// Assumes API returns a List of objects with 'Value' and 'CreateDate' (or 'LastSync').
@@ -68,49 +83,49 @@ class DocumentRecordApiService {
   /// NEW: Uploads a list of DbDocumentRecord to the API.
    /// Uploads a list of DbDocumentRecord to the API.
   /// Converts DbDocumentRecord to server-expected JSON format (e.g., PascalCase keys).
-  Future<bool> uploadRecords(
+ Future<List<UploadRecordResult>> uploadRecords( // <<< CRUCIAL FIX: Change return type from Future<bool> to Future<List<UploadRecordResult>>
     List<DbDocumentRecord> recordsToUpload,
-    {String? documentCreateDate, String? documentUserId} // <<< NEW: Add these parameters
+    {String? documentCreateDate, String? documentUserId}
   ) async {
-    final uri = Uri.parse("$_baseUrl/CheckSheet_DocumentRecord_Upload"); // Assumed API Endpoint
+    final uri = Uri.parse("$_baseUrl/CHECKSHEET_DOCUMENTRECORD_SYNC"); // Assumed API Endpoint
     print("Uploading records to API: $uri");
     final headers = {"Content-Type": "application/json"};
-
+    
     final List<Map<String, dynamic>> jsonRecords = recordsToUpload.map((record) {
       return {
-        "DocumentId": record.documentId,
-        "MachineId": record.machineId,
-        "JobId": record.jobId,
-        "TagId": record.tagId,
-        "TagName": record.tagName,
-        "TagType": record.tagType,
-        "TagGroupId": record.tagGroupId,
-        "TagGroupName": record.tagGroupName,
-        "TagSelectionValue": record.tagSelectionValue,
-        "Description": record.description,
-        "Specification": record.specification,
-        "SpecMin": record.specMin,
-        "SpecMax": record.specMax,
-        "Unit": record.unit,
-        "QueryStr": record.queryStr,
-        "Value": record.value,
+        "createDate": documentCreateDate,
+        "userId": documentUserId,
+        "uid": record.uid,
+        "documentId": record.documentId,
+        "machineId": record.machineId,
+        "jobId": record.jobId,
+        "tagId": record.tagId,
+        "tagName": record.tagName,
+        "tagType": record.tagType,     
+        "tagSelectionValue": record.tagSelectionValue,
+        "queryStr": record.queryStr,
+        "description": record.description,
+        "specification": record.specification,
+        "specMin": record.specMin,
+        "specMax": record.specMax,
+        "unit": record.unit,
+        "value": record.value,
         "ValueType": record.valueType,
-        "Remark": record.remark,
         "Status": record.status,
         "UnReadable": record.unReadable,
-        "LastSync": record.lastSync,
-        "CreateBy": record.createBy,
-
-        // NEW: Add document's createDate and userId to each record object (if needed by server)
-        // Or if server expects these only once for the whole batch, remove from here and add to main Paremeter body.
-        "DocumentCreateDate": documentCreateDate, // <<< Add
-        "DocumentUserId": documentUserId,         // <<< Add
+        "Remark": record.remark
       };
     }).toList();
 
+    final Map<String, dynamic> parameterObject = {      
+      "record": jsonEncode(jsonRecords),
+      "username": "000000" // Assuming username parameter is still required for auth/context
+      // ถ้ามี Password ก็เพิ่ม Passw
+      //ord: "your_password"
+    };
     final body = jsonEncode({
-      "ServiceName": "CheckSheet_DocumentRecord_Upload",
-      "Paremeter": jsonEncode(jsonRecords)
+      "ServiceName": "CHECKSHEET_DOCUMENTRECORD_SYNC",
+      "Paremeter": jsonEncode(parameterObject)
     });
     print("Request body for record upload: $body");
 
@@ -122,7 +137,12 @@ class DocumentRecordApiService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
-        return responseJson['Success'] == true;
+        if (responseJson['Table1'] != null && responseJson['Table1'] is List) {
+          final List<dynamic> resultsList = responseJson['Table1'];
+          return resultsList.map((item) => UploadRecordResult.fromJson(item)).toList();
+        } else {
+          throw Exception("Record Upload API response format invalid (missing 'Table' key or not a list).");
+        }
       } else {
         throw Exception("Record Upload API failed: Status code ${response.statusCode}");
       }
