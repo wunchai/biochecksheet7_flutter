@@ -1,4 +1,5 @@
 // lib/main.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart'; // <<< NEW: Import path_provider
@@ -33,10 +34,13 @@ import 'package:biochecksheet7_flutter/ui/documentmachine/document_machine_scree
 import 'package:biochecksheet7_flutter/ui/documentrecord/document_record_viewmodel.dart'; // <<< Import ViewModel
 import 'package:biochecksheet7_flutter/ui/documentrecord/document_record_screen.dart'; // Already imported, just for context
 
-// NEW: Import ImageRecord components
-import 'package:biochecksheet7_flutter/ui/imagerecord/image_viewmodel.dart'; // <<< Import ViewModel
-import 'package:biochecksheet7_flutter/ui/imagerecord/image_record_screen.dart'; // <<< Import Screen
+// CRUCIAL FIX: Conditional Import for ImageProcessor
+import 'package:biochecksheet7_flutter/ui/imagerecord/image_processor.dart';
+import 'package:biochecksheet7_flutter/ui/imagerecord/image_processor_native.dart'; // For Native platforms
+import 'package:biochecksheet7_flutter/ui/imagerecord/image_processor_web.dart'; // For Web platform
 
+import 'package:biochecksheet7_flutter/ui/imagerecord/image_viewmodel.dart';
+import 'package:biochecksheet7_flutter/ui/imagerecord/image_record_screen.dart';
 
 // Import MainWrapperScreen
 import 'package:biochecksheet7_flutter/ui/main_wrapper/main_wrapper_screen.dart'; // <<< Import MainWrapperScreen
@@ -47,7 +51,8 @@ Future<void> main() async {
   try {
     final dbFolder = await getApplicationDocumentsDirectory();
     final dbPath = File('${dbFolder.path}/db.sqlite'); // Assuming 'db.sqlite'
-    print('Database path (db.sqlite): ${dbPath.path}'); // <<< CRUCIAL: Print path
+    print(
+        'Database path (db.sqlite): ${dbPath.path}'); // <<< CRUCIAL: Print path
     print('Database directory: ${dbFolder.path}'); // <<< Print directory
   } catch (e) {
     print('Error getting database path: $e');
@@ -61,7 +66,19 @@ Future<void> main() async {
   // Check initial login status
   final loginRepository = LoginRepository(); // Get the singleton instance
   await loginRepository.getLoggedInUserFromLocal();
+  // CRUCIAL FIX: Create platform-specific ImageProcessor directly using the imported concrete class.
 
+  final ImageProcessor
+      imageProcessor; // Declare type as abstract ImageProcessor
+  if (kIsWeb) {
+    // Check if running on web
+    imageProcessor =
+        ImageProcessorWeb(); // Now ImageProcessorWeb is defined due to conditional import
+  } else {
+    // Assume native (Android, iOS, Windows, Linux, macOS)
+    imageProcessor =
+        ImageProcessorNative(); // Now ImageProcessorNative is defined
+  }
   runApp(
     MultiProvider(
       providers: [
@@ -84,7 +101,11 @@ Future<void> main() async {
         ChangeNotifierProvider(
             create: (_) => DocumentRecordViewModel(
                 appDatabase: db)), // <<< Add DocumentRecordViewModel
-       ChangeNotifierProvider(create: (_) => ImageViewModel(appDatabase: db)), // <<< NEW: Add ImageViewModel
+        // CRUCIAL FIX: Inject the imageProcessor into ImageViewModel
+        ChangeNotifierProvider(
+            create: (_) => ImageViewModel(
+                appDatabase: db,
+                imageProcessor: imageProcessor)), // <<< Pass imageProcessor
       ],
       child: MyApp(
         initialRoute: loginRepository.isLoggedIn
@@ -139,9 +160,10 @@ class MyApp extends StatelessWidget {
             jobId: args?['jobId'] ?? '',
           );
         },
-         // NEW: Add route for ImageRecordScreen
+        // NEW: Add route for ImageRecordScreen
         '/image_record': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
           return ImageRecordScreen(
             title: args?['title'] ?? 'Image Records',
             documentId: args?['documentId'] ?? '',
@@ -151,7 +173,6 @@ class MyApp extends StatelessWidget {
           );
         },
       },
-      
     );
   }
 }

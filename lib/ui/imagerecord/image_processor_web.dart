@@ -23,9 +23,8 @@ class ImageProcessorWeb implements ImageProcessor {
     }
 
     print('รูปภาพถูกประมวลผลแล้ว (Web).');
-    return img.encodeJpg(image, quality: 85); // Return compressed bytes
+    return img.encodeJpg(image, quality: 85);
   }
 }
 
-// CRUCIAL ADDITION: Platform-specific implementation of getImageProcessor factory.
-ImageProcessor getImageProcessor() => ImageProcessorWeb();
+// REMOVED: ImageProcessor getPlatformSpecificImageProcessor() => ImageProcessorWeb(); // <<< REMOVE THIS LINE

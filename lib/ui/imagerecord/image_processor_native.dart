@@ -29,7 +29,8 @@ class ImageProcessorNative implements ImageProcessor {
     }
 
     final directory = await getApplicationDocumentsDirectory();
-    final String appSpecificDir = p.join(directory.path, 'biochecksheet_images');
+    final String appSpecificDir =
+        p.join(directory.path, 'biochecksheet_images');
     await Directory(appSpecificDir).create(recursive: true);
 
     final String uniqueFileName = '${_uuid.v4()}.jpg';
@@ -38,9 +39,8 @@ class ImageProcessorNative implements ImageProcessor {
     await newFile.writeAsBytes(img.encodeJpg(image, quality: 85));
 
     print('รูปภาพถูกบันทึกที่ (Native): $newFilePath');
-    return newFile.readAsBytes(); // Return bytes for potential use (e.g., display or upload)
+    return newFile.readAsBytes();
   }
 }
 
-// CRUCIAL ADDITION: Platform-specific implementation of getImageProcessor factory.
-ImageProcessor getImageProcessor() => ImageProcessorNative();
+// REMOVED: ImageProcessor getPlatformSpecificImageProcessor() => ImageProcessorNative(); // <<< REMOVE THIS LINE
