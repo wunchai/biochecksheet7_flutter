@@ -42,6 +42,11 @@ import 'package:biochecksheet7_flutter/ui/imagerecord/image_processor_web.dart';
 import 'package:biochecksheet7_flutter/ui/imagerecord/image_viewmodel.dart';
 import 'package:biochecksheet7_flutter/ui/imagerecord/image_record_screen.dart';
 
+// NEW: Import Problem components
+import 'package:biochecksheet7_flutter/ui/problem/problem_viewmodel.dart'; // <<< Import ViewModel
+import 'package:biochecksheet7_flutter/ui/problem/problem_screen.dart'; // <<< Import Screen
+
+
 // Import MainWrapperScreen
 import 'package:biochecksheet7_flutter/ui/main_wrapper/main_wrapper_screen.dart'; // <<< Import MainWrapperScreen
 
@@ -106,6 +111,7 @@ Future<void> main() async {
             create: (_) => ImageViewModel(
                 appDatabase: db,
                 imageProcessor: imageProcessor)), // <<< Pass imageProcessor
+      ChangeNotifierProvider(create: (_) => ProblemViewModel(appDatabase: db)), // <<< NEW: Add ProblemViewModel
       ],
       child: MyApp(
         initialRoute: loginRepository.isLoggedIn
@@ -172,6 +178,7 @@ class MyApp extends StatelessWidget {
             tagId: args?['tagId'] ?? '',
           );
         },
+        '/problem': (context) => const ProblemScreen(title: 'Problem List'), // <<< NEW: Add ProblemScreen Route
       },
     );
   }

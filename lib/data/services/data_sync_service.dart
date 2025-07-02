@@ -40,7 +40,8 @@ class DataSyncService {
   final ProblemApiService _problemApiService;
   final SyncMetadataApiService _syncMetadataApiService;
   final DocumentApiService _documentApiService; // <<< เพิ่ม Dependency
-  final DocumentRecordApiService _documentRecordApiService; // <<< เพิ่ม Dependency นี้
+  final DocumentRecordApiService
+      _documentRecordApiService; // <<< เพิ่ม Dependency นี้
   // DAOs (now direct instances)
   final UserDao _userDao;
   final JobDao _jobDao;
@@ -61,7 +62,8 @@ class DataSyncService {
     ProblemApiService? problemApiService,
     SyncMetadataApiService? syncMetadataApiService,
     DocumentApiService? documentApiService,
-    DocumentRecordApiService? documentRecordApiService, // <<< เพิ่มใน Constructor
+    DocumentRecordApiService?
+        documentRecordApiService, // <<< เพิ่มใน Constructor
   })  : _userApiService = userApiService ?? UserApiService(),
         _jobApiService = jobApiService ?? JobApiService(),
         _jobMachineApiService = jobMachineApiService ?? JobMachineApiService(),
@@ -71,7 +73,8 @@ class DataSyncService {
             syncMetadataApiService ?? SyncMetadataApiService(),
         _documentApiService =
             documentApiService ?? DocumentApiService(), // <<< สร้าง instance
-        _documentRecordApiService = documentRecordApiService ?? DocumentRecordApiService(), // <<< สร้าง instance
+        _documentRecordApiService = documentRecordApiService ??
+            DocumentRecordApiService(), // <<< สร้าง instance
         _userDao = appDatabase.userDao, // Access dao directly
         _jobDao = appDatabase.jobDao, // Access dao directly
         _documentMachineDao =
@@ -80,7 +83,8 @@ class DataSyncService {
         _problemDao = appDatabase.problemDao, // Access dao directly
         _syncDao = appDatabase.syncDao, // Access dao directly
         _documentDao = appDatabase.documentDao, // <<< สร้าง instance
-        _documentRecordDao = appDatabase.documentRecordDao; // Ensure this is initialized
+        _documentRecordDao =
+            appDatabase.documentRecordDao; // Ensure this is initialized
 
   // Removed old unused imports for tables as they are handled by DAO imports now
   // Removed unused methods (`_syncJobMachinesData`, `_syncJobTagsData`, `_syncProblemsData`, `_syncMetadataData`)
@@ -93,7 +97,7 @@ class DataSyncService {
       //await syncDocumentsData();
       await syncJobMachinesData();
       await _syncJobTagsData();
-      //await _syncProblemsData();
+      await _syncProblemsData(); // <<< NEW: Call sync problems
       //await _syncMetadataData(); // Added the call for sync metadata
 
       return const SyncSuccess();
@@ -137,10 +141,12 @@ class DataSyncService {
   }
 
   Future<void> syncJobMachinesData() async {
-    final machines = await _jobMachineApiService.syncJobMachines(); // This returns List<DbDocumentMachine>
+    final machines = await _jobMachineApiService
+        .syncJobMachines(); // This returns List<DbDocumentMachine>
     await _documentMachineDao.deleteAllDocumentMachines();
     final machinesToInsert = machines.map((machine) {
-      return DocumentMachinesCompanion( // This is the companion object being built
+      return DocumentMachinesCompanion(
+        // This is the companion object being built
         // CRITICAL FIX: Map 'id', 'createDate', 'createBy'
         id: drift.Value(machine.id), // <<< Map 'id' (int)
         jobId: drift.Value(machine.jobId),
@@ -153,7 +159,7 @@ class DataSyncService {
         status: drift.Value(machine.status),
         lastSync: drift.Value(DateTime.now().toIso8601String()),
         createDate: drift.Value(machine.createDate), // <<< Map 'createDate'
-        createBy: drift.Value(machine.createBy),     // <<< Map 'createBy'
+        createBy: drift.Value(machine.createBy), // <<< Map 'createBy'
       );
     }).toList();
     await _documentMachineDao.insertAllDocumentMachines(machinesToInsert);
@@ -163,8 +169,7 @@ class DataSyncService {
     final tags = await _jobTagApiService.syncJobTags();
     await _jobTagDao.deleteAllJobTags();
     final tagsToInsert = tags.map((tag) {
-
- /*
+      /*
     print('Processing DbJobTag for insertion:');
     print('  TagId: ${tag.tagId} (Type: ${tag.tagId.runtimeType})');
     print('  JobId: ${tag.jobId} (Type: ${tag.jobId.runtimeType})');
@@ -178,52 +183,133 @@ class DataSyncService {
     print('----------------------------------------');
 */
 
-         return JobTagsCompanion(
-      uid: drift.Value.absent(), // <<< เพิ่ม uid (auto-increment)
-      tagId: drift.Value(tag.tagId),
-      jobId: drift.Value(tag.jobId),
-      machineId: drift.Value(tag.machineId),
-      tagName: drift.Value(tag.tagName),
-      tagType: drift.Value(tag.tagType),
-      tagGroupId: drift.Value(tag.tagGroupId),
-      tagGroupName: drift.Value(tag.tagGroupName),
-      description: drift.Value(tag.description),
-      specification: drift.Value(tag.specification),
-      specMin: drift.Value(tag.specMin),
-      specMax: drift.Value(tag.specMax),
-      unit: drift.Value(tag.unit),
-      queryStr: drift.Value(tag.queryStr),
-      status: drift.Value(tag.status),
-      lastSync: drift.Value(DateTime.now().toIso8601String()),
-      
-      // CRUCIAL ADDITIONS: Map the missing fields
-      note: drift.Value(tag.note), // <<< เพิ่ม
-      value: drift.Value(tag.value), // <<< เพิ่ม
-      remark: drift.Value(tag.remark), // <<< เพิ่ม
-      createDate: drift.Value(tag.createDate), // <<< เพิ่ม
-      createBy: drift.Value(tag.createBy), // <<< เพิ่ม
-      valueType: drift.Value(tag.valueType), // <<< เพิ่ม
-      tagSelectionValue: drift.Value(tag.tagSelectionValue), // <<< เพิ่ม
-      driftQueryStr: drift.Value(tag.driftQueryStr), // <<< NEW: Map driftQueryStr
-    );
-  }).toList();
-  await _jobTagDao.insertAllJobTags(tagsToInsert);
-  print('Successfully inserted ${tagsToInsert.length} JobTags into DB.');
-  }
-
-  Future<void> _syncProblemsData() async {
-    final problems = await _problemApiService.syncProblems();
-    await _problemDao.deleteAllProblems();
-    final problemsToInsert = problems.map((problem) {
-      return ProblemsCompanion(
-        problemId: drift.Value(problem.problemId),
-        problemName: drift.Value(problem.problemName),
-        description: drift.Value(problem.description),
-        problemStatus: drift.Value(problem.problemStatus),
+      return JobTagsCompanion(
+        uid: drift.Value.absent(), // <<< เพิ่ม uid (auto-increment)
+        tagId: drift.Value(tag.tagId),
+        jobId: drift.Value(tag.jobId),
+        machineId: drift.Value(tag.machineId),
+        tagName: drift.Value(tag.tagName),
+        tagType: drift.Value(tag.tagType),
+        tagGroupId: drift.Value(tag.tagGroupId),
+        tagGroupName: drift.Value(tag.tagGroupName),
+        description: drift.Value(tag.description),
+        specification: drift.Value(tag.specification),
+        specMin: drift.Value(tag.specMin),
+        specMax: drift.Value(tag.specMax),
+        unit: drift.Value(tag.unit),
+        queryStr: drift.Value(tag.queryStr),
+        status: drift.Value(tag.status),
         lastSync: drift.Value(DateTime.now().toIso8601String()),
+
+        // CRUCIAL ADDITIONS: Map the missing fields
+        note: drift.Value(tag.note), // <<< เพิ่ม
+        value: drift.Value(tag.value), // <<< เพิ่ม
+        remark: drift.Value(tag.remark), // <<< เพิ่ม
+        createDate: drift.Value(tag.createDate), // <<< เพิ่ม
+        createBy: drift.Value(tag.createBy), // <<< เพิ่ม
+        valueType: drift.Value(tag.valueType), // <<< เพิ่ม
+        tagSelectionValue: drift.Value(tag.tagSelectionValue), // <<< เพิ่ม
+        driftQueryStr:
+            drift.Value(tag.driftQueryStr), // <<< NEW: Map driftQueryStr
       );
     }).toList();
-    await _problemDao.insertAllProblems(problemsToInsert);
+    await _jobTagDao.insertAllJobTags(tagsToInsert);
+    print('Successfully inserted ${tagsToInsert.length} JobTags into DB.');
+  }
+ 
+  // Corrected: Private method for Problem sync - now handles conditional update/insert
+  Future<void> _syncProblemsData() async {
+    final problemsFromApi =
+        await _problemApiService.syncProblems(); // Gets all problems from API
+
+    for (final apiProblem in problemsFromApi) {
+      // Try to find the existing local problem by problemId
+      final existingLocalProblem =
+          await _problemDao.getProblemByProblemId(apiProblem.problemId ?? '');
+
+      if (existingLocalProblem != null) {
+        // If local problem exists, check its status
+        if (existingLocalProblem.problemStatus == 0) {
+          // Only update if local status is 0 (pending/initial)
+          print(
+              'Updating local problem UID ${existingLocalProblem.uid} (Status 0) with API data for ProblemId: ${apiProblem.problemId}');
+          await _problemDao.updateProblem(
+            ProblemsCompanion(
+              uid: drift.Value(
+                  existingLocalProblem.uid), // Specify UID for update
+              problemId: drift.Value(apiProblem.problemId),
+              problemName: drift.Value(apiProblem.problemName),
+              problemDescription: drift.Value(apiProblem.problemDescription),
+              problemStatus: drift.Value(
+                  apiProblem.problemStatus), // Use API status (should be 0)
+              problemSolvingDescription:
+                  drift.Value(apiProblem.problemSolvingDescription),
+              machineId: drift.Value(apiProblem.machineId),
+              machineName: drift.Value(apiProblem.machineName),
+              jobId: drift.Value(apiProblem.jobId),
+              tagId: drift.Value(apiProblem.tagId),
+              tagName: drift.Value(apiProblem.tagName),
+              tagType: drift.Value(apiProblem.tagType),
+              description: drift.Value(apiProblem.description),
+              note: drift.Value(apiProblem.note),
+              specification: drift.Value(apiProblem.specification),
+              specMin: drift.Value(apiProblem.specMin),
+              specMax: drift.Value(apiProblem.specMax),
+              unit: drift.Value(apiProblem.unit),
+              value: drift.Value(apiProblem.value),
+              remark: drift.Value(apiProblem.remark),
+              unReadable: drift.Value(apiProblem.unReadable),
+              lastSync: drift.Value(
+                  DateTime.now().toIso8601String()), // Update last sync
+              problemSolvingBy: drift.Value(apiProblem.problemSolvingBy),
+              syncStatus:
+                  drift.Value(apiProblem.syncStatus), // Use API syncStatus
+            ),
+          );
+        } else {
+          print(
+              'Skipping update for local problem UID ${existingLocalProblem.uid} (ProblemId: ${apiProblem.problemId}) because its status is ${existingLocalProblem.problemStatus} (not 0).');
+        }
+      } else {
+        // If local problem does not exist, insert it as a new record
+        print(
+            'Inserting new local problem for ProblemId: ${apiProblem.problemId}');
+        await _problemDao.insertProblem(
+          ProblemsCompanion(
+            uid: drift.Value.absent(), // Auto-increment
+            problemId: drift.Value(apiProblem.problemId),
+            problemName: drift.Value(apiProblem.problemName),
+            problemDescription: drift.Value(apiProblem.problemDescription),
+            problemStatus:
+                drift.Value(apiProblem.problemStatus), // Use API status
+            problemSolvingDescription:
+                drift.Value(apiProblem.problemSolvingDescription),
+            machineId: drift.Value(apiProblem.machineId),
+            machineName: drift.Value(apiProblem.machineName),
+            jobId: drift.Value(apiProblem.jobId),
+            tagId: drift.Value(apiProblem.tagId),
+            tagName: drift.Value(apiProblem.tagName),
+            tagType: drift.Value(apiProblem.tagType),
+            description: drift.Value(apiProblem.description),
+            note: drift.Value(apiProblem.note),
+            specification: drift.Value(apiProblem.specification),
+            specMin: drift.Value(apiProblem.specMin),
+            specMax: drift.Value(apiProblem.specMax),
+            unit: drift.Value(apiProblem.unit),
+            value: drift.Value(apiProblem.value),
+            remark: drift.Value(apiProblem.remark),
+            unReadable: drift.Value(apiProblem.unReadable),
+            lastSync:
+                drift.Value(DateTime.now().toIso8601String()), // Set last sync
+            problemSolvingBy: drift.Value(apiProblem.problemSolvingBy),
+            syncStatus:
+                drift.Value(apiProblem.syncStatus), // Use API syncStatus
+          ),
+        );
+      }
+    }
+    print(
+        'Problem sync complete. Processed ${problemsFromApi.length} problems from API.');
   }
 
   Future<void> _syncMetadataData() async {

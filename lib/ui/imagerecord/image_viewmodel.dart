@@ -34,6 +34,8 @@ class ImageViewModel extends ChangeNotifier {
   String? get jobId => _jobId;
   String? _tagId; // Tag ID ของ Record ที่เกี่ยวข้องกับรูปภาพ
   String? get tagId => _tagId;
+  String? _problemId; // <<< NEW: Problem ID
+  String? get problemId => _problemId;
 
   Stream<List<DbImage>>? _imagesStream; // Stream สำหรับรายการรูปภาพ
   Stream<List<DbImage>>? get imagesStream => _imagesStream;
@@ -64,23 +66,26 @@ class ImageViewModel extends ChangeNotifier {
     required String machineId,
     required String jobId,
     required String tagId,
+    String? problemId, // <<< NEW: Optional problemId
   }) async {
     _isLoading = true;
     _documentId = documentId;
     _machineId = machineId;
     _jobId = jobId;
     _tagId = tagId;
+     _problemId = problemId; // Store problemId
     _statusMessage = "กำลังดึงรูปภาพ...";
     notifyListeners();
 
     try {
-      print(
-          'ImageViewModel: โหลดรูปภาพสำหรับ DocID=$documentId, MachineID=$machineId, JobID=$jobId, TagID=$tagId');
+       print('ImageViewModel.loadImages: Loading images for DocID=$documentId, MachineID=$machineId, JobID=$jobId, TagID=$tagId, ProblemID=$problemId'); // <<< Debugging
+     
       _imagesStream = _imageDao.watchImagesForRecord(
         documentId: documentId,
         machineId: machineId,
         jobId: jobId,
         tagId: tagId,
+        problemId: problemId, // Pass problemId to DAO
       );
       _statusMessage = "รูปภาพโหลดแล้ว.";
     } catch (e) {
@@ -113,6 +118,7 @@ class ImageViewModel extends ChangeNotifier {
         machineId: _machineId!,
         jobId: _jobId!,
         tagId: _tagId!,
+        problemId: _problemId, // Pass stored problemId
       );
       _syncMessage = "รูปภาพ Refresh แล้ว!";
     } catch (e) {
@@ -147,6 +153,15 @@ class ImageViewModel extends ChangeNotifier {
       notifyListeners();
       return;
     }
+
+ // Check if problemId is needed for this context (if coming from ProblemScreen)
+    if (_problemId == null && _tagId == null) { // Or if you want to enforce problemId when it's a problem image
+        _syncMessage = "ไม่สามารถดำเนินการได้: Problem ID หรือ Tag ID ขาดหาย.";
+        _statusMessage = "ดำเนินการล้มเหลว.";
+        notifyListeners();
+        return;
+    }
+
 
     _isLoading = true;
     _syncMessage = "กำลังเปิดตัวเลือกรูปภาพ...";
@@ -196,6 +211,7 @@ class ImageViewModel extends ChangeNotifier {
         newImageUri = newFilePath; // URI is the file path
         print('รูปภาพถูกบันทึกที่ (Native): $newFilePath');
       }
+    print('ImageViewModel._processAndSaveImage: Saving image with ProblemID: "${_problemId}"'); // <<< Debugging
 
       // Save image metadata to DbImage table
       final newImageEntry = ImagesCompanion(
@@ -211,6 +227,7 @@ class ImageViewModel extends ChangeNotifier {
         machineId: drift.Value(_machineId!),
         jobId: drift.Value(_jobId!),
         tagId: drift.Value(_tagId!),
+        problemId: drift.Value(_problemId), // <<< NEW: Save problemId
         createDate: drift.Value(DateTime.now().toIso8601String()),
         status: const drift.Value(0), // 0 = Local, not yet synced to server
         lastSync: drift.Value(DateTime.now().toIso8601String()),

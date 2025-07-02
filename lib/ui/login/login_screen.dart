@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/ui/login/login_viewmodel.dart';
 import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart';
+import 'package:biochecksheet7_flutter/ui/main_wrapper/main_wrapper_screen.dart'; // <<< NEW: Import MainWrapperScreen
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,8 +52,12 @@ class _LoginScreenState extends State<LoginScreen> {
       _passwordController.text,
     );
     // <<< เพิ่ม Logic การนำทางหลัง Login สำเร็จที่นี่
-    if (viewModel.loggedInUser != null && mounted) { // Check mounted to avoid error if widget is disposed
-      Navigator.of(context).pushReplacementNamed('/home');
+    // CRUCIAL FIX: Use pushAndRemoveUntil to make MainWrapperScreen the new root.
+    if (viewModel.loggedInUser != null && mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const MainWrapperScreen()),
+        (Route<dynamic> route) => false, // Remove all previous routes
+      );
     }
   }
 
@@ -100,8 +106,14 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  const FlutterLogo(size: 100),
-                  const SizedBox(height: 24.0),
+                  // NEW: โลโก้รูปภาพ
+                    Image.asset(
+                      'assets/images/logo.png', // <<< Path ของรูปภาพ
+                      height: 150, // กำหนดความสูง
+                      width: 150, // กำหนดความกว้าง
+                      fit: BoxFit.contain, // ปรับขนาดรูปภาพให้พอดี
+                    ),
+                    const SizedBox(height: 32.0), // ช่องว่าง
 
                   TextField(
                     controller: _usernameController,

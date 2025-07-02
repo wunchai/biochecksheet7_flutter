@@ -48,7 +48,7 @@ class UserApiService {
   Future<List<LoggedInUser>> syncUsers() async {
     // <<< เปลี่ยน return type
     final uri = Uri.parse("$_baseUrl/CheckSheet_User_Sync_V2");
-    print("Sync URI: $uri");
+    //print("Sync URI: $uri");
     final headers = {"Content-Type": "application/json"};
     final body =
         jsonEncode({"ServiceName": "CheckSheet_User_Sync_V2", "Paremeter": {}});
@@ -56,10 +56,10 @@ class UserApiService {
     try {
       final response = await http.post(uri, headers: headers, body: body);
 
-      print("Sync response status: ${response.statusCode}");
+      //print("Sync response status: ${response.statusCode}");
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseJson = jsonDecode(response.body);
-        print("Sync response JSON: $responseJson");
+        //print("Sync response JSON: $responseJson");
         if (responseJson['Table'] != null && responseJson['Table'] is List) {
           final List<dynamic> userList = responseJson['Table'];
           final List<LoggedInUser> syncedUsers = userList.map((userData) {
@@ -82,12 +82,12 @@ class UserApiService {
             "Sync failed: Status code ${response.statusCode}"); // <<< โยน Exception แทน SyncFailed
       }
     } on http.ClientException catch (e) {
-      print("Network error during sync: ${e}");
+      //print("Network error during sync: ${e}");
       throw Exception(
         "Network error during sync: ${e.message}",
       ); // <<< โยน Exception แทน SyncError
     } catch (e) {
-      print("An unexpected error occurred during sync: $e");
+      //print("An unexpected error occurred during sync: $e");
       throw Exception(
         "An unexpected error occurred during sync: $e",
       ); // <<< โยน Exception แทน SyncError

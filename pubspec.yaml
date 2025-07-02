@@ -93,7 +93,8 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - assets/   
+    - assets/
+    - assets/images/logo.png   
   # Add fonts here
   # fonts:
   #   - family: OpenSans-Regular
@@ -136,3 +137,5 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/images/logo.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logo.png"

@@ -19,6 +19,7 @@ class Images extends Table {
   TextColumn get jobId => text().named('jobId').nullable()();
   TextColumn get machineId => text().named('machineId').nullable()();
   TextColumn get tagId => text().named('tagId').nullable()(); // Link to the specific tag/record
+  TextColumn get problemId => text().named('problemId').nullable()(); // <<< NEW: Link to the specific problem
 
   // Metadata
   TextColumn get createDate => text().named('createDate').nullable()(); // Date/Time image was taken

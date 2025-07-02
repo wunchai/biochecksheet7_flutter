@@ -18,6 +18,7 @@ class ImageRecordScreen extends StatefulWidget {
   final String machineId;
   final String jobId;
   final String tagId; // Tag ID ของ Record ที่ผูกรูปภาพด้วย
+  final String? problemId; // <<< NEW: Problem ID (optional)
 
   const ImageRecordScreen({
     super.key,
@@ -26,6 +27,7 @@ class ImageRecordScreen extends StatefulWidget {
     required this.machineId,
     required this.jobId,
     required this.tagId,
+     this.problemId, // <<< NEW
   });
 
   @override
@@ -37,12 +39,15 @@ class _ImageRecordScreenState extends State<ImageRecordScreen> {
   void initState() {
     super.initState();
     // โหลดรูปภาพเมื่อหน้าจอเริ่มต้น
+     print('ImageRecordScreen: initState called. DocID=${widget.documentId}, MachineID=${widget.machineId}, JobID=${widget.jobId}, TagID=${widget.tagId}, ProblemID=${widget.problemId}'); // <<< Debugging
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ImageViewModel>(context, listen: false).loadImages(
         documentId: widget.documentId,
         machineId: widget.machineId,
         jobId: widget.jobId,
         tagId: widget.tagId,
+        problemId: widget.problemId, // <<< NEW: Pass problemId
       );
     });
   }
@@ -127,19 +132,24 @@ class _ImageRecordScreenState extends State<ImageRecordScreen> {
 
                               // Determine how to display the image based on platform and stored data
                               ImageProvider? imageProvider;
+                               String? viewerImagePath; // Path to pass to ImageViewerDialog
+
                               if (kIsWeb && image.picture != null && image.picture!.isNotEmpty) {
                                 // On Web, if picture (base64) is stored
                                 imageProvider = MemoryImage(base64Decode(image.picture!));
+                                 viewerImagePath = 'data:image/jpeg;base64,${image.picture!}'; // Pass data URI for viewer
                               } else if (!kIsWeb && image.filepath != null && image.filepath!.isNotEmpty) {
                                 // On Native, if filepath is stored
                                 imageProvider = FileImage(File(image.filepath!));
+                                viewerImagePath = image.filepath!; // Pass file path for viewer
                               } else if (image.imageUri != null && image.imageUri!.startsWith('data:image')) {
                                 // Fallback for data URI (if stored in imageUri)
                                 try {
                                   final uriBytes = base64Decode(image.imageUri!.split(',').last);
                                   imageProvider = MemoryImage(uriBytes);
+                                    viewerImagePath = image.imageUri!; // Pass data URI for viewer
                                 } catch (e) {
-                                  print('Error decoding data URI: $e');
+                                  print('Error decoding data URI from imageUri for display: $e');
                                 }
                               }
 
@@ -152,20 +162,30 @@ class _ImageRecordScreenState extends State<ImageRecordScreen> {
                                       // On web, if base64 is stored, pass base64 string to viewer.
                                       // On native, pass filepath.
                                       if (kIsWeb && image.picture != null) {
+                                          //print('Image tapped for UID: ${image.uid}, Viewer Path: "$viewerImagePath"'); // <<< Debug
                                         showDialog(
                                           context: context,
                                           builder: (BuildContext context) {
-                                            return ImageViewerDialog(imagePath: 'data:image/jpeg;base64,${image.picture!}'); // Pass data URI
+                                            //return ImageViewerDialog(imagePath: 'data:image/jpeg;base64,${image.picture!}'); // Pass data URI
+                                           return ImageViewerDialog(imagePath: viewerImagePath!);
                                           },
                                         );
                                       } else if (!kIsWeb && image.filepath != null) {
+                                          //print('Image tapped for UID: ${image.uid}, Viewer Path: "$viewerImagePath"'); // <<< Debug
                                         showDialog(
                                           context: context,
                                           builder: (BuildContext context) {
-                                            return ImageViewerDialog(imagePath: image.filepath!); // Pass file path
+                                           // return ImageViewerDialog(imagePath: image.filepath!); // Pass file path
+                                           return ImageViewerDialog(imagePath: viewerImagePath!);
                                           },
                                         );
                                       }
+                                     else {
+                                            print('Error: No valid viewerImagePath for UID ${image.uid}'); // <<< Debug
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('ไม่สามารถแสดงรูปภาพได้: Path ไม่ถูกต้อง.')),
+                                            );
+                                          }
                                     },
                                     child: Stack(
                                       fit: StackFit.expand,

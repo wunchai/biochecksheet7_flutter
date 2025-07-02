@@ -4312,12 +4312,12 @@ class $ProblemsTable extends Problems
   late final GeneratedColumn<String> problemName = GeneratedColumn<String>(
       'ProblemName', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _descriptionMeta =
-      const VerificationMeta('description');
+  static const VerificationMeta _problemDescriptionMeta =
+      const VerificationMeta('problemDescription');
   @override
-  late final GeneratedColumn<String> description = GeneratedColumn<String>(
-      'Description', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+  late final GeneratedColumn<String> problemDescription =
+      GeneratedColumn<String>('ProblemDescription', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _problemStatusMeta =
       const VerificationMeta('problemStatus');
   @override
@@ -4326,15 +4326,145 @@ class $ProblemsTable extends Problems
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _problemSolvingDescriptionMeta =
+      const VerificationMeta('problemSolvingDescription');
+  @override
+  late final GeneratedColumn<String> problemSolvingDescription =
+      GeneratedColumn<String>('SolvingDescription', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _machineIdMeta =
+      const VerificationMeta('machineId');
+  @override
+  late final GeneratedColumn<String> machineId = GeneratedColumn<String>(
+      'machineId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _machineNameMeta =
+      const VerificationMeta('machineName');
+  @override
+  late final GeneratedColumn<String> machineName = GeneratedColumn<String>(
+      'machineName', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _jobIdMeta = const VerificationMeta('jobId');
+  @override
+  late final GeneratedColumn<String> jobId = GeneratedColumn<String>(
+      'jobId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
+  @override
+  late final GeneratedColumn<String> tagId = GeneratedColumn<String>(
+      'tagId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagNameMeta =
+      const VerificationMeta('tagName');
+  @override
+  late final GeneratedColumn<String> tagName = GeneratedColumn<String>(
+      'tagName', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagTypeMeta =
+      const VerificationMeta('tagType');
+  @override
+  late final GeneratedColumn<String> tagType = GeneratedColumn<String>(
+      'tagType', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'TagDescription', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+      'Note', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _specificationMeta =
+      const VerificationMeta('specification');
+  @override
+  late final GeneratedColumn<String> specification = GeneratedColumn<String>(
+      'specification', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _specMinMeta =
+      const VerificationMeta('specMin');
+  @override
+  late final GeneratedColumn<String> specMin = GeneratedColumn<String>(
+      'specMin', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _specMaxMeta =
+      const VerificationMeta('specMax');
+  @override
+  late final GeneratedColumn<String> specMax = GeneratedColumn<String>(
+      'specMax', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+      'unit', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+      'value', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _remarkMeta = const VerificationMeta('remark');
+  @override
+  late final GeneratedColumn<String> remark = GeneratedColumn<String>(
+      'remark', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _unReadableMeta =
+      const VerificationMeta('unReadable');
+  @override
+  late final GeneratedColumn<String> unReadable = GeneratedColumn<String>(
+      'unReadable', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('false'));
   static const VerificationMeta _lastSyncMeta =
       const VerificationMeta('lastSync');
   @override
   late final GeneratedColumn<String> lastSync = GeneratedColumn<String>(
       'lastSync', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _problemSolvingByMeta =
+      const VerificationMeta('problemSolvingBy');
   @override
-  List<GeneratedColumn> get $columns =>
-      [uid, problemId, problemName, description, problemStatus, lastSync];
+  late final GeneratedColumn<String> problemSolvingBy = GeneratedColumn<String>(
+      'SolvingBy', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _syncStatusMeta =
+      const VerificationMeta('syncStatus');
+  @override
+  late final GeneratedColumn<int> syncStatus = GeneratedColumn<int>(
+      'syncStatus', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        uid,
+        problemId,
+        problemName,
+        problemDescription,
+        problemStatus,
+        problemSolvingDescription,
+        machineId,
+        machineName,
+        jobId,
+        tagId,
+        tagName,
+        tagType,
+        description,
+        note,
+        specification,
+        specMin,
+        specMax,
+        unit,
+        value,
+        remark,
+        unReadable,
+        lastSync,
+        problemSolvingBy,
+        syncStatus
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -4359,11 +4489,11 @@ class $ProblemsTable extends Problems
           problemName.isAcceptableOrUnknown(
               data['ProblemName']!, _problemNameMeta));
     }
-    if (data.containsKey('Description')) {
+    if (data.containsKey('ProblemDescription')) {
       context.handle(
-          _descriptionMeta,
-          description.isAcceptableOrUnknown(
-              data['Description']!, _descriptionMeta));
+          _problemDescriptionMeta,
+          problemDescription.isAcceptableOrUnknown(
+              data['ProblemDescription']!, _problemDescriptionMeta));
     }
     if (data.containsKey('ProblemStatus')) {
       context.handle(
@@ -4371,9 +4501,95 @@ class $ProblemsTable extends Problems
           problemStatus.isAcceptableOrUnknown(
               data['ProblemStatus']!, _problemStatusMeta));
     }
+    if (data.containsKey('SolvingDescription')) {
+      context.handle(
+          _problemSolvingDescriptionMeta,
+          problemSolvingDescription.isAcceptableOrUnknown(
+              data['SolvingDescription']!, _problemSolvingDescriptionMeta));
+    }
+    if (data.containsKey('machineId')) {
+      context.handle(_machineIdMeta,
+          machineId.isAcceptableOrUnknown(data['machineId']!, _machineIdMeta));
+    }
+    if (data.containsKey('machineName')) {
+      context.handle(
+          _machineNameMeta,
+          machineName.isAcceptableOrUnknown(
+              data['machineName']!, _machineNameMeta));
+    }
+    if (data.containsKey('jobId')) {
+      context.handle(
+          _jobIdMeta, jobId.isAcceptableOrUnknown(data['jobId']!, _jobIdMeta));
+    }
+    if (data.containsKey('tagId')) {
+      context.handle(
+          _tagIdMeta, tagId.isAcceptableOrUnknown(data['tagId']!, _tagIdMeta));
+    }
+    if (data.containsKey('tagName')) {
+      context.handle(_tagNameMeta,
+          tagName.isAcceptableOrUnknown(data['tagName']!, _tagNameMeta));
+    }
+    if (data.containsKey('tagType')) {
+      context.handle(_tagTypeMeta,
+          tagType.isAcceptableOrUnknown(data['tagType']!, _tagTypeMeta));
+    }
+    if (data.containsKey('TagDescription')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['TagDescription']!, _descriptionMeta));
+    }
+    if (data.containsKey('Note')) {
+      context.handle(
+          _noteMeta, note.isAcceptableOrUnknown(data['Note']!, _noteMeta));
+    }
+    if (data.containsKey('specification')) {
+      context.handle(
+          _specificationMeta,
+          specification.isAcceptableOrUnknown(
+              data['specification']!, _specificationMeta));
+    }
+    if (data.containsKey('specMin')) {
+      context.handle(_specMinMeta,
+          specMin.isAcceptableOrUnknown(data['specMin']!, _specMinMeta));
+    }
+    if (data.containsKey('specMax')) {
+      context.handle(_specMaxMeta,
+          specMax.isAcceptableOrUnknown(data['specMax']!, _specMaxMeta));
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+          _unitMeta, unit.isAcceptableOrUnknown(data['unit']!, _unitMeta));
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+          _valueMeta, value.isAcceptableOrUnknown(data['value']!, _valueMeta));
+    }
+    if (data.containsKey('remark')) {
+      context.handle(_remarkMeta,
+          remark.isAcceptableOrUnknown(data['remark']!, _remarkMeta));
+    }
+    if (data.containsKey('unReadable')) {
+      context.handle(
+          _unReadableMeta,
+          unReadable.isAcceptableOrUnknown(
+              data['unReadable']!, _unReadableMeta));
+    }
     if (data.containsKey('lastSync')) {
       context.handle(_lastSyncMeta,
           lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
+    }
+    if (data.containsKey('SolvingBy')) {
+      context.handle(
+          _problemSolvingByMeta,
+          problemSolvingBy.isAcceptableOrUnknown(
+              data['SolvingBy']!, _problemSolvingByMeta));
+    }
+    if (data.containsKey('syncStatus')) {
+      context.handle(
+          _syncStatusMeta,
+          syncStatus.isAcceptableOrUnknown(
+              data['syncStatus']!, _syncStatusMeta));
     }
     return context;
   }
@@ -4390,12 +4606,48 @@ class $ProblemsTable extends Problems
           .read(DriftSqlType.string, data['${effectivePrefix}ProblemId']),
       problemName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}ProblemName']),
-      description: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}Description']),
+      problemDescription: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}ProblemDescription']),
       problemStatus: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}ProblemStatus'])!,
+      problemSolvingDescription: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}SolvingDescription']),
+      machineId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}machineId']),
+      machineName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}machineName']),
+      jobId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}jobId']),
+      tagId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagId']),
+      tagName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagName']),
+      tagType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagType']),
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}TagDescription']),
+      note: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}Note']),
+      specification: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}specification']),
+      specMin: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}specMin']),
+      specMax: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}specMax']),
+      unit: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}unit']),
+      value: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}value']),
+      remark: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}remark']),
+      unReadable: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}unReadable'])!,
       lastSync: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
+      problemSolvingBy: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}SolvingBy']),
+      syncStatus: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}syncStatus'])!,
     );
   }
 
@@ -4409,16 +4661,52 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
   final int uid;
   final String? problemId;
   final String? problemName;
-  final String? description;
+  final String? problemDescription;
   final int problemStatus;
+  final String? problemSolvingDescription;
+  final String? machineId;
+  final String? machineName;
+  final String? jobId;
+  final String? tagId;
+  final String? tagName;
+  final String? tagType;
+  final String? description;
+  final String? note;
+  final String? specification;
+  final String? specMin;
+  final String? specMax;
+  final String? unit;
+  final String? value;
+  final String? remark;
+  final String unReadable;
   final String? lastSync;
+  final String? problemSolvingBy;
+  final int syncStatus;
   const DbProblem(
       {required this.uid,
       this.problemId,
       this.problemName,
-      this.description,
+      this.problemDescription,
       required this.problemStatus,
-      this.lastSync});
+      this.problemSolvingDescription,
+      this.machineId,
+      this.machineName,
+      this.jobId,
+      this.tagId,
+      this.tagName,
+      this.tagType,
+      this.description,
+      this.note,
+      this.specification,
+      this.specMin,
+      this.specMax,
+      this.unit,
+      this.value,
+      this.remark,
+      required this.unReadable,
+      this.lastSync,
+      this.problemSolvingBy,
+      required this.syncStatus});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4429,13 +4717,63 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
     if (!nullToAbsent || problemName != null) {
       map['ProblemName'] = Variable<String>(problemName);
     }
-    if (!nullToAbsent || description != null) {
-      map['Description'] = Variable<String>(description);
+    if (!nullToAbsent || problemDescription != null) {
+      map['ProblemDescription'] = Variable<String>(problemDescription);
     }
     map['ProblemStatus'] = Variable<int>(problemStatus);
+    if (!nullToAbsent || problemSolvingDescription != null) {
+      map['SolvingDescription'] = Variable<String>(problemSolvingDescription);
+    }
+    if (!nullToAbsent || machineId != null) {
+      map['machineId'] = Variable<String>(machineId);
+    }
+    if (!nullToAbsent || machineName != null) {
+      map['machineName'] = Variable<String>(machineName);
+    }
+    if (!nullToAbsent || jobId != null) {
+      map['jobId'] = Variable<String>(jobId);
+    }
+    if (!nullToAbsent || tagId != null) {
+      map['tagId'] = Variable<String>(tagId);
+    }
+    if (!nullToAbsent || tagName != null) {
+      map['tagName'] = Variable<String>(tagName);
+    }
+    if (!nullToAbsent || tagType != null) {
+      map['tagType'] = Variable<String>(tagType);
+    }
+    if (!nullToAbsent || description != null) {
+      map['TagDescription'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || note != null) {
+      map['Note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || specification != null) {
+      map['specification'] = Variable<String>(specification);
+    }
+    if (!nullToAbsent || specMin != null) {
+      map['specMin'] = Variable<String>(specMin);
+    }
+    if (!nullToAbsent || specMax != null) {
+      map['specMax'] = Variable<String>(specMax);
+    }
+    if (!nullToAbsent || unit != null) {
+      map['unit'] = Variable<String>(unit);
+    }
+    if (!nullToAbsent || value != null) {
+      map['value'] = Variable<String>(value);
+    }
+    if (!nullToAbsent || remark != null) {
+      map['remark'] = Variable<String>(remark);
+    }
+    map['unReadable'] = Variable<String>(unReadable);
     if (!nullToAbsent || lastSync != null) {
       map['lastSync'] = Variable<String>(lastSync);
     }
+    if (!nullToAbsent || problemSolvingBy != null) {
+      map['SolvingBy'] = Variable<String>(problemSolvingBy);
+    }
+    map['syncStatus'] = Variable<int>(syncStatus);
     return map;
   }
 
@@ -4448,13 +4786,56 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
       problemName: problemName == null && nullToAbsent
           ? const Value.absent()
           : Value(problemName),
+      problemDescription: problemDescription == null && nullToAbsent
+          ? const Value.absent()
+          : Value(problemDescription),
+      problemStatus: Value(problemStatus),
+      problemSolvingDescription:
+          problemSolvingDescription == null && nullToAbsent
+              ? const Value.absent()
+              : Value(problemSolvingDescription),
+      machineId: machineId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(machineId),
+      machineName: machineName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(machineName),
+      jobId:
+          jobId == null && nullToAbsent ? const Value.absent() : Value(jobId),
+      tagId:
+          tagId == null && nullToAbsent ? const Value.absent() : Value(tagId),
+      tagName: tagName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagName),
+      tagType: tagType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagType),
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
-      problemStatus: Value(problemStatus),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      specification: specification == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specification),
+      specMin: specMin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specMin),
+      specMax: specMax == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specMax),
+      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      value:
+          value == null && nullToAbsent ? const Value.absent() : Value(value),
+      remark:
+          remark == null && nullToAbsent ? const Value.absent() : Value(remark),
+      unReadable: Value(unReadable),
       lastSync: lastSync == null && nullToAbsent
           ? const Value.absent()
           : Value(lastSync),
+      problemSolvingBy: problemSolvingBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(problemSolvingBy),
+      syncStatus: Value(syncStatus),
     );
   }
 
@@ -4465,9 +4846,29 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
       uid: serializer.fromJson<int>(json['uid']),
       problemId: serializer.fromJson<String?>(json['problemId']),
       problemName: serializer.fromJson<String?>(json['problemName']),
-      description: serializer.fromJson<String?>(json['description']),
+      problemDescription:
+          serializer.fromJson<String?>(json['problemDescription']),
       problemStatus: serializer.fromJson<int>(json['problemStatus']),
+      problemSolvingDescription:
+          serializer.fromJson<String?>(json['problemSolvingDescription']),
+      machineId: serializer.fromJson<String?>(json['machineId']),
+      machineName: serializer.fromJson<String?>(json['machineName']),
+      jobId: serializer.fromJson<String?>(json['jobId']),
+      tagId: serializer.fromJson<String?>(json['tagId']),
+      tagName: serializer.fromJson<String?>(json['tagName']),
+      tagType: serializer.fromJson<String?>(json['tagType']),
+      description: serializer.fromJson<String?>(json['description']),
+      note: serializer.fromJson<String?>(json['note']),
+      specification: serializer.fromJson<String?>(json['specification']),
+      specMin: serializer.fromJson<String?>(json['specMin']),
+      specMax: serializer.fromJson<String?>(json['specMax']),
+      unit: serializer.fromJson<String?>(json['unit']),
+      value: serializer.fromJson<String?>(json['value']),
+      remark: serializer.fromJson<String?>(json['remark']),
+      unReadable: serializer.fromJson<String>(json['unReadable']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
+      problemSolvingBy: serializer.fromJson<String?>(json['problemSolvingBy']),
+      syncStatus: serializer.fromJson<int>(json['syncStatus']),
     );
   }
   @override
@@ -4477,9 +4878,28 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
       'uid': serializer.toJson<int>(uid),
       'problemId': serializer.toJson<String?>(problemId),
       'problemName': serializer.toJson<String?>(problemName),
-      'description': serializer.toJson<String?>(description),
+      'problemDescription': serializer.toJson<String?>(problemDescription),
       'problemStatus': serializer.toJson<int>(problemStatus),
+      'problemSolvingDescription':
+          serializer.toJson<String?>(problemSolvingDescription),
+      'machineId': serializer.toJson<String?>(machineId),
+      'machineName': serializer.toJson<String?>(machineName),
+      'jobId': serializer.toJson<String?>(jobId),
+      'tagId': serializer.toJson<String?>(tagId),
+      'tagName': serializer.toJson<String?>(tagName),
+      'tagType': serializer.toJson<String?>(tagType),
+      'description': serializer.toJson<String?>(description),
+      'note': serializer.toJson<String?>(note),
+      'specification': serializer.toJson<String?>(specification),
+      'specMin': serializer.toJson<String?>(specMin),
+      'specMax': serializer.toJson<String?>(specMax),
+      'unit': serializer.toJson<String?>(unit),
+      'value': serializer.toJson<String?>(value),
+      'remark': serializer.toJson<String?>(remark),
+      'unReadable': serializer.toJson<String>(unReadable),
       'lastSync': serializer.toJson<String?>(lastSync),
+      'problemSolvingBy': serializer.toJson<String?>(problemSolvingBy),
+      'syncStatus': serializer.toJson<int>(syncStatus),
     };
   }
 
@@ -4487,16 +4907,59 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
           {int? uid,
           Value<String?> problemId = const Value.absent(),
           Value<String?> problemName = const Value.absent(),
-          Value<String?> description = const Value.absent(),
+          Value<String?> problemDescription = const Value.absent(),
           int? problemStatus,
-          Value<String?> lastSync = const Value.absent()}) =>
+          Value<String?> problemSolvingDescription = const Value.absent(),
+          Value<String?> machineId = const Value.absent(),
+          Value<String?> machineName = const Value.absent(),
+          Value<String?> jobId = const Value.absent(),
+          Value<String?> tagId = const Value.absent(),
+          Value<String?> tagName = const Value.absent(),
+          Value<String?> tagType = const Value.absent(),
+          Value<String?> description = const Value.absent(),
+          Value<String?> note = const Value.absent(),
+          Value<String?> specification = const Value.absent(),
+          Value<String?> specMin = const Value.absent(),
+          Value<String?> specMax = const Value.absent(),
+          Value<String?> unit = const Value.absent(),
+          Value<String?> value = const Value.absent(),
+          Value<String?> remark = const Value.absent(),
+          String? unReadable,
+          Value<String?> lastSync = const Value.absent(),
+          Value<String?> problemSolvingBy = const Value.absent(),
+          int? syncStatus}) =>
       DbProblem(
         uid: uid ?? this.uid,
         problemId: problemId.present ? problemId.value : this.problemId,
         problemName: problemName.present ? problemName.value : this.problemName,
-        description: description.present ? description.value : this.description,
+        problemDescription: problemDescription.present
+            ? problemDescription.value
+            : this.problemDescription,
         problemStatus: problemStatus ?? this.problemStatus,
+        problemSolvingDescription: problemSolvingDescription.present
+            ? problemSolvingDescription.value
+            : this.problemSolvingDescription,
+        machineId: machineId.present ? machineId.value : this.machineId,
+        machineName: machineName.present ? machineName.value : this.machineName,
+        jobId: jobId.present ? jobId.value : this.jobId,
+        tagId: tagId.present ? tagId.value : this.tagId,
+        tagName: tagName.present ? tagName.value : this.tagName,
+        tagType: tagType.present ? tagType.value : this.tagType,
+        description: description.present ? description.value : this.description,
+        note: note.present ? note.value : this.note,
+        specification:
+            specification.present ? specification.value : this.specification,
+        specMin: specMin.present ? specMin.value : this.specMin,
+        specMax: specMax.present ? specMax.value : this.specMax,
+        unit: unit.present ? unit.value : this.unit,
+        value: value.present ? value.value : this.value,
+        remark: remark.present ? remark.value : this.remark,
+        unReadable: unReadable ?? this.unReadable,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        problemSolvingBy: problemSolvingBy.present
+            ? problemSolvingBy.value
+            : this.problemSolvingBy,
+        syncStatus: syncStatus ?? this.syncStatus,
       );
   DbProblem copyWithCompanion(ProblemsCompanion data) {
     return DbProblem(
@@ -4504,12 +4967,41 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
       problemId: data.problemId.present ? data.problemId.value : this.problemId,
       problemName:
           data.problemName.present ? data.problemName.value : this.problemName,
-      description:
-          data.description.present ? data.description.value : this.description,
+      problemDescription: data.problemDescription.present
+          ? data.problemDescription.value
+          : this.problemDescription,
       problemStatus: data.problemStatus.present
           ? data.problemStatus.value
           : this.problemStatus,
+      problemSolvingDescription: data.problemSolvingDescription.present
+          ? data.problemSolvingDescription.value
+          : this.problemSolvingDescription,
+      machineId: data.machineId.present ? data.machineId.value : this.machineId,
+      machineName:
+          data.machineName.present ? data.machineName.value : this.machineName,
+      jobId: data.jobId.present ? data.jobId.value : this.jobId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+      tagName: data.tagName.present ? data.tagName.value : this.tagName,
+      tagType: data.tagType.present ? data.tagType.value : this.tagType,
+      description:
+          data.description.present ? data.description.value : this.description,
+      note: data.note.present ? data.note.value : this.note,
+      specification: data.specification.present
+          ? data.specification.value
+          : this.specification,
+      specMin: data.specMin.present ? data.specMin.value : this.specMin,
+      specMax: data.specMax.present ? data.specMax.value : this.specMax,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      value: data.value.present ? data.value.value : this.value,
+      remark: data.remark.present ? data.remark.value : this.remark,
+      unReadable:
+          data.unReadable.present ? data.unReadable.value : this.unReadable,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      problemSolvingBy: data.problemSolvingBy.present
+          ? data.problemSolvingBy.value
+          : this.problemSolvingBy,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
     );
   }
 
@@ -4519,16 +5011,58 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
           ..write('uid: $uid, ')
           ..write('problemId: $problemId, ')
           ..write('problemName: $problemName, ')
-          ..write('description: $description, ')
+          ..write('problemDescription: $problemDescription, ')
           ..write('problemStatus: $problemStatus, ')
-          ..write('lastSync: $lastSync')
+          ..write('problemSolvingDescription: $problemSolvingDescription, ')
+          ..write('machineId: $machineId, ')
+          ..write('machineName: $machineName, ')
+          ..write('jobId: $jobId, ')
+          ..write('tagId: $tagId, ')
+          ..write('tagName: $tagName, ')
+          ..write('tagType: $tagType, ')
+          ..write('description: $description, ')
+          ..write('note: $note, ')
+          ..write('specification: $specification, ')
+          ..write('specMin: $specMin, ')
+          ..write('specMax: $specMax, ')
+          ..write('unit: $unit, ')
+          ..write('value: $value, ')
+          ..write('remark: $remark, ')
+          ..write('unReadable: $unReadable, ')
+          ..write('lastSync: $lastSync, ')
+          ..write('problemSolvingBy: $problemSolvingBy, ')
+          ..write('syncStatus: $syncStatus')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      uid, problemId, problemName, description, problemStatus, lastSync);
+  int get hashCode => Object.hashAll([
+        uid,
+        problemId,
+        problemName,
+        problemDescription,
+        problemStatus,
+        problemSolvingDescription,
+        machineId,
+        machineName,
+        jobId,
+        tagId,
+        tagName,
+        tagType,
+        description,
+        note,
+        specification,
+        specMin,
+        specMax,
+        unit,
+        value,
+        remark,
+        unReadable,
+        lastSync,
+        problemSolvingBy,
+        syncStatus
+      ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4536,49 +5070,158 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
           other.uid == this.uid &&
           other.problemId == this.problemId &&
           other.problemName == this.problemName &&
-          other.description == this.description &&
+          other.problemDescription == this.problemDescription &&
           other.problemStatus == this.problemStatus &&
-          other.lastSync == this.lastSync);
+          other.problemSolvingDescription == this.problemSolvingDescription &&
+          other.machineId == this.machineId &&
+          other.machineName == this.machineName &&
+          other.jobId == this.jobId &&
+          other.tagId == this.tagId &&
+          other.tagName == this.tagName &&
+          other.tagType == this.tagType &&
+          other.description == this.description &&
+          other.note == this.note &&
+          other.specification == this.specification &&
+          other.specMin == this.specMin &&
+          other.specMax == this.specMax &&
+          other.unit == this.unit &&
+          other.value == this.value &&
+          other.remark == this.remark &&
+          other.unReadable == this.unReadable &&
+          other.lastSync == this.lastSync &&
+          other.problemSolvingBy == this.problemSolvingBy &&
+          other.syncStatus == this.syncStatus);
 }
 
 class ProblemsCompanion extends UpdateCompanion<DbProblem> {
   final Value<int> uid;
   final Value<String?> problemId;
   final Value<String?> problemName;
-  final Value<String?> description;
+  final Value<String?> problemDescription;
   final Value<int> problemStatus;
+  final Value<String?> problemSolvingDescription;
+  final Value<String?> machineId;
+  final Value<String?> machineName;
+  final Value<String?> jobId;
+  final Value<String?> tagId;
+  final Value<String?> tagName;
+  final Value<String?> tagType;
+  final Value<String?> description;
+  final Value<String?> note;
+  final Value<String?> specification;
+  final Value<String?> specMin;
+  final Value<String?> specMax;
+  final Value<String?> unit;
+  final Value<String?> value;
+  final Value<String?> remark;
+  final Value<String> unReadable;
   final Value<String?> lastSync;
+  final Value<String?> problemSolvingBy;
+  final Value<int> syncStatus;
   const ProblemsCompanion({
     this.uid = const Value.absent(),
     this.problemId = const Value.absent(),
     this.problemName = const Value.absent(),
-    this.description = const Value.absent(),
+    this.problemDescription = const Value.absent(),
     this.problemStatus = const Value.absent(),
+    this.problemSolvingDescription = const Value.absent(),
+    this.machineId = const Value.absent(),
+    this.machineName = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.tagName = const Value.absent(),
+    this.tagType = const Value.absent(),
+    this.description = const Value.absent(),
+    this.note = const Value.absent(),
+    this.specification = const Value.absent(),
+    this.specMin = const Value.absent(),
+    this.specMax = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.value = const Value.absent(),
+    this.remark = const Value.absent(),
+    this.unReadable = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.problemSolvingBy = const Value.absent(),
+    this.syncStatus = const Value.absent(),
   });
   ProblemsCompanion.insert({
     this.uid = const Value.absent(),
     this.problemId = const Value.absent(),
     this.problemName = const Value.absent(),
-    this.description = const Value.absent(),
+    this.problemDescription = const Value.absent(),
     this.problemStatus = const Value.absent(),
+    this.problemSolvingDescription = const Value.absent(),
+    this.machineId = const Value.absent(),
+    this.machineName = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.tagName = const Value.absent(),
+    this.tagType = const Value.absent(),
+    this.description = const Value.absent(),
+    this.note = const Value.absent(),
+    this.specification = const Value.absent(),
+    this.specMin = const Value.absent(),
+    this.specMax = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.value = const Value.absent(),
+    this.remark = const Value.absent(),
+    this.unReadable = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.problemSolvingBy = const Value.absent(),
+    this.syncStatus = const Value.absent(),
   });
   static Insertable<DbProblem> custom({
     Expression<int>? uid,
     Expression<String>? problemId,
     Expression<String>? problemName,
-    Expression<String>? description,
+    Expression<String>? problemDescription,
     Expression<int>? problemStatus,
+    Expression<String>? problemSolvingDescription,
+    Expression<String>? machineId,
+    Expression<String>? machineName,
+    Expression<String>? jobId,
+    Expression<String>? tagId,
+    Expression<String>? tagName,
+    Expression<String>? tagType,
+    Expression<String>? description,
+    Expression<String>? note,
+    Expression<String>? specification,
+    Expression<String>? specMin,
+    Expression<String>? specMax,
+    Expression<String>? unit,
+    Expression<String>? value,
+    Expression<String>? remark,
+    Expression<String>? unReadable,
     Expression<String>? lastSync,
+    Expression<String>? problemSolvingBy,
+    Expression<int>? syncStatus,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
       if (problemId != null) 'ProblemId': problemId,
       if (problemName != null) 'ProblemName': problemName,
-      if (description != null) 'Description': description,
+      if (problemDescription != null) 'ProblemDescription': problemDescription,
       if (problemStatus != null) 'ProblemStatus': problemStatus,
+      if (problemSolvingDescription != null)
+        'SolvingDescription': problemSolvingDescription,
+      if (machineId != null) 'machineId': machineId,
+      if (machineName != null) 'machineName': machineName,
+      if (jobId != null) 'jobId': jobId,
+      if (tagId != null) 'tagId': tagId,
+      if (tagName != null) 'tagName': tagName,
+      if (tagType != null) 'tagType': tagType,
+      if (description != null) 'TagDescription': description,
+      if (note != null) 'Note': note,
+      if (specification != null) 'specification': specification,
+      if (specMin != null) 'specMin': specMin,
+      if (specMax != null) 'specMax': specMax,
+      if (unit != null) 'unit': unit,
+      if (value != null) 'value': value,
+      if (remark != null) 'remark': remark,
+      if (unReadable != null) 'unReadable': unReadable,
       if (lastSync != null) 'lastSync': lastSync,
+      if (problemSolvingBy != null) 'SolvingBy': problemSolvingBy,
+      if (syncStatus != null) 'syncStatus': syncStatus,
     });
   }
 
@@ -4586,16 +5229,53 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
       {Value<int>? uid,
       Value<String?>? problemId,
       Value<String?>? problemName,
-      Value<String?>? description,
+      Value<String?>? problemDescription,
       Value<int>? problemStatus,
-      Value<String?>? lastSync}) {
+      Value<String?>? problemSolvingDescription,
+      Value<String?>? machineId,
+      Value<String?>? machineName,
+      Value<String?>? jobId,
+      Value<String?>? tagId,
+      Value<String?>? tagName,
+      Value<String?>? tagType,
+      Value<String?>? description,
+      Value<String?>? note,
+      Value<String?>? specification,
+      Value<String?>? specMin,
+      Value<String?>? specMax,
+      Value<String?>? unit,
+      Value<String?>? value,
+      Value<String?>? remark,
+      Value<String>? unReadable,
+      Value<String?>? lastSync,
+      Value<String?>? problemSolvingBy,
+      Value<int>? syncStatus}) {
     return ProblemsCompanion(
       uid: uid ?? this.uid,
       problemId: problemId ?? this.problemId,
       problemName: problemName ?? this.problemName,
-      description: description ?? this.description,
+      problemDescription: problemDescription ?? this.problemDescription,
       problemStatus: problemStatus ?? this.problemStatus,
+      problemSolvingDescription:
+          problemSolvingDescription ?? this.problemSolvingDescription,
+      machineId: machineId ?? this.machineId,
+      machineName: machineName ?? this.machineName,
+      jobId: jobId ?? this.jobId,
+      tagId: tagId ?? this.tagId,
+      tagName: tagName ?? this.tagName,
+      tagType: tagType ?? this.tagType,
+      description: description ?? this.description,
+      note: note ?? this.note,
+      specification: specification ?? this.specification,
+      specMin: specMin ?? this.specMin,
+      specMax: specMax ?? this.specMax,
+      unit: unit ?? this.unit,
+      value: value ?? this.value,
+      remark: remark ?? this.remark,
+      unReadable: unReadable ?? this.unReadable,
       lastSync: lastSync ?? this.lastSync,
+      problemSolvingBy: problemSolvingBy ?? this.problemSolvingBy,
+      syncStatus: syncStatus ?? this.syncStatus,
     );
   }
 
@@ -4611,14 +5291,69 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
     if (problemName.present) {
       map['ProblemName'] = Variable<String>(problemName.value);
     }
-    if (description.present) {
-      map['Description'] = Variable<String>(description.value);
+    if (problemDescription.present) {
+      map['ProblemDescription'] = Variable<String>(problemDescription.value);
     }
     if (problemStatus.present) {
       map['ProblemStatus'] = Variable<int>(problemStatus.value);
     }
+    if (problemSolvingDescription.present) {
+      map['SolvingDescription'] =
+          Variable<String>(problemSolvingDescription.value);
+    }
+    if (machineId.present) {
+      map['machineId'] = Variable<String>(machineId.value);
+    }
+    if (machineName.present) {
+      map['machineName'] = Variable<String>(machineName.value);
+    }
+    if (jobId.present) {
+      map['jobId'] = Variable<String>(jobId.value);
+    }
+    if (tagId.present) {
+      map['tagId'] = Variable<String>(tagId.value);
+    }
+    if (tagName.present) {
+      map['tagName'] = Variable<String>(tagName.value);
+    }
+    if (tagType.present) {
+      map['tagType'] = Variable<String>(tagType.value);
+    }
+    if (description.present) {
+      map['TagDescription'] = Variable<String>(description.value);
+    }
+    if (note.present) {
+      map['Note'] = Variable<String>(note.value);
+    }
+    if (specification.present) {
+      map['specification'] = Variable<String>(specification.value);
+    }
+    if (specMin.present) {
+      map['specMin'] = Variable<String>(specMin.value);
+    }
+    if (specMax.present) {
+      map['specMax'] = Variable<String>(specMax.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (remark.present) {
+      map['remark'] = Variable<String>(remark.value);
+    }
+    if (unReadable.present) {
+      map['unReadable'] = Variable<String>(unReadable.value);
+    }
     if (lastSync.present) {
       map['lastSync'] = Variable<String>(lastSync.value);
+    }
+    if (problemSolvingBy.present) {
+      map['SolvingBy'] = Variable<String>(problemSolvingBy.value);
+    }
+    if (syncStatus.present) {
+      map['syncStatus'] = Variable<int>(syncStatus.value);
     }
     return map;
   }
@@ -4629,9 +5364,27 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
           ..write('uid: $uid, ')
           ..write('problemId: $problemId, ')
           ..write('problemName: $problemName, ')
-          ..write('description: $description, ')
+          ..write('problemDescription: $problemDescription, ')
           ..write('problemStatus: $problemStatus, ')
-          ..write('lastSync: $lastSync')
+          ..write('problemSolvingDescription: $problemSolvingDescription, ')
+          ..write('machineId: $machineId, ')
+          ..write('machineName: $machineName, ')
+          ..write('jobId: $jobId, ')
+          ..write('tagId: $tagId, ')
+          ..write('tagName: $tagName, ')
+          ..write('tagType: $tagType, ')
+          ..write('description: $description, ')
+          ..write('note: $note, ')
+          ..write('specification: $specification, ')
+          ..write('specMin: $specMin, ')
+          ..write('specMax: $specMax, ')
+          ..write('unit: $unit, ')
+          ..write('value: $value, ')
+          ..write('remark: $remark, ')
+          ..write('unReadable: $unReadable, ')
+          ..write('lastSync: $lastSync, ')
+          ..write('problemSolvingBy: $problemSolvingBy, ')
+          ..write('syncStatus: $syncStatus')
           ..write(')'))
         .toString();
   }
@@ -5464,6 +6217,12 @@ class $ImagesTable extends Images with TableInfo<$ImagesTable, DbImage> {
   late final GeneratedColumn<String> tagId = GeneratedColumn<String>(
       'tagId', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _problemIdMeta =
+      const VerificationMeta('problemId');
+  @override
+  late final GeneratedColumn<String> problemId = GeneratedColumn<String>(
+      'problemId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _createDateMeta =
       const VerificationMeta('createDate');
   @override
@@ -5504,6 +6263,7 @@ class $ImagesTable extends Images with TableInfo<$ImagesTable, DbImage> {
         jobId,
         machineId,
         tagId,
+        problemId,
         createDate,
         status,
         lastSync,
@@ -5567,6 +6327,10 @@ class $ImagesTable extends Images with TableInfo<$ImagesTable, DbImage> {
       context.handle(
           _tagIdMeta, tagId.isAcceptableOrUnknown(data['tagId']!, _tagIdMeta));
     }
+    if (data.containsKey('problemId')) {
+      context.handle(_problemIdMeta,
+          problemId.isAcceptableOrUnknown(data['problemId']!, _problemIdMeta));
+    }
     if (data.containsKey('createDate')) {
       context.handle(
           _createDateMeta,
@@ -5618,6 +6382,8 @@ class $ImagesTable extends Images with TableInfo<$ImagesTable, DbImage> {
           .read(DriftSqlType.string, data['${effectivePrefix}machineId']),
       tagId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}tagId']),
+      problemId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}problemId']),
       createDate: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}createDate']),
       status: attachedDatabase.typeMapping
@@ -5647,6 +6413,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
   final String? jobId;
   final String? machineId;
   final String? tagId;
+  final String? problemId;
   final String? createDate;
   final int status;
   final String? lastSync;
@@ -5663,6 +6430,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
       this.jobId,
       this.machineId,
       this.tagId,
+      this.problemId,
       this.createDate,
       required this.status,
       this.lastSync,
@@ -5700,6 +6468,9 @@ class DbImage extends DataClass implements Insertable<DbImage> {
     }
     if (!nullToAbsent || tagId != null) {
       map['tagId'] = Variable<String>(tagId);
+    }
+    if (!nullToAbsent || problemId != null) {
+      map['problemId'] = Variable<String>(problemId);
     }
     if (!nullToAbsent || createDate != null) {
       map['createDate'] = Variable<String>(createDate);
@@ -5741,6 +6512,9 @@ class DbImage extends DataClass implements Insertable<DbImage> {
           : Value(machineId),
       tagId:
           tagId == null && nullToAbsent ? const Value.absent() : Value(tagId),
+      problemId: problemId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(problemId),
       createDate: createDate == null && nullToAbsent
           ? const Value.absent()
           : Value(createDate),
@@ -5767,6 +6541,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
       jobId: serializer.fromJson<String?>(json['jobId']),
       machineId: serializer.fromJson<String?>(json['machineId']),
       tagId: serializer.fromJson<String?>(json['tagId']),
+      problemId: serializer.fromJson<String?>(json['problemId']),
       createDate: serializer.fromJson<String?>(json['createDate']),
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
@@ -5788,6 +6563,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
       'jobId': serializer.toJson<String?>(jobId),
       'machineId': serializer.toJson<String?>(machineId),
       'tagId': serializer.toJson<String?>(tagId),
+      'problemId': serializer.toJson<String?>(problemId),
       'createDate': serializer.toJson<String?>(createDate),
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
@@ -5807,6 +6583,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
           Value<String?> jobId = const Value.absent(),
           Value<String?> machineId = const Value.absent(),
           Value<String?> tagId = const Value.absent(),
+          Value<String?> problemId = const Value.absent(),
           Value<String?> createDate = const Value.absent(),
           int? status,
           Value<String?> lastSync = const Value.absent(),
@@ -5823,6 +6600,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
         jobId: jobId.present ? jobId.value : this.jobId,
         machineId: machineId.present ? machineId.value : this.machineId,
         tagId: tagId.present ? tagId.value : this.tagId,
+        problemId: problemId.present ? problemId.value : this.problemId,
         createDate: createDate.present ? createDate.value : this.createDate,
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
@@ -5843,6 +6621,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
       jobId: data.jobId.present ? data.jobId.value : this.jobId,
       machineId: data.machineId.present ? data.machineId.value : this.machineId,
       tagId: data.tagId.present ? data.tagId.value : this.tagId,
+      problemId: data.problemId.present ? data.problemId.value : this.problemId,
       createDate:
           data.createDate.present ? data.createDate.value : this.createDate,
       status: data.status.present ? data.status.value : this.status,
@@ -5866,6 +6645,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
           ..write('jobId: $jobId, ')
           ..write('machineId: $machineId, ')
           ..write('tagId: $tagId, ')
+          ..write('problemId: $problemId, ')
           ..write('createDate: $createDate, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
@@ -5887,6 +6667,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
       jobId,
       machineId,
       tagId,
+      problemId,
       createDate,
       status,
       lastSync,
@@ -5906,6 +6687,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
           other.jobId == this.jobId &&
           other.machineId == this.machineId &&
           other.tagId == this.tagId &&
+          other.problemId == this.problemId &&
           other.createDate == this.createDate &&
           other.status == this.status &&
           other.lastSync == this.lastSync &&
@@ -5924,6 +6706,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
   final Value<String?> jobId;
   final Value<String?> machineId;
   final Value<String?> tagId;
+  final Value<String?> problemId;
   final Value<String?> createDate;
   final Value<int> status;
   final Value<String?> lastSync;
@@ -5940,6 +6723,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
     this.jobId = const Value.absent(),
     this.machineId = const Value.absent(),
     this.tagId = const Value.absent(),
+    this.problemId = const Value.absent(),
     this.createDate = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
@@ -5957,6 +6741,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
     this.jobId = const Value.absent(),
     this.machineId = const Value.absent(),
     this.tagId = const Value.absent(),
+    this.problemId = const Value.absent(),
     this.createDate = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
@@ -5974,6 +6759,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
     Expression<String>? jobId,
     Expression<String>? machineId,
     Expression<String>? tagId,
+    Expression<String>? problemId,
     Expression<String>? createDate,
     Expression<int>? status,
     Expression<String>? lastSync,
@@ -5991,6 +6777,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
       if (jobId != null) 'jobId': jobId,
       if (machineId != null) 'machineId': machineId,
       if (tagId != null) 'tagId': tagId,
+      if (problemId != null) 'problemId': problemId,
       if (createDate != null) 'createDate': createDate,
       if (status != null) 'status': status,
       if (lastSync != null) 'lastSync': lastSync,
@@ -6010,6 +6797,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
       Value<String?>? jobId,
       Value<String?>? machineId,
       Value<String?>? tagId,
+      Value<String?>? problemId,
       Value<String?>? createDate,
       Value<int>? status,
       Value<String?>? lastSync,
@@ -6026,6 +6814,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
       jobId: jobId ?? this.jobId,
       machineId: machineId ?? this.machineId,
       tagId: tagId ?? this.tagId,
+      problemId: problemId ?? this.problemId,
       createDate: createDate ?? this.createDate,
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
@@ -6069,6 +6858,9 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
     if (tagId.present) {
       map['tagId'] = Variable<String>(tagId.value);
     }
+    if (problemId.present) {
+      map['problemId'] = Variable<String>(problemId.value);
+    }
     if (createDate.present) {
       map['createDate'] = Variable<String>(createDate.value);
     }
@@ -6098,6 +6890,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
           ..write('jobId: $jobId, ')
           ..write('machineId: $machineId, ')
           ..write('tagId: $tagId, ')
+          ..write('problemId: $problemId, ')
           ..write('createDate: $createDate, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
@@ -8031,17 +8824,53 @@ typedef $$ProblemsTableCreateCompanionBuilder = ProblemsCompanion Function({
   Value<int> uid,
   Value<String?> problemId,
   Value<String?> problemName,
-  Value<String?> description,
+  Value<String?> problemDescription,
   Value<int> problemStatus,
+  Value<String?> problemSolvingDescription,
+  Value<String?> machineId,
+  Value<String?> machineName,
+  Value<String?> jobId,
+  Value<String?> tagId,
+  Value<String?> tagName,
+  Value<String?> tagType,
+  Value<String?> description,
+  Value<String?> note,
+  Value<String?> specification,
+  Value<String?> specMin,
+  Value<String?> specMax,
+  Value<String?> unit,
+  Value<String?> value,
+  Value<String?> remark,
+  Value<String> unReadable,
   Value<String?> lastSync,
+  Value<String?> problemSolvingBy,
+  Value<int> syncStatus,
 });
 typedef $$ProblemsTableUpdateCompanionBuilder = ProblemsCompanion Function({
   Value<int> uid,
   Value<String?> problemId,
   Value<String?> problemName,
-  Value<String?> description,
+  Value<String?> problemDescription,
   Value<int> problemStatus,
+  Value<String?> problemSolvingDescription,
+  Value<String?> machineId,
+  Value<String?> machineName,
+  Value<String?> jobId,
+  Value<String?> tagId,
+  Value<String?> tagName,
+  Value<String?> tagType,
+  Value<String?> description,
+  Value<String?> note,
+  Value<String?> specification,
+  Value<String?> specMin,
+  Value<String?> specMax,
+  Value<String?> unit,
+  Value<String?> value,
+  Value<String?> remark,
+  Value<String> unReadable,
   Value<String?> lastSync,
+  Value<String?> problemSolvingBy,
+  Value<int> syncStatus,
 });
 
 class $$ProblemsTableFilterComposer
@@ -8062,14 +8891,71 @@ class $$ProblemsTableFilterComposer
   ColumnFilters<String> get problemName => $composableBuilder(
       column: $table.problemName, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get description => $composableBuilder(
-      column: $table.description, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get problemDescription => $composableBuilder(
+      column: $table.problemDescription,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get problemStatus => $composableBuilder(
       column: $table.problemStatus, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get problemSolvingDescription => $composableBuilder(
+      column: $table.problemSolvingDescription,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get machineName => $composableBuilder(
+      column: $table.machineName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get jobId => $composableBuilder(
+      column: $table.jobId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagId => $composableBuilder(
+      column: $table.tagId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagName => $composableBuilder(
+      column: $table.tagName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagType => $composableBuilder(
+      column: $table.tagType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get note => $composableBuilder(
+      column: $table.note, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get specification => $composableBuilder(
+      column: $table.specification, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get specMin => $composableBuilder(
+      column: $table.specMin, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get specMax => $composableBuilder(
+      column: $table.specMax, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get value => $composableBuilder(
+      column: $table.value, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get remark => $composableBuilder(
+      column: $table.remark, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get unReadable => $composableBuilder(
+      column: $table.unReadable, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get problemSolvingBy => $composableBuilder(
+      column: $table.problemSolvingBy,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnFilters(column));
 }
 
 class $$ProblemsTableOrderingComposer
@@ -8090,15 +8976,73 @@ class $$ProblemsTableOrderingComposer
   ColumnOrderings<String> get problemName => $composableBuilder(
       column: $table.problemName, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get description => $composableBuilder(
-      column: $table.description, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get problemDescription => $composableBuilder(
+      column: $table.problemDescription,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get problemStatus => $composableBuilder(
       column: $table.problemStatus,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get problemSolvingDescription => $composableBuilder(
+      column: $table.problemSolvingDescription,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get machineName => $composableBuilder(
+      column: $table.machineName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get jobId => $composableBuilder(
+      column: $table.jobId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagId => $composableBuilder(
+      column: $table.tagId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagName => $composableBuilder(
+      column: $table.tagName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagType => $composableBuilder(
+      column: $table.tagType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get note => $composableBuilder(
+      column: $table.note, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get specification => $composableBuilder(
+      column: $table.specification,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get specMin => $composableBuilder(
+      column: $table.specMin, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get specMax => $composableBuilder(
+      column: $table.specMax, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get value => $composableBuilder(
+      column: $table.value, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get remark => $composableBuilder(
+      column: $table.remark, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get unReadable => $composableBuilder(
+      column: $table.unReadable, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get problemSolvingBy => $composableBuilder(
+      column: $table.problemSolvingBy,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ProblemsTableAnnotationComposer
@@ -8119,14 +9063,68 @@ class $$ProblemsTableAnnotationComposer
   GeneratedColumn<String> get problemName => $composableBuilder(
       column: $table.problemName, builder: (column) => column);
 
-  GeneratedColumn<String> get description => $composableBuilder(
-      column: $table.description, builder: (column) => column);
+  GeneratedColumn<String> get problemDescription => $composableBuilder(
+      column: $table.problemDescription, builder: (column) => column);
 
   GeneratedColumn<int> get problemStatus => $composableBuilder(
       column: $table.problemStatus, builder: (column) => column);
 
+  GeneratedColumn<String> get problemSolvingDescription => $composableBuilder(
+      column: $table.problemSolvingDescription, builder: (column) => column);
+
+  GeneratedColumn<String> get machineId =>
+      $composableBuilder(column: $table.machineId, builder: (column) => column);
+
+  GeneratedColumn<String> get machineName => $composableBuilder(
+      column: $table.machineName, builder: (column) => column);
+
+  GeneratedColumn<String> get jobId =>
+      $composableBuilder(column: $table.jobId, builder: (column) => column);
+
+  GeneratedColumn<String> get tagId =>
+      $composableBuilder(column: $table.tagId, builder: (column) => column);
+
+  GeneratedColumn<String> get tagName =>
+      $composableBuilder(column: $table.tagName, builder: (column) => column);
+
+  GeneratedColumn<String> get tagType =>
+      $composableBuilder(column: $table.tagType, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get specification => $composableBuilder(
+      column: $table.specification, builder: (column) => column);
+
+  GeneratedColumn<String> get specMin =>
+      $composableBuilder(column: $table.specMin, builder: (column) => column);
+
+  GeneratedColumn<String> get specMax =>
+      $composableBuilder(column: $table.specMax, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<String> get remark =>
+      $composableBuilder(column: $table.remark, builder: (column) => column);
+
+  GeneratedColumn<String> get unReadable => $composableBuilder(
+      column: $table.unReadable, builder: (column) => column);
+
   GeneratedColumn<String> get lastSync =>
       $composableBuilder(column: $table.lastSync, builder: (column) => column);
+
+  GeneratedColumn<String> get problemSolvingBy => $composableBuilder(
+      column: $table.problemSolvingBy, builder: (column) => column);
+
+  GeneratedColumn<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => column);
 }
 
 class $$ProblemsTableTableManager extends RootTableManager<
@@ -8155,33 +9153,105 @@ class $$ProblemsTableTableManager extends RootTableManager<
             Value<int> uid = const Value.absent(),
             Value<String?> problemId = const Value.absent(),
             Value<String?> problemName = const Value.absent(),
-            Value<String?> description = const Value.absent(),
+            Value<String?> problemDescription = const Value.absent(),
             Value<int> problemStatus = const Value.absent(),
+            Value<String?> problemSolvingDescription = const Value.absent(),
+            Value<String?> machineId = const Value.absent(),
+            Value<String?> machineName = const Value.absent(),
+            Value<String?> jobId = const Value.absent(),
+            Value<String?> tagId = const Value.absent(),
+            Value<String?> tagName = const Value.absent(),
+            Value<String?> tagType = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String?> note = const Value.absent(),
+            Value<String?> specification = const Value.absent(),
+            Value<String?> specMin = const Value.absent(),
+            Value<String?> specMax = const Value.absent(),
+            Value<String?> unit = const Value.absent(),
+            Value<String?> value = const Value.absent(),
+            Value<String?> remark = const Value.absent(),
+            Value<String> unReadable = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> problemSolvingBy = const Value.absent(),
+            Value<int> syncStatus = const Value.absent(),
           }) =>
               ProblemsCompanion(
             uid: uid,
             problemId: problemId,
             problemName: problemName,
-            description: description,
+            problemDescription: problemDescription,
             problemStatus: problemStatus,
+            problemSolvingDescription: problemSolvingDescription,
+            machineId: machineId,
+            machineName: machineName,
+            jobId: jobId,
+            tagId: tagId,
+            tagName: tagName,
+            tagType: tagType,
+            description: description,
+            note: note,
+            specification: specification,
+            specMin: specMin,
+            specMax: specMax,
+            unit: unit,
+            value: value,
+            remark: remark,
+            unReadable: unReadable,
             lastSync: lastSync,
+            problemSolvingBy: problemSolvingBy,
+            syncStatus: syncStatus,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
             Value<String?> problemId = const Value.absent(),
             Value<String?> problemName = const Value.absent(),
-            Value<String?> description = const Value.absent(),
+            Value<String?> problemDescription = const Value.absent(),
             Value<int> problemStatus = const Value.absent(),
+            Value<String?> problemSolvingDescription = const Value.absent(),
+            Value<String?> machineId = const Value.absent(),
+            Value<String?> machineName = const Value.absent(),
+            Value<String?> jobId = const Value.absent(),
+            Value<String?> tagId = const Value.absent(),
+            Value<String?> tagName = const Value.absent(),
+            Value<String?> tagType = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String?> note = const Value.absent(),
+            Value<String?> specification = const Value.absent(),
+            Value<String?> specMin = const Value.absent(),
+            Value<String?> specMax = const Value.absent(),
+            Value<String?> unit = const Value.absent(),
+            Value<String?> value = const Value.absent(),
+            Value<String?> remark = const Value.absent(),
+            Value<String> unReadable = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> problemSolvingBy = const Value.absent(),
+            Value<int> syncStatus = const Value.absent(),
           }) =>
               ProblemsCompanion.insert(
             uid: uid,
             problemId: problemId,
             problemName: problemName,
-            description: description,
+            problemDescription: problemDescription,
             problemStatus: problemStatus,
+            problemSolvingDescription: problemSolvingDescription,
+            machineId: machineId,
+            machineName: machineName,
+            jobId: jobId,
+            tagId: tagId,
+            tagName: tagName,
+            tagType: tagType,
+            description: description,
+            note: note,
+            specification: specification,
+            specMin: specMin,
+            specMax: specMax,
+            unit: unit,
+            value: value,
+            remark: remark,
+            unReadable: unReadable,
             lastSync: lastSync,
+            problemSolvingBy: problemSolvingBy,
+            syncStatus: syncStatus,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -8590,6 +9660,7 @@ typedef $$ImagesTableCreateCompanionBuilder = ImagesCompanion Function({
   Value<String?> jobId,
   Value<String?> machineId,
   Value<String?> tagId,
+  Value<String?> problemId,
   Value<String?> createDate,
   Value<int> status,
   Value<String?> lastSync,
@@ -8607,6 +9678,7 @@ typedef $$ImagesTableUpdateCompanionBuilder = ImagesCompanion Function({
   Value<String?> jobId,
   Value<String?> machineId,
   Value<String?> tagId,
+  Value<String?> problemId,
   Value<String?> createDate,
   Value<int> status,
   Value<String?> lastSync,
@@ -8654,6 +9726,9 @@ class $$ImagesTableFilterComposer
 
   ColumnFilters<String> get tagId => $composableBuilder(
       column: $table.tagId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get problemId => $composableBuilder(
+      column: $table.problemId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get createDate => $composableBuilder(
       column: $table.createDate, builder: (column) => ColumnFilters(column));
@@ -8710,6 +9785,9 @@ class $$ImagesTableOrderingComposer
   ColumnOrderings<String> get tagId => $composableBuilder(
       column: $table.tagId, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get problemId => $composableBuilder(
+      column: $table.problemId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get createDate => $composableBuilder(
       column: $table.createDate, builder: (column) => ColumnOrderings(column));
 
@@ -8765,6 +9843,9 @@ class $$ImagesTableAnnotationComposer
   GeneratedColumn<String> get tagId =>
       $composableBuilder(column: $table.tagId, builder: (column) => column);
 
+  GeneratedColumn<String> get problemId =>
+      $composableBuilder(column: $table.problemId, builder: (column) => column);
+
   GeneratedColumn<String> get createDate => $composableBuilder(
       column: $table.createDate, builder: (column) => column);
 
@@ -8812,6 +9893,7 @@ class $$ImagesTableTableManager extends RootTableManager<
             Value<String?> jobId = const Value.absent(),
             Value<String?> machineId = const Value.absent(),
             Value<String?> tagId = const Value.absent(),
+            Value<String?> problemId = const Value.absent(),
             Value<String?> createDate = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
@@ -8829,6 +9911,7 @@ class $$ImagesTableTableManager extends RootTableManager<
             jobId: jobId,
             machineId: machineId,
             tagId: tagId,
+            problemId: problemId,
             createDate: createDate,
             status: status,
             lastSync: lastSync,
@@ -8846,6 +9929,7 @@ class $$ImagesTableTableManager extends RootTableManager<
             Value<String?> jobId = const Value.absent(),
             Value<String?> machineId = const Value.absent(),
             Value<String?> tagId = const Value.absent(),
+            Value<String?> problemId = const Value.absent(),
             Value<String?> createDate = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
@@ -8863,6 +9947,7 @@ class $$ImagesTableTableManager extends RootTableManager<
             jobId: jobId,
             machineId: machineId,
             tagId: tagId,
+            problemId: problemId,
             createDate: createDate,
             status: status,
             lastSync: lastSync,

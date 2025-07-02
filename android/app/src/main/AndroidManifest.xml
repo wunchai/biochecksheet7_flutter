@@ -8,8 +8,9 @@
         android:label="biochecksheet7_flutter"
         android:name="${applicationName}"
         android:enableOnBackInvokedCallback="true"
-        android:requestLegacyExternalStorage="true" > <!-- เพิ่มบรรทัดนี้สำหรับ Android 10+ -->
-        android:icon="@mipmap/ic_launcher">
+        android:requestLegacyExternalStorage="true"  
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher" >
         <activity
             android:name=".MainActivity"
             android:exported="true"
