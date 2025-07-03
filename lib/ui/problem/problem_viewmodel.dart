@@ -7,11 +7,16 @@ import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart';
 import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart'; // For userId
 import 'package:fl_chart/fl_chart.dart'; // For FlSpot (for online chart)
 import 'package:biochecksheet7_flutter/data/repositories/document_record_repository.dart'; // For online chart data source
+import 'package:biochecksheet7_flutter/data/services/data_sync_service.dart'; // <<< NEW: Import DataSyncService
+import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // <<< NEW: Import sync_status.dart
+import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart'; // <<< NEW: Import ImageDao
 
 class ProblemViewModel extends ChangeNotifier {
   final ProblemRepository _problemRepository;
   final LoginRepository _loginRepository;
   final DocumentRecordRepository _documentRecordRepository; // For online chart data
+  final DataSyncService _dataSyncService; // <<< NEW: Add DataSyncService dependency
+  final ImageDao _imageDao; // <<< NEW: Add ImageDao dependency
 
   Stream<List<DbProblem>>? _problemsStream;
   Stream<List<DbProblem>>? get problemsStream => _problemsStream;
@@ -39,7 +44,9 @@ class ProblemViewModel extends ChangeNotifier {
   ProblemViewModel({required AppDatabase appDatabase})
       : _problemRepository = ProblemRepository(appDatabase: appDatabase),
         _loginRepository = LoginRepository(),
-        _documentRecordRepository = DocumentRecordRepository(appDatabase: appDatabase); // Initialize for online chart
+        _documentRecordRepository = DocumentRecordRepository(appDatabase: appDatabase),
+        _dataSyncService = DataSyncService(appDatabase: appDatabase),
+        _imageDao = appDatabase.imageDao; // <<< NEW: Initialize ImageDao
 
   /// โหลดรายการปัญหาตาม Status (0, 1, 2)
   Future<void> loadProblems() async {
@@ -66,6 +73,22 @@ class ProblemViewModel extends ChangeNotifier {
     _statusMessage = "กำลัง Refresh รายการปัญหา...";
     notifyListeners();
     try {
+      // NEW: Call API sync for problems first
+      print('ProblemViewModel: กำลังซิงค์ปัญหาจาก API...');
+      // Assuming _syncProblemsData is public or you create a public method for it.
+      // If _syncProblemsData is private, you might need to make it public or create a wrapper.
+      // For now, let's assume performFullSync can be called, or we make _syncProblemsData public.
+      // Let's call performFullSync to ensure all master data is synced.
+      final syncResult = await _dataSyncService.performProblemsSync(); // Calls full sync
+
+      if (syncResult is SyncError) {
+        _syncMessage = "ข้อผิดพลาดในการซิงค์ปัญหา: ${syncResult.exception}";
+        _statusMessage = "ซิงค์ปัญหาล้มเหลว.";
+        print("Error during problem sync: ${syncResult.exception}");
+      } else {
+        _syncMessage = "ซิงค์ปัญหาสำเร็จ!";
+        _statusMessage = "ซิงค์ปัญหาสำเร็จ.";
+      }
       await loadProblems(); // Reload from DB
       _syncMessage = "รายการปัญหา Refresh แล้ว!";
     } catch (e) {
@@ -107,18 +130,20 @@ class ProblemViewModel extends ChangeNotifier {
     }
   }
 
-  /// NEW: ฟังก์ชัน Validate สำหรับปัญหาแต่ละรายการ
+ 
+/// ฟังก์ชัน Validate สำหรับปัญหาแต่ละรายการ
+  /// คืนค่า true หาก Validate ผ่าน, false หากไม่ผ่าน.
   Future<bool> _validateProblem(int uid, String? problemSolvingDescription) async {
-    // Get the latest problem from DB for accurate status check
+    // ดึงปัญหาล่าสุดจาก DB เพื่อตรวจสอบสถานะ
     final DbProblem? problemInDB = await _problemRepository.getProblemByUid(uid);
-    bool isProblemSolved = (problemInDB?.problemStatus == 1 || problemInDB?.problemStatus == 2); // Status 1 or 2 means it's considered "solved"
+    bool isProblemSolved = (problemInDB?.problemStatus == 0 || problemInDB?.problemStatus == 0); // Status 1 หรือ 2 ถือว่า "แก้ไขแล้ว"
 
-    // Rule: If problemStatus is 1 or 2, SolvingDescription must not be empty.
+    // กฎ: ถ้า problemStatus เป็น 1 หรือ 2, SolvingDescription ต้องไม่ว่างเปล่า.
     if (isProblemSolved && (problemSolvingDescription == null || problemSolvingDescription.isEmpty)) {
       _problemErrors[uid] = "เมื่อปัญหาถูกแก้ไข/ส่งข้อมูล ต้องระบุคำอธิบายการแก้ไข.";
       return false;
     }
-    _problemErrors[uid] = null; // Clear error if valid
+    _problemErrors[uid] = null; // ล้างข้อผิดพลาดหาก Valid
     return true;
   }
 
@@ -171,10 +196,11 @@ class ProblemViewModel extends ChangeNotifier {
   }
 
   /// NEW: ฟังก์ชัน Post Problem (เปลี่ยน Status เป็น 2)
-  Future<bool> postProblem(int uid) async {
+  /// ฟังก์ชัน Post Problem (เปลี่ยน Status เป็น 2)
+  Future<bool> postProblem(int uid, String? currentSolvingDescription) async { // <<< NEW: รับ currentSolvingDescription
     _isLoading = true;
     _syncMessage = null;
-    _problemErrors[uid] = null;
+    _problemErrors[uid] = null; // Clear specific error for this problem
     _statusMessage = "กำลังส่งข้อมูลปัญหา...";
     notifyListeners();
 
@@ -191,14 +217,43 @@ class ProblemViewModel extends ChangeNotifier {
         return true;
       }
 
-      // Validate before posting (ensure solving description is filled if status becomes 1 or 2)
-      final bool isValid = await _validateProblem(uid, problem.problemSolvingDescription);
-      if (!isValid) {
+      // --- Pre-Post Validation ---
+      // 1. Validate SolvingDescription using the current UI value
+      final bool isValidSolvingDesc = await _validateProblem(uid, currentSolvingDescription); // <<< ใช้ currentSolvingDescription
+      if (!isValidSolvingDesc) {
         _syncMessage = "ไม่สามารถส่งข้อมูลได้: โปรดระบุคำอธิบายการแก้ไข.";
         _statusMessage = "ส่งข้อมูลล้มเหลว.";
         return false;
       }
 
+      // If solving description is valid, make sure to update it in DB before posting
+      final DbProblem? latestProblemInDB = await _problemRepository.getProblemByUid(uid);
+      if (currentSolvingDescription != (latestProblemInDB?.problemSolvingDescription ?? '')) {
+          await _problemRepository.updateProblem(
+            uid: uid,
+            problemSolvingDescription: currentSolvingDescription,
+            newProblemStatus: problem.problemStatus, // Keep current status for now (0)
+            problemSolvingBy: _loginRepository.loggedInUser?.userId,
+          );
+      }
+
+      // 2. Validate at least one photo exists for this problem
+      if (problem.problemId == null || problem.problemId!.isEmpty) {
+        _problemErrors[uid] = "Problem ID ขาดหาย ไม่สามารถตรวจสอบรูปภาพได้.";
+        _syncMessage = "ไม่สามารถส่งข้อมูลได้: Problem ID ขาดหาย.";
+        _statusMessage = "ส่งข้อมูลล้มเหลว.";
+        return false;
+      }
+      final int imageCount = await _imageDao.countImagesForProblem(problem.problemId!);
+      if (imageCount == 0) {
+        _problemErrors[uid] = "ต้องมีรูปถ่ายอย่างน้อย 1 รูป.";
+        _syncMessage = "ไม่สามารถส่งข้อมูลได้: ต้องมีรูปถ่ายอย่างน้อย 1 รูป.";
+        _statusMessage = "ส่งข้อมูลล้มเหลว.";
+        return false;
+      }
+      // --- End Pre-Post Validation ---
+
+      // Proceed to update status to 2
       final success = await _problemRepository.updateProblem(
         uid: uid,
         newProblemStatus: 2, // Set status to 2 (Posted)
@@ -218,6 +273,7 @@ class ProblemViewModel extends ChangeNotifier {
       _syncMessage = "ข้อผิดพลาดในการส่งข้อมูลปัญหา: $e";
       _statusMessage = "ส่งข้อมูลล้มเหลว: $e";
       print("Error posting problem: $e");
+      _problemErrors[uid] = e.toString();
       return false;
     } finally {
       _isLoading = false;
@@ -248,5 +304,33 @@ class ProblemViewModel extends ChangeNotifier {
     }
   }
 
-  // TODO: Add sync function for problems in Phase 4
+// NEW: Method เพื่อส่งข้อมูลปัญหาทั้งหมดที่ ProblemStatus เป็น 2 ขึ้น Server.
+  Future<bool> uploadAllProblemsToServer() async {
+    _isLoading = true;
+    _syncMessage = null;
+    _statusMessage = "กำลังส่งข้อมูลปัญหาทั้งหมดขึ้น Server...";
+    notifyListeners();
+
+    try {
+      final success = await _problemRepository.uploadProblemsToServer();
+
+      if (success) {
+        _syncMessage = "ส่งข้อมูลปัญหาขึ้น Server สำเร็จแล้ว!";
+        _statusMessage = "ข้อมูลถูกส่งแล้ว.";
+        await refreshProblems(); // Refresh list to show new status (3)
+      } else {
+        _syncMessage = "ไม่สามารถส่งข้อมูลปัญหาขึ้น Server ได้.";
+        _statusMessage = "ส่งข้อมูลล้มเหลว.";
+      }
+      return success;
+    } on Exception catch (e) {
+      _syncMessage = "ข้อผิดพลาดในการส่งข้อมูลปัญหาขึ้น Server: $e";
+      _statusMessage = "ส่งข้อมูลล้มเหลว: $e";
+      print("Error uploading all problems to server: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

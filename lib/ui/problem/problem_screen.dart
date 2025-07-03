@@ -108,7 +108,30 @@ class _ProblemScreenState extends State<ProblemScreen> {
               );
             },
           ),
-          // TODO: Add Upload All Problems button here (Phase 4)
+             // NEW: Upload All Problems button
+          Consumer<ProblemViewModel>(builder: (context, viewModel, child) {
+            bool canUploadAll = true;
+            if (viewModel.isLoading) {
+              canUploadAll = false;
+            }
+            // Check records to see if any are status 2 and not loading
+            viewModel.problemsStream?.first.then((problems) {
+              bool anyStatus2 = problems.any((p) => p.problemStatus == 2);
+              if (mounted && canUploadAll != anyStatus2) { // Only update if state changes
+                setState(() {
+                  canUploadAll = anyStatus2; // Enable only if there's at least one status 2
+                });
+              }
+            });
+            return IconButton(
+              icon: const Icon(Icons.cloud_upload),
+              onPressed: canUploadAll // Enabled if viewModel is not loading AND there's at least one Status 2 problem
+                  ? () {
+                      viewModel.uploadAllProblemsToServer();
+                    }
+                  : null,
+            );
+          }),
         ],
       ),
       body: Consumer<ProblemViewModel>(
@@ -177,7 +200,8 @@ class _ProblemScreenState extends State<ProblemScreen> {
                                             // NEW: Image Button for Problem
                                             IconButton(
                                               icon: const Icon(Icons.image),
-                                              onPressed: isProblemReadOnly ? null : () { // Disable if read-only
+                                              onPressed:() { // Disable if read-only
+                                               final bool isImageScreenReadOnly = problem.problemStatus == 1 || problem.problemStatus == 2; // <<< NEW: Calculate isReadOnly for ImageScreen
                                                  print('ProblemScreen: Image button pressed for Problem ID: "${problem.problemId}", Tag ID: "${problem.tagId}"'); // <<< Debugging
                                                
                                                 // Navigate to ImageRecordScreen, passing all relevant IDs
@@ -186,11 +210,12 @@ class _ProblemScreenState extends State<ProblemScreen> {
                                                   '/image_record',
                                                   arguments: {
                                                     'title': 'รูปภาพปัญหา: ${problem.problemName ?? 'N/A'}',
-                                                    'documentId':  '', // Pass documentId from problem
+                                                    'documentId': problem.documentId ?? '', 
                                                     'machineId': problem.machineId ?? '',
                                                     'jobId': problem.jobId ?? '',
                                                     'tagId': problem.tagId ?? '',
-                                                    'problemId': problem.problemId, // Pass problemId
+                                                    'problemId': problem.problemId?.toString(), // <<< CRUCIAL FIX: Convert to String
+                                                    'isReadOnly': isImageScreenReadOnly, // <<< NEW: Pass isReadOnly
                                                   },
                                                 );
                                                 print('Image button pressed for Problem ID: ${problem.problemId}');
@@ -202,6 +227,7 @@ class _ProblemScreenState extends State<ProblemScreen> {
                                         Text('Problem ID: ${problem.problemId ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall),
                                         Text('Description: ${problem.problemDescription ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall),
                                         Text('Machine Name: ${problem.machineName ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall),
+                                        Text('Doc ID: ${problem.documentId ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall),
                                         Text('Job ID: ${problem.jobId ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall),
                                         Text('Tag Name: ${problem.tagName ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall),
                                         Text('Status: ${problem.problemStatus}', style: Theme.of(context).textTheme.bodySmall),
@@ -233,7 +259,8 @@ class _ProblemScreenState extends State<ProblemScreen> {
                                             // Post button
                                             TextButton(
                                               onPressed: (viewModel.isLoading || isProblemReadOnly || problem.problemStatus != 0) ? null : () {
-                                                viewModel.postProblem(problem.uid);
+                                                // CRUCIAL FIX: Pass current text from controller to postProblem
+                                                viewModel.postProblem(problem.uid, _solvingDescControllers[problem.uid]?.text); // <<< เปลี่ยนตรงนี้
                                               },
                                               child: const Text('ส่งข้อมูล'),
                                             ),

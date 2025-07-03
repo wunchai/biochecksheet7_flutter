@@ -96,7 +96,7 @@ class _ProblemListItemState extends State<ProblemListItem> {
                   // Post button
                   TextButton(
                     onPressed: (widget.viewModel.isLoading || isProblemReadOnly || widget.problem.problemStatus != 0) ? null : () {
-                      widget.viewModel.postProblem(widget.problem.uid);
+                      widget.viewModel.postProblem(widget.problem.uid, widget.solvingDescController.text);
                     },
                     child: const Text('ส่งข้อมูล'),
                   ),

@@ -4,17 +4,17 @@ import 'package:biochecksheet7_flutter/data/database/daos/problem_dao.dart'; // 
 import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart'; // For DbProblem and ProblemsCompanion
 import 'package:drift/drift.dart' as drift;
 
-// TODO: Import ProblemApiService for sync in Phase 4
-// import 'package:biochecksheet7_flutter/data/network/problem_api_service.dart';
+import 'package:biochecksheet7_flutter/data/network/problem_api_service.dart'; // For ProblemApiService
+import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import api_response_models.dart
+
 
 class ProblemRepository {
   final ProblemDao _problemDao;
-  // TODO: Add ProblemApiService if needed for sync
-  // final ProblemApiService _problemApiService;
+  final ProblemApiService _problemApiService; // Add ProblemApiService
 
   ProblemRepository({required AppDatabase appDatabase})
-      : _problemDao = appDatabase.problemDao;
-      // _problemApiService = problemApiService ?? ProblemApiService();
+      : _problemDao = appDatabase.problemDao,
+      _problemApiService = ProblemApiService();
 
   /// Watches a stream of problem records filtered by their status (0, 1, 2).
   Stream<List<DbProblem>> watchProblemsByStatus(List<int> statuses) {
@@ -70,12 +70,57 @@ class ProblemRepository {
   // TODO: Add methods for creating new problems (if needed, e.g., from DocumentRecordScreen)
   // TODO: Add methods for deleting problems
 
-  // TODO: Add method for syncing problems to API in Phase 4
-  /*
+  /// NEW: Uploads problems with problemStatus 2 (Posted) to the server.
+  /// After successful upload for a problem, updates its problemStatus to 3 (Uploaded) and syncStatus to 1.
   Future<bool> uploadProblemsToServer() async {
-    // Fetch problems with syncStatus 0
-    // Call ProblemApiService to upload
-    // Update syncStatus to 1 after successful upload
+    try {
+      // 1. Get problems that are ready for upload (ProblemStatus 2)
+      final problemsToUpload = await _problemDao.watchProblemsByStatus([2]).first; // Get all problems that are status 2
+
+      if (problemsToUpload.isEmpty) {
+        print('No problems found with ProblemStatus 2 to upload.');
+        return true; // Nothing to upload, consider it successful
+      }
+
+      // 2. Call API service to upload these problems
+      // Expect List<UploadRecordResult> from API service
+      final List<UploadRecordResult> uploadResults = await _problemApiService.uploadProblems(problemsToUpload);
+
+      // 3. Process upload results and update problemStatus / syncStatus in local DB
+      bool overallUploadSuccess = true;
+      for (final apiResult in uploadResults) {
+        final int problemUid = apiResult.uid;
+        final int apiResultCode = apiResult.result; // Assuming 3 for success
+
+        // Determine new problemStatus and syncStatus based on API result
+        int newProblemStatusToSet = 2; // Default to keeping 2 if API didn't confirm success
+        int newSyncStatusToSet = 0; // Default to 0 (failed/not synced)
+
+        if (apiResultCode == 3) { // Assuming 3 means success from API
+          newProblemStatusToSet = 3; // Set to 3 (Uploaded)
+          newSyncStatusToSet = 1; // Set syncStatus to 1 (Synced)
+        }
+
+        // Update problem's status and syncStatus based on API response
+        final success = await _problemDao.updateProblem(
+          ProblemsCompanion(
+            uid: drift.Value(problemUid),
+            problemStatus: drift.Value(newProblemStatusToSet), // Update problemStatus
+            syncStatus: drift.Value(newSyncStatusToSet), // Update syncStatus
+            lastSync: drift.Value(DateTime.now().toIso8601String()), // Update last sync timestamp
+          ),
+        );
+        if (!success) {
+          overallUploadSuccess = false; // If any local DB update fails, mark overall as failed
+          print('Failed to update local status/syncStatus for Problem UID $problemUid');
+        }
+      }
+
+      print('Processed ${uploadResults.length} upload results for problems. Overall success: $overallUploadSuccess');
+      return overallUploadSuccess;
+    } catch (e) {
+      print('Error during problem upload to server: $e');
+      throw Exception('Problem upload failed: $e');
+    }
   }
-  */
 }

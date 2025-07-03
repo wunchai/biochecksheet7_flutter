@@ -29,6 +29,8 @@ import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/sync_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // <<< เพิ่ม import นี้
 import 'package:biochecksheet7_flutter/data/network/document_record_api_service.dart';
+import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import api_response_models.dart
+import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // สำหรับ SyncResult
 import 'package:drift/drift.dart' as drift;
 
 class DataSyncService {
@@ -105,6 +107,18 @@ class DataSyncService {
       return SyncError(e);
     }
   }
+
+  Future<SyncStatus> performProblemsSync() async {
+    try {
+     
+      await _syncProblemsData(); // <<< NEW: Call sync problems      
+
+      return const SyncSuccess();
+    } on Exception catch (e) {
+      return SyncError(e);
+    }
+  }
+
 
   Future<void> _syncUsersData() async {
     final users = await _userApiService.syncUsers();
@@ -223,6 +237,7 @@ class DataSyncService {
         await _problemApiService.syncProblems(); // Gets all problems from API
 
     for (final apiProblem in problemsFromApi) {
+      print('DataSyncService: Processing API problem for ProblemId: "${apiProblem.problemId}", DocumentId: "${apiProblem.documentId}"'); // <<< Debugging
       // Try to find the existing local problem by problemId
       final existingLocalProblem =
           await _problemDao.getProblemByProblemId(apiProblem.problemId ?? '');
@@ -231,22 +246,19 @@ class DataSyncService {
         // If local problem exists, check its status
         if (existingLocalProblem.problemStatus == 0) {
           // Only update if local status is 0 (pending/initial)
-          print(
-              'Updating local problem UID ${existingLocalProblem.uid} (Status 0) with API data for ProblemId: ${apiProblem.problemId}');
-          await _problemDao.updateProblem(
+           print('DataSyncService: Updating local problem UID ${existingLocalProblem.uid} (Status 0) with API data for ProblemId: ${apiProblem.problemId}, DocumentId: ${apiProblem.documentId}'); // <<< Debuggingawait _problemDao.updateProblem(
+             await _problemDao.updateProblem(
             ProblemsCompanion(
-              uid: drift.Value(
-                  existingLocalProblem.uid), // Specify UID for update
+              uid: drift.Value(existingLocalProblem.uid), // Specify UID for update
               problemId: drift.Value(apiProblem.problemId),
               problemName: drift.Value(apiProblem.problemName),
               problemDescription: drift.Value(apiProblem.problemDescription),
-              problemStatus: drift.Value(
-                  apiProblem.problemStatus), // Use API status (should be 0)
-              problemSolvingDescription:
-                  drift.Value(apiProblem.problemSolvingDescription),
+              problemStatus: drift.Value(apiProblem.problemStatus), // Use API status (should be 0)
+              problemSolvingDescription: drift.Value(apiProblem.problemSolvingDescription),
               machineId: drift.Value(apiProblem.machineId),
               machineName: drift.Value(apiProblem.machineName),
               jobId: drift.Value(apiProblem.jobId),
+              documentId: drift.Value(apiProblem.documentId), // <<< Ensure this is passed
               tagId: drift.Value(apiProblem.tagId),
               tagName: drift.Value(apiProblem.tagName),
               tagType: drift.Value(apiProblem.tagType),
@@ -259,16 +271,13 @@ class DataSyncService {
               value: drift.Value(apiProblem.value),
               remark: drift.Value(apiProblem.remark),
               unReadable: drift.Value(apiProblem.unReadable),
-              lastSync: drift.Value(
-                  DateTime.now().toIso8601String()), // Update last sync
+              lastSync: drift.Value(DateTime.now().toIso8601String()), // Update last sync
               problemSolvingBy: drift.Value(apiProblem.problemSolvingBy),
-              syncStatus:
-                  drift.Value(apiProblem.syncStatus), // Use API syncStatus
+              syncStatus: drift.Value(apiProblem.syncStatus), // Use API syncStatus
             ),
           );
         } else {
-          print(
-              'Skipping update for local problem UID ${existingLocalProblem.uid} (ProblemId: ${apiProblem.problemId}) because its status is ${existingLocalProblem.problemStatus} (not 0).');
+            print('DataSyncService: Skipping update for local problem UID ${existingLocalProblem.uid} (ProblemId: ${apiProblem.problemId}) because its status is ${existingLocalProblem.problemStatus} (not 0).'); // <<< Debugging
         }
       } else {
         // If local problem does not exist, insert it as a new record
@@ -284,6 +293,7 @@ class DataSyncService {
                 drift.Value(apiProblem.problemStatus), // Use API status
             problemSolvingDescription:
                 drift.Value(apiProblem.problemSolvingDescription),
+            documentId: drift.Value(apiProblem.documentId), // <<< Ensure this is passed
             machineId: drift.Value(apiProblem.machineId),
             machineName: drift.Value(apiProblem.machineName),
             jobId: drift.Value(apiProblem.jobId),
@@ -344,5 +354,51 @@ class DataSyncService {
       );
     }).toList();
     await _documentDao.insertAllDocuments(documentsToInsert);
+  }
+
+  /// NEW: Performs upload synchronization for DocumentRecords with status 2 and syncStatus 0.
+  /// Updates status to 3 and syncStatus to 1 upon successful API response.
+  Future<SyncResult> performDocumentRecordUploadSync() async {
+    try {
+      // 1. Get records ready for upload
+      final recordsToUpload = await _documentRecordRepository.getRecordsForUpload();
+
+      if (recordsToUpload.isEmpty) {
+        print('No DocumentRecords found with status 2 and syncStatus 0 for upload.');
+        return SyncSuccess(message: 'ไม่มีข้อมูล DocumentRecord ที่ต้องอัปโหลด.');
+      }
+
+      // 2. Upload records to API
+      final List<UploadRecordResult> uploadResults = await _documentRecordRepository.uploadDocumentRecordsToServer(recordsToUpload);
+
+      // 3. Process results and update local DB
+      bool allUploadsSuccessful = true;
+      for (final result in uploadResults) {
+        final int recordUid = result.uid;
+        final int apiResultCode = result.result; // Assuming 3 for success
+
+        if (apiResultCode == 3) { // Success from API
+          final success = await _documentRecordRepository.updateRecordStatusAndSyncStatus(recordUid, 3, 1); // Status 3 (Uploaded), SyncStatus 1 (Synced)
+          if (!success) {
+            allUploadsSuccessful = false;
+            print('Failed to update local status for DocumentRecord UID $recordUid after successful API upload.');
+          }
+        } else {
+          allUploadsSuccessful = false;
+          print('API reported failure for DocumentRecord UID $recordUid. Result code: $apiResultCode, Message: ${result.message}');
+          // Optionally, update local record status to indicate upload failed (e.g., status 2, syncStatus 0)
+          // Or keep it as is, so it's retried later. For now, we keep it as is if not success.
+        }
+      }
+
+      if (allUploadsSuccessful) {
+        return SyncSuccess(message: 'อัปโหลด DocumentRecord สำเร็จทั้งหมด.');
+      } else {
+        return SyncError(exception: 'มีบาง DocumentRecord ที่อัปโหลดไม่สำเร็จ.');
+      }
+    } catch (e) {
+      print('Error during DocumentRecord upload sync: $e');
+      return SyncError(exception: 'ข้อผิดพลาดในการซิงค์ DocumentRecord: $e');
+    }
   }
 }

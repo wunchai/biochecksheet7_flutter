@@ -4332,6 +4332,12 @@ class $ProblemsTable extends Problems
   late final GeneratedColumn<String> problemSolvingDescription =
       GeneratedColumn<String>('SolvingDescription', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _documentIdMeta =
+      const VerificationMeta('documentId');
+  @override
+  late final GeneratedColumn<String> documentId = GeneratedColumn<String>(
+      'documentId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _machineIdMeta =
       const VerificationMeta('machineId');
   @override
@@ -4446,6 +4452,7 @@ class $ProblemsTable extends Problems
         problemDescription,
         problemStatus,
         problemSolvingDescription,
+        documentId,
         machineId,
         machineName,
         jobId,
@@ -4506,6 +4513,12 @@ class $ProblemsTable extends Problems
           _problemSolvingDescriptionMeta,
           problemSolvingDescription.isAcceptableOrUnknown(
               data['SolvingDescription']!, _problemSolvingDescriptionMeta));
+    }
+    if (data.containsKey('documentId')) {
+      context.handle(
+          _documentIdMeta,
+          documentId.isAcceptableOrUnknown(
+              data['documentId']!, _documentIdMeta));
     }
     if (data.containsKey('machineId')) {
       context.handle(_machineIdMeta,
@@ -4612,6 +4625,8 @@ class $ProblemsTable extends Problems
           .read(DriftSqlType.int, data['${effectivePrefix}ProblemStatus'])!,
       problemSolvingDescription: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}SolvingDescription']),
+      documentId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}documentId']),
       machineId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}machineId']),
       machineName: attachedDatabase.typeMapping
@@ -4664,6 +4679,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
   final String? problemDescription;
   final int problemStatus;
   final String? problemSolvingDescription;
+  final String? documentId;
   final String? machineId;
   final String? machineName;
   final String? jobId;
@@ -4689,6 +4705,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
       this.problemDescription,
       required this.problemStatus,
       this.problemSolvingDescription,
+      this.documentId,
       this.machineId,
       this.machineName,
       this.jobId,
@@ -4723,6 +4740,9 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
     map['ProblemStatus'] = Variable<int>(problemStatus);
     if (!nullToAbsent || problemSolvingDescription != null) {
       map['SolvingDescription'] = Variable<String>(problemSolvingDescription);
+    }
+    if (!nullToAbsent || documentId != null) {
+      map['documentId'] = Variable<String>(documentId);
     }
     if (!nullToAbsent || machineId != null) {
       map['machineId'] = Variable<String>(machineId);
@@ -4794,6 +4814,9 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
           problemSolvingDescription == null && nullToAbsent
               ? const Value.absent()
               : Value(problemSolvingDescription),
+      documentId: documentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(documentId),
       machineId: machineId == null && nullToAbsent
           ? const Value.absent()
           : Value(machineId),
@@ -4851,6 +4874,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
       problemStatus: serializer.fromJson<int>(json['problemStatus']),
       problemSolvingDescription:
           serializer.fromJson<String?>(json['problemSolvingDescription']),
+      documentId: serializer.fromJson<String?>(json['documentId']),
       machineId: serializer.fromJson<String?>(json['machineId']),
       machineName: serializer.fromJson<String?>(json['machineName']),
       jobId: serializer.fromJson<String?>(json['jobId']),
@@ -4882,6 +4906,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
       'problemStatus': serializer.toJson<int>(problemStatus),
       'problemSolvingDescription':
           serializer.toJson<String?>(problemSolvingDescription),
+      'documentId': serializer.toJson<String?>(documentId),
       'machineId': serializer.toJson<String?>(machineId),
       'machineName': serializer.toJson<String?>(machineName),
       'jobId': serializer.toJson<String?>(jobId),
@@ -4910,6 +4935,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
           Value<String?> problemDescription = const Value.absent(),
           int? problemStatus,
           Value<String?> problemSolvingDescription = const Value.absent(),
+          Value<String?> documentId = const Value.absent(),
           Value<String?> machineId = const Value.absent(),
           Value<String?> machineName = const Value.absent(),
           Value<String?> jobId = const Value.absent(),
@@ -4939,6 +4965,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
         problemSolvingDescription: problemSolvingDescription.present
             ? problemSolvingDescription.value
             : this.problemSolvingDescription,
+        documentId: documentId.present ? documentId.value : this.documentId,
         machineId: machineId.present ? machineId.value : this.machineId,
         machineName: machineName.present ? machineName.value : this.machineName,
         jobId: jobId.present ? jobId.value : this.jobId,
@@ -4976,6 +5003,8 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
       problemSolvingDescription: data.problemSolvingDescription.present
           ? data.problemSolvingDescription.value
           : this.problemSolvingDescription,
+      documentId:
+          data.documentId.present ? data.documentId.value : this.documentId,
       machineId: data.machineId.present ? data.machineId.value : this.machineId,
       machineName:
           data.machineName.present ? data.machineName.value : this.machineName,
@@ -5014,6 +5043,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
           ..write('problemDescription: $problemDescription, ')
           ..write('problemStatus: $problemStatus, ')
           ..write('problemSolvingDescription: $problemSolvingDescription, ')
+          ..write('documentId: $documentId, ')
           ..write('machineId: $machineId, ')
           ..write('machineName: $machineName, ')
           ..write('jobId: $jobId, ')
@@ -5044,6 +5074,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
         problemDescription,
         problemStatus,
         problemSolvingDescription,
+        documentId,
         machineId,
         machineName,
         jobId,
@@ -5073,6 +5104,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
           other.problemDescription == this.problemDescription &&
           other.problemStatus == this.problemStatus &&
           other.problemSolvingDescription == this.problemSolvingDescription &&
+          other.documentId == this.documentId &&
           other.machineId == this.machineId &&
           other.machineName == this.machineName &&
           other.jobId == this.jobId &&
@@ -5100,6 +5132,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
   final Value<String?> problemDescription;
   final Value<int> problemStatus;
   final Value<String?> problemSolvingDescription;
+  final Value<String?> documentId;
   final Value<String?> machineId;
   final Value<String?> machineName;
   final Value<String?> jobId;
@@ -5125,6 +5158,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
     this.problemDescription = const Value.absent(),
     this.problemStatus = const Value.absent(),
     this.problemSolvingDescription = const Value.absent(),
+    this.documentId = const Value.absent(),
     this.machineId = const Value.absent(),
     this.machineName = const Value.absent(),
     this.jobId = const Value.absent(),
@@ -5151,6 +5185,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
     this.problemDescription = const Value.absent(),
     this.problemStatus = const Value.absent(),
     this.problemSolvingDescription = const Value.absent(),
+    this.documentId = const Value.absent(),
     this.machineId = const Value.absent(),
     this.machineName = const Value.absent(),
     this.jobId = const Value.absent(),
@@ -5177,6 +5212,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
     Expression<String>? problemDescription,
     Expression<int>? problemStatus,
     Expression<String>? problemSolvingDescription,
+    Expression<String>? documentId,
     Expression<String>? machineId,
     Expression<String>? machineName,
     Expression<String>? jobId,
@@ -5204,6 +5240,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
       if (problemStatus != null) 'ProblemStatus': problemStatus,
       if (problemSolvingDescription != null)
         'SolvingDescription': problemSolvingDescription,
+      if (documentId != null) 'documentId': documentId,
       if (machineId != null) 'machineId': machineId,
       if (machineName != null) 'machineName': machineName,
       if (jobId != null) 'jobId': jobId,
@@ -5232,6 +5269,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
       Value<String?>? problemDescription,
       Value<int>? problemStatus,
       Value<String?>? problemSolvingDescription,
+      Value<String?>? documentId,
       Value<String?>? machineId,
       Value<String?>? machineName,
       Value<String?>? jobId,
@@ -5258,6 +5296,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
       problemStatus: problemStatus ?? this.problemStatus,
       problemSolvingDescription:
           problemSolvingDescription ?? this.problemSolvingDescription,
+      documentId: documentId ?? this.documentId,
       machineId: machineId ?? this.machineId,
       machineName: machineName ?? this.machineName,
       jobId: jobId ?? this.jobId,
@@ -5300,6 +5339,9 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
     if (problemSolvingDescription.present) {
       map['SolvingDescription'] =
           Variable<String>(problemSolvingDescription.value);
+    }
+    if (documentId.present) {
+      map['documentId'] = Variable<String>(documentId.value);
     }
     if (machineId.present) {
       map['machineId'] = Variable<String>(machineId.value);
@@ -5367,6 +5409,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
           ..write('problemDescription: $problemDescription, ')
           ..write('problemStatus: $problemStatus, ')
           ..write('problemSolvingDescription: $problemSolvingDescription, ')
+          ..write('documentId: $documentId, ')
           ..write('machineId: $machineId, ')
           ..write('machineName: $machineName, ')
           ..write('jobId: $jobId, ')
@@ -8827,6 +8870,7 @@ typedef $$ProblemsTableCreateCompanionBuilder = ProblemsCompanion Function({
   Value<String?> problemDescription,
   Value<int> problemStatus,
   Value<String?> problemSolvingDescription,
+  Value<String?> documentId,
   Value<String?> machineId,
   Value<String?> machineName,
   Value<String?> jobId,
@@ -8853,6 +8897,7 @@ typedef $$ProblemsTableUpdateCompanionBuilder = ProblemsCompanion Function({
   Value<String?> problemDescription,
   Value<int> problemStatus,
   Value<String?> problemSolvingDescription,
+  Value<String?> documentId,
   Value<String?> machineId,
   Value<String?> machineName,
   Value<String?> jobId,
@@ -8901,6 +8946,9 @@ class $$ProblemsTableFilterComposer
   ColumnFilters<String> get problemSolvingDescription => $composableBuilder(
       column: $table.problemSolvingDescription,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get machineId => $composableBuilder(
       column: $table.machineId, builder: (column) => ColumnFilters(column));
@@ -8988,6 +9036,9 @@ class $$ProblemsTableOrderingComposer
       column: $table.problemSolvingDescription,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get machineId => $composableBuilder(
       column: $table.machineId, builder: (column) => ColumnOrderings(column));
 
@@ -9071,6 +9122,9 @@ class $$ProblemsTableAnnotationComposer
 
   GeneratedColumn<String> get problemSolvingDescription => $composableBuilder(
       column: $table.problemSolvingDescription, builder: (column) => column);
+
+  GeneratedColumn<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => column);
 
   GeneratedColumn<String> get machineId =>
       $composableBuilder(column: $table.machineId, builder: (column) => column);
@@ -9156,6 +9210,7 @@ class $$ProblemsTableTableManager extends RootTableManager<
             Value<String?> problemDescription = const Value.absent(),
             Value<int> problemStatus = const Value.absent(),
             Value<String?> problemSolvingDescription = const Value.absent(),
+            Value<String?> documentId = const Value.absent(),
             Value<String?> machineId = const Value.absent(),
             Value<String?> machineName = const Value.absent(),
             Value<String?> jobId = const Value.absent(),
@@ -9182,6 +9237,7 @@ class $$ProblemsTableTableManager extends RootTableManager<
             problemDescription: problemDescription,
             problemStatus: problemStatus,
             problemSolvingDescription: problemSolvingDescription,
+            documentId: documentId,
             machineId: machineId,
             machineName: machineName,
             jobId: jobId,
@@ -9208,6 +9264,7 @@ class $$ProblemsTableTableManager extends RootTableManager<
             Value<String?> problemDescription = const Value.absent(),
             Value<int> problemStatus = const Value.absent(),
             Value<String?> problemSolvingDescription = const Value.absent(),
+            Value<String?> documentId = const Value.absent(),
             Value<String?> machineId = const Value.absent(),
             Value<String?> machineName = const Value.absent(),
             Value<String?> jobId = const Value.absent(),
@@ -9234,6 +9291,7 @@ class $$ProblemsTableTableManager extends RootTableManager<
             problemDescription: problemDescription,
             problemStatus: problemStatus,
             problemSolvingDescription: problemSolvingDescription,
+            documentId: documentId,
             machineId: machineId,
             machineName: machineName,
             jobId: jobId,

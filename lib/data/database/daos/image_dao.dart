@@ -9,6 +9,7 @@ part 'image_dao.g.dart'; // This line tells drift to generate a file named image
 class ImageDao extends DatabaseAccessor<AppDatabase> with _$ImageDaoMixin {
   ImageDao(AppDatabase db) : super(db);
 
+
   // Inserts a new image record.
   Future<int> insertImage(ImagesCompanion entry) => into(images).insert(entry);
 
@@ -41,6 +42,20 @@ class ImageDao extends DatabaseAccessor<AppDatabase> with _$ImageDaoMixin {
     
     return query.watch();
   }
+  
+ // Corrected: Counts images for a specific problemId.
+   Future<int> countImagesForProblem(String problemId) async {
+    // CRUCIAL FIX: Correct way to get a single count.
+    // Use `select(images).where(...).get().then((list) => list.length)`
+    // OR use `count()` on the query directly.
+    final count = await (select(images)
+          ..where((tbl) => tbl.problemId.equals(problemId)))
+        .get() // Get all matching images
+        .then((list) => list.length); // Then count the length of the list
+
+    return count;
+  }
+
 
   // Gets a single image by its UID.
   Future<DbImage?> getImageByUid(int uid) {

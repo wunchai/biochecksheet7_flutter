@@ -176,6 +176,8 @@ class MyApp extends StatelessWidget {
             machineId: args?['machineId'] ?? '',
             jobId: args?['jobId'] ?? '',
             tagId: args?['tagId'] ?? '',
+            problemId: args?['problemId']?.toString() ?? '', // <<< CRUCIAL FIX: Ensure it's String and not null
+            isReadOnly: args?['isReadOnly'] ?? false, // <<< NEW: Receive isReadOnly
           );
         },
         '/problem': (context) => const ProblemScreen(title: 'Problem List'), // <<< NEW: Add ProblemScreen Route

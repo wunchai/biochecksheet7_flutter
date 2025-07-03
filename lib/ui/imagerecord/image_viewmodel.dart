@@ -34,8 +34,11 @@ class ImageViewModel extends ChangeNotifier {
   String? get jobId => _jobId;
   String? _tagId; // Tag ID ของ Record ที่เกี่ยวข้องกับรูปภาพ
   String? get tagId => _tagId;
-  String? _problemId; // <<< NEW: Problem ID
+  String? _problemId; // Problem ID
   String? get problemId => _problemId;
+
+   bool _isReadOnly = false; // <<< NEW: Add isReadOnly property
+  bool get isReadOnly => _isReadOnly;
 
   Stream<List<DbImage>>? _imagesStream; // Stream สำหรับรายการรูปภาพ
   Stream<List<DbImage>>? get imagesStream => _imagesStream;
@@ -62,18 +65,20 @@ class ImageViewModel extends ChangeNotifier {
 
   /// โหลดรูปภาพจาก Local Database ตาม documentId, machineId, jobId, tagId.
   Future<void> loadImages({
-    required String documentId,
+     required String documentId,
     required String machineId,
     required String jobId,
     required String tagId,
-    String? problemId, // <<< NEW: Optional problemId
+    String? problemId,
+    required bool isReadOnly, // <<< NEW: Receive isReadOnly status
   }) async {
     _isLoading = true;
     _documentId = documentId;
     _machineId = machineId;
     _jobId = jobId;
     _tagId = tagId;
-     _problemId = problemId; // Store problemId
+    _problemId = problemId; // Store problemId
+    _isReadOnly = isReadOnly; // <<< Store isReadOnly status
     _statusMessage = "กำลังดึงรูปภาพ...";
     notifyListeners();
 
@@ -119,6 +124,7 @@ class ImageViewModel extends ChangeNotifier {
         jobId: _jobId!,
         tagId: _tagId!,
         problemId: _problemId, // Pass stored problemId
+        isReadOnly: _isReadOnly, // Pass stored isReadOnly
       );
       _syncMessage = "รูปภาพ Refresh แล้ว!";
     } catch (e) {
@@ -143,17 +149,16 @@ class ImageViewModel extends ChangeNotifier {
 
   /// Helper method to handle image picking/taking, resizing, local saving, and DB insertion.
   Future<void> _processAndSaveImage(ImageSource source) async {
-    if (_documentId == null ||
-        _machineId == null ||
-        _jobId == null ||
-        _tagId == null) {
-      _syncMessage =
-          "ไม่สามารถดำเนินการได้: ID ขาดหาย (Document/Machine/Job/Tag).";
+   // CRUCIAL FIX: Ensure _documentId is not null or empty string before proceeding.
+    // This check is the root cause of many 'null' issues if documentId isn't passed correctly.
+    if (_documentId == null || _documentId!.isEmpty || _machineId == null || _machineId!.isEmpty || _jobId == null || _jobId!.isEmpty || _tagId == null || _tagId!.isEmpty) {
+      _syncMessage = "ไม่สามารถดำเนินการได้: ID ขาดหาย (Document/Machine/Job/Tag).";
       _statusMessage = "ดำเนินการล้มเหลว.";
       notifyListeners();
       return;
     }
 
+    /*
  // Check if problemId is needed for this context (if coming from ProblemScreen)
     if (_problemId == null && _tagId == null) { // Or if you want to enforce problemId when it's a problem image
         _syncMessage = "ไม่สามารถดำเนินการได้: Problem ID หรือ Tag ID ขาดหาย.";
@@ -161,6 +166,7 @@ class ImageViewModel extends ChangeNotifier {
         notifyListeners();
         return;
     }
+    */
 
 
     _isLoading = true;

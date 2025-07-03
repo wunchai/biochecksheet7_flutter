@@ -353,7 +353,10 @@ print('Result Remark: $resultRemark');
                                                // NEW: Image Button (for any tag type)
                                             IconButton(
                                               icon: const Icon(Icons.image), // Icon for image
-                                              onPressed: isRecordReadOnly ? null : () { // Disable if read-only
+                                              onPressed:  () { // Disable if read-only
+                                               final bool isImageScreenReadOnly = record.status == 2; // <<< NEW: Calculate isReadOnly for ImageScreen
+                                                print('DocumentRecordScreen: Image button pressed for DocID: "${widget.documentId}", Tag ID: "${record.tagId}", IsImageScreenReadOnly: $isImageScreenReadOnly');
+                                          
                                                 // Navigate to ImageRecordScreen, passing all relevant IDs
                                                 Navigator.pushNamed(
                                                   context,
@@ -364,6 +367,8 @@ print('Result Remark: $resultRemark');
                                                     'machineId': widget.machineId,
                                                     'jobId': widget.jobId,
                                                     'tagId': record.tagId, // Pass the tagId of this record
+                                                    'problemId': null, // No problemId for regular document records
+                                                    'isReadOnly': isImageScreenReadOnly, // <<< NEW: Pass isReadOnly
                                                   },
                                                 );
                                                 print('Image button pressed for Tag ID: ${record.tagId}');

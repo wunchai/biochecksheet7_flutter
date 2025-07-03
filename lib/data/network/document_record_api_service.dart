@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart'; // สำหรับ DbDocumentRecord
-
+import 'package:biochecksheet7_flutter/data/network/api_response_models.dart';
 // TODO: อาจจะต้องสร้าง Data Model สำหรับ Historical Record ถ้ามี Field ที่แตกต่างจาก DbDocumentRecord
 // import 'package:biochecksheet7_flutter/data/models/historical_record_data.dart';
 
@@ -152,6 +152,61 @@ class DocumentRecordApiService {
     } catch (e) {
       print("An unexpected error occurred uploading records: $e");
       throw Exception("An unexpected error occurred uploading records: $e");
+    }
+  }
+   /// Returns a list of UploadRecordResult indicating success/failure for each record.
+  Future<List<UploadRecordResult>> uploadDocumentRecords(List<DbDocumentRecord> recordsToUpload) async {
+    final uri = Uri.parse("$_baseUrl/CheckSheet_DocumentRecord_Upload"); // Assumed API Endpoint
+    print("Uploading document records to API: $uri");
+    final headers = {"Content-Type": "application/json"};
+
+    final List<Map<String, dynamic>> jsonRecords = recordsToUpload.map((record) {
+      return {
+        "DocumentId": record.documentId,
+        "MachineId": record.machineId,
+        "JobId": record.jobId,
+        "TagId": record.tagId,
+        "Value": record.value,
+        "Remark": record.remark,
+        "UnReadable": record.unReadable ? 1 : 0, // Convert bool to int for API
+        "Status": record.status,
+        "SyncStatus": record.syncStatus,
+        "LastSync": record.lastSync,
+        "RecordBy": record.recordBy,
+        "uid": record.uid, // Make sure UID is included for mapping results
+      };
+    }).toList();
+
+    final body = jsonEncode({
+      "ServiceName": "CheckSheet_DocumentRecord_Upload",
+      "Paremeter": jsonEncode(jsonRecords)
+    });
+    print("Request body for document record upload: $body");
+
+    try {
+      final response = await http.post(uri, headers: headers, body: body);
+      final String decodedBody = utf8.decode(response.bodyBytes);
+      print("Document Record Upload API Response status: ${response.statusCode}");
+      print("Document Record Upload API Response body: $decodedBody");
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
+        // Assuming server returns a 'Table' key with a list of results
+        if (responseJson['Table'] != null && responseJson['Table'] is List) {
+          final List<dynamic> resultsList = responseJson['Table'];
+          return resultsList.map((item) => UploadRecordResult.fromJson(item)).toList();
+        } else {
+          throw Exception("Document Record Upload API response format invalid (missing 'Table' key or not a list).");
+        }
+      } else {
+        throw Exception("Document Record Upload API failed: Status code ${response.statusCode}");
+      }
+    } on http.ClientException catch (e) {
+      print("Network error uploading document records: ${e.message}");
+      throw Exception("Network error uploading document records: ${e.message}");
+    } catch (e) {
+      print("An unexpected error occurred uploading document records: $e");
+      throw Exception("An unexpected error occurred uploading document records: $e");
     }
   }
 }

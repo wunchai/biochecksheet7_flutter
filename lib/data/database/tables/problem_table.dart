@@ -22,6 +22,9 @@ class Problems extends Table {
   // @ColumnInfo(name = "SolvingDescription") var description: String? = null
   TextColumn get problemSolvingDescription => text().named('SolvingDescription').nullable()();
 
+ // NEW: Add documentId column
+  TextColumn get documentId => text().named('documentId').nullable()(); // <<< NEW: documentId
+
  // @ColumnInfo(name = "machineId") var machineId: String? = null
   TextColumn get machineId => text().named('machineId').nullable()();
   

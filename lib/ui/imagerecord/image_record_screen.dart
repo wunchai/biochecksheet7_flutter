@@ -18,7 +18,9 @@ class ImageRecordScreen extends StatefulWidget {
   final String machineId;
   final String jobId;
   final String tagId; // Tag ID ของ Record ที่ผูกรูปภาพด้วย
-  final String? problemId; // <<< NEW: Problem ID (optional)
+  final String? problemId; // <<< เปลี่ยนเป็น String? เหมือนเดิม แต่จะตรวจสอบค่า
+  final bool isReadOnly; // <<< NEW: Add isReadOnly parameter
+
 
   const ImageRecordScreen({
     super.key,
@@ -27,7 +29,8 @@ class ImageRecordScreen extends StatefulWidget {
     required this.machineId,
     required this.jobId,
     required this.tagId,
-     this.problemId, // <<< NEW
+    this.problemId, // <<< Keep as optional, but ensure it's passed correctly
+    required this.isReadOnly, // <<< NEW
   });
 
   @override
@@ -48,6 +51,7 @@ class _ImageRecordScreenState extends State<ImageRecordScreen> {
         jobId: widget.jobId,
         tagId: widget.tagId,
         problemId: widget.problemId, // <<< NEW: Pass problemId
+        isReadOnly: widget.isReadOnly, // <<< Pass isReadOnly to ViewModel
       );
     });
   }
@@ -68,7 +72,7 @@ class _ImageRecordScreenState extends State<ImageRecordScreen> {
           // ปุ่มถ่ายรูป
           IconButton(
             icon: const Icon(Icons.camera_alt),
-            onPressed: () {
+            onPressed: widget.isReadOnly ? null : () {
               final viewModel = Provider.of<ImageViewModel>(context, listen: false);
               viewModel.takePhotoAndSave();
             },
@@ -76,7 +80,7 @@ class _ImageRecordScreenState extends State<ImageRecordScreen> {
           // ปุ่มอัปโหลดรูปภาพจากไฟล์
           IconButton(
             icon: const Icon(Icons.photo_library), // Icon for picking from gallery
-            onPressed: () {
+            onPressed:widget.isReadOnly ? null : () {
               final viewModel = Provider.of<ImageViewModel>(context, listen: false);
               viewModel.pickImageAndSave(); // Call the new method
             },
@@ -213,7 +217,7 @@ class _ImageRecordScreenState extends State<ImageRecordScreen> {
                                           right: 8,
                                           child: IconButton(
                                             icon: const Icon(Icons.delete, color: Colors.red),
-                                            onPressed: () async {
+                                            onPressed: viewModel.isReadOnly ? null : () async {
                                               final confirmDelete = await showDialog<bool>(
                                                 context: context,
                                                 builder: (BuildContext context) {

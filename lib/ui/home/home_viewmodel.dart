@@ -117,4 +117,33 @@ class HomeViewModel extends ChangeNotifier {
     editText6Controller.clear();
     applyFilters();
   }
+
+   /// NEW: อัปโหลด DocumentRecords ทั้งหมดที่มี status 2 และ syncStatus 0 ขึ้น Server.
+  Future<void> uploadAllDocumentRecords() async {
+    _isLoading = true;
+    _syncMessage = null;
+    _statusMessage = "กำลังอัปโหลด DocumentRecords...";
+    notifyListeners();
+
+    try {
+      final syncResult = await _dataSyncService.performDocumentRecordUploadSync();
+
+      if (syncResult is SyncSuccess) {
+        _syncMessage = syncResult.message;
+        _statusMessage = "อัปโหลด DocumentRecords สำเร็จ.";
+      } else if (syncResult is SyncError) {
+        _syncMessage = syncResult.exception;
+        _statusMessage = "อัปโหลด DocumentRecords ล้มเหลว.";
+      }
+    } catch (e) {
+      _syncMessage = "ข้อผิดพลาดในการอัปโหลด DocumentRecords: $e";
+      _statusMessage = "อัปโหลด DocumentRecords ล้มเหลว: $e";
+      print("Error uploading all document records: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+      // อาจจะต้อง refresh jobs ด้วย ถ้าการอัปโหลดมีผลต่อการแสดงผลของ Job
+      // หรือเพียงแค่ notifyListeners() เพื่ออัปเดตสถานะ
+    }
+  }
 }

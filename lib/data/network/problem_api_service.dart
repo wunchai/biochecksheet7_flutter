@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart'; // For DbProblem
+import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import api_response_models.dart
 
 const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
 
@@ -33,6 +34,7 @@ class ProblemApiService {
         if (responseJson['Table'] != null && responseJson['Table'] is List) {
           final List<dynamic> problemList = responseJson['Table'];
           final List<DbProblem> syncedProblems = problemList.map((problemData) {
+             print('ProblemApiService: Mapping API problemData for problemId: "${problemData['problemId']}", documentId: "${problemData['documentId']}"'); // <<< Debugging
             return DbProblem(
               uid: 0, // Auto-increment
               problemId: problemData['problemId']?.toString(),
@@ -40,6 +42,7 @@ class ProblemApiService {
               problemDescription: problemData['problemDescription'], // <<< Corrected: Use ProblemDescription
               problemStatus: int.tryParse(problemData['problemStatus']?.toString() ?? '0') ?? 0,
               problemSolvingDescription: problemData['problemSolvingDescription'],
+              documentId: problemData['documentId']?.toString(), // <<< NEW: Map documentId              
               machineId: problemData['machineId']?.toString(), // <<< NEW: Map machineId
               machineName: problemData['machineName'], // <<< NEW: Map machineName
               jobId: problemData['jobId']?.toString(), // <<< NEW: Map jobId
@@ -77,26 +80,29 @@ class ProblemApiService {
   }
 
   /// Uploads a list of DbProblem to the API (e.g., after solving).
-  Future<bool> uploadProblems(List<DbProblem> problemsToUpload) async {
-    final uri = Uri.parse("$_baseUrl/CheckSheet_Problem_Upload"); // Assumed API Endpoint
+  /// Returns a list of UploadRecordResult indicating success/failure for each problem.
+  Future<List<UploadRecordResult>> uploadProblems(List<DbProblem> problemsToUpload) async { // <<< Corrected Return Type
+    final uri = Uri.parse("$_baseUrl/CHECKSHEET_PROBLEMRECORD_SYNC"); // Assumed API Endpoint
     print("Uploading problems to API: $uri");
     final headers = {"Content-Type": "application/json"};
 
     final List<Map<String, dynamic>> jsonProblems = problemsToUpload.map((problem) {
       return {
-        "ProblemId": problem.problemId,
-        "ProblemName": problem.problemName,
-        "ProblemDescription": problem.problemDescription, // <<< Corrected: Use ProblemDescription
-        "ProblemStatus": problem.problemStatus,
-        "SolvingDescription": problem.problemSolvingDescription,
-        "machineId": problem.machineId, // <<< NEW: Map machineId
-        "machineName": problem.machineName, // <<< NEW: Map machineName
-        "jobId": problem.jobId, // <<< NEW: Map jobId
+        "uid": problem.uid,
+        "problemId": problem.problemId,
+        "problemName": problem.problemName,
+        "problemDescription": problem.problemDescription,
+        "problemStatus": problem.problemStatus,
+        "solvingDescription": problem.problemSolvingDescription,
+        "machineId": problem.machineId,
+        "machineName": problem.machineName,
+        "jobId": problem.jobId,
+        "documentId": problem.documentId,
         "tagId": problem.tagId,
         "tagName": problem.tagName,
         "tagType": problem.tagType,
-        "TagDescription": problem.description, // <<< Corrected: Use TagDescription
-        "Note": problem.note,
+        "tagDescription": problem.description,
+        "note": problem.note,
         "specification": problem.specification,
         "specMin": problem.specMin,
         "specMax": problem.specMax,
@@ -105,14 +111,21 @@ class ProblemApiService {
         "remark": problem.remark,
         "unReadable": problem.unReadable,
         "lastSync": problem.lastSync,
-        "SolvingBy": problem.problemSolvingBy,
-        "syncStatus": problem.syncStatus,
+        "solvingBy": problem.problemSolvingBy,
+      
       };
     }).toList();
 
+   final Map<String, dynamic> parameterObject = {      
+      "record": jsonEncode(jsonProblems),
+      "username": "000000" // Assuming username parameter is still required for auth/context
+      // ถ้ามี Password ก็เพิ่ม Passw
+      //ord: "your_password"
+    };
+
     final body = jsonEncode({
-      "ServiceName": "CheckSheet_Problem_Upload",
-      "Paremeter": jsonEncode(jsonProblems)
+      "ServiceName": "CHECKSHEET_PROBLEMRECORD_SYNC",
+      "Paremeter": jsonEncode(parameterObject)
     });
     print("Request body for problem upload: $body");
 
@@ -124,7 +137,13 @@ class ProblemApiService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
-        return responseJson['Success'] == true; // Adjust based on your server's success indicator
+        // Assuming server returns a 'Table' key with a list of results
+        if (responseJson['Table1'] != null && responseJson['Table1'] is List) {
+          final List<dynamic> resultsList = responseJson['Table1'];
+          return resultsList.map((item) => UploadRecordResult.fromJson(item)).toList(); // Map to UploadRecordResult
+        } else {
+          throw Exception("Problem Upload API response format invalid (missing 'Table1' key or not a list).");
+        }
       } else {
         throw Exception("Problem Upload API failed: Status code ${response.statusCode}");
       }

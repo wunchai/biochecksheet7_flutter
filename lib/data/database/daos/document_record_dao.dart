@@ -29,6 +29,27 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase> with _$DocumentRec
               tbl.status.equals(status)))
         .get();
   }
+  /// NEW: Watches DocumentRecords that are ready for upload (status = 2 and syncStatus = 0).
+  Stream<List<DbDocumentRecord>> watchRecordsForUpload() {
+    return (select(documentRecords)
+          ..where((tbl) =>
+              tbl.status.equals(2) & // Status 2: Ready for upload
+              tbl.syncStatus.equals(0))) // SyncStatus 0: Not yet synced
+        .watch();
+  }
+
+  /// NEW: Updates the status and syncStatus of a DocumentRecord by UID.
+  Future<bool> updateDocumentRecordStatusAndSyncStatus(
+      int uid, int newStatus, int newSyncStatus) async {
+    return (update(documentRecords)..where((tbl) => tbl.uid.equals(uid))).go({
+      DocumentRecordsCompanion(
+        status: Value(newStatus),
+        syncStatus: Value(newSyncStatus),
+        lastSync: Value(DateTime.now().toIso8601String()), // Update last sync time
+      ),
+    });
+  }
+
   
  // Gets a single document record by its local UID.
   Future<DbDocumentRecord?> getDocumentRecordByUid(int uid) {

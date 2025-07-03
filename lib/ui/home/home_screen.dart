@@ -43,7 +43,19 @@ class _HomeScreenState extends State<HomeScreen> {
               Provider.of<HomeViewModel>(context, listen: false).performFullSync(); // <<< แก้ไขตรงนี้
             },
           ),
-          // Logout Button
+              // NEW: Upload Document Records button
+          Consumer<HomeViewModel>(
+            builder: (context, viewModel, child) {
+              return IconButton(
+                icon: const Icon(Icons.upload_file), // Icon for upload
+                onPressed: viewModel.isLoading
+                    ? null // Disable if loading
+                    : () {
+                        viewModel.uploadAllDocumentRecords();
+                      },
+              );
+            },
+          ),// Logout Button
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {

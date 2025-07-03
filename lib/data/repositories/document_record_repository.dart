@@ -460,4 +460,23 @@ class DocumentRecordRepository {
       throw Exception('Records upload failed: $e');
     }
   }
+   /// NEW: Gets DocumentRecords that are ready for upload (status = 2 and syncStatus = 0).
+  Future<List<DbDocumentRecord>> getRecordsForUpload() async {
+    return _documentRecordDao.watchRecordsForUpload().first;
+  }
+
+
+  /// NEW: Updates the status and syncStatus of a DocumentRecord by UID.
+  Future<bool> updateRecordStatusAndSyncStatus(
+      int uid, int newStatus, int newSyncStatus) async {
+    return _documentRecordDao.updateDocumentRecordStatusAndSyncStatus(
+        uid, newStatus, newSyncStatus);
+  }
+
+  /// NEW: Uploads a list of DbDocumentRecord to the API.
+  /// Returns a list of UploadRecordResult indicating success/failure for each record.
+  Future<List<UploadRecordResult>> uploadDocumentRecordsToServer(
+      List<DbDocumentRecord> recordsToUpload) async {
+    return _documentRecordApiService.uploadDocumentRecords(recordsToUpload);
+  }
 }
