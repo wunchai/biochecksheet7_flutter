@@ -75,4 +75,5 @@ class Problems extends Table {
   TextColumn get problemSolvingBy => text().named('SolvingBy').nullable()(); 
 
   IntColumn get syncStatus => integer().named('syncStatus').withDefault(const Constant(0))(); // Default to 0
+  TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
 }

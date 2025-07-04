@@ -72,6 +72,12 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, DbJob> {
   late final GeneratedColumn<String> createBy = GeneratedColumn<String>(
       'CreateBy', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -83,7 +89,8 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, DbJob> {
         jobStatus,
         lastSync,
         createDate,
-        createBy
+        createBy,
+        updatedAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -141,6 +148,10 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, DbJob> {
       context.handle(_createByMeta,
           createBy.isAcceptableOrUnknown(data['CreateBy']!, _createByMeta));
     }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
     return context;
   }
 
@@ -170,6 +181,8 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, DbJob> {
           .read(DriftSqlType.string, data['${effectivePrefix}CreateDate']),
       createBy: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}CreateBy']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
     );
   }
 
@@ -190,6 +203,7 @@ class DbJob extends DataClass implements Insertable<DbJob> {
   final String? lastSync;
   final String? createDate;
   final String? createBy;
+  final String? updatedAt;
   const DbJob(
       {required this.uid,
       this.jobId,
@@ -200,7 +214,8 @@ class DbJob extends DataClass implements Insertable<DbJob> {
       required this.jobStatus,
       this.lastSync,
       this.createDate,
-      this.createBy});
+      this.createBy,
+      this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -229,6 +244,9 @@ class DbJob extends DataClass implements Insertable<DbJob> {
     }
     if (!nullToAbsent || createBy != null) {
       map['CreateBy'] = Variable<String>(createBy);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
     }
     return map;
   }
@@ -260,6 +278,9 @@ class DbJob extends DataClass implements Insertable<DbJob> {
       createBy: createBy == null && nullToAbsent
           ? const Value.absent()
           : Value(createBy),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -277,6 +298,7 @@ class DbJob extends DataClass implements Insertable<DbJob> {
       lastSync: serializer.fromJson<String?>(json['lastSync']),
       createDate: serializer.fromJson<String?>(json['createDate']),
       createBy: serializer.fromJson<String?>(json['createBy']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
   @override
@@ -293,6 +315,7 @@ class DbJob extends DataClass implements Insertable<DbJob> {
       'lastSync': serializer.toJson<String?>(lastSync),
       'createDate': serializer.toJson<String?>(createDate),
       'createBy': serializer.toJson<String?>(createBy),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
 
@@ -306,7 +329,8 @@ class DbJob extends DataClass implements Insertable<DbJob> {
           int? jobStatus,
           Value<String?> lastSync = const Value.absent(),
           Value<String?> createDate = const Value.absent(),
-          Value<String?> createBy = const Value.absent()}) =>
+          Value<String?> createBy = const Value.absent(),
+          Value<String?> updatedAt = const Value.absent()}) =>
       DbJob(
         uid: uid ?? this.uid,
         jobId: jobId.present ? jobId.value : this.jobId,
@@ -318,6 +342,7 @@ class DbJob extends DataClass implements Insertable<DbJob> {
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
         createDate: createDate.present ? createDate.value : this.createDate,
         createBy: createBy.present ? createBy.value : this.createBy,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
   DbJob copyWithCompanion(JobsCompanion data) {
     return DbJob(
@@ -334,6 +359,7 @@ class DbJob extends DataClass implements Insertable<DbJob> {
       createDate:
           data.createDate.present ? data.createDate.value : this.createDate,
       createBy: data.createBy.present ? data.createBy.value : this.createBy,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -349,14 +375,15 @@ class DbJob extends DataClass implements Insertable<DbJob> {
           ..write('jobStatus: $jobStatus, ')
           ..write('lastSync: $lastSync, ')
           ..write('createDate: $createDate, ')
-          ..write('createBy: $createBy')
+          ..write('createBy: $createBy, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(uid, jobId, jobName, machineName, documentId,
-      location, jobStatus, lastSync, createDate, createBy);
+      location, jobStatus, lastSync, createDate, createBy, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -370,7 +397,8 @@ class DbJob extends DataClass implements Insertable<DbJob> {
           other.jobStatus == this.jobStatus &&
           other.lastSync == this.lastSync &&
           other.createDate == this.createDate &&
-          other.createBy == this.createBy);
+          other.createBy == this.createBy &&
+          other.updatedAt == this.updatedAt);
 }
 
 class JobsCompanion extends UpdateCompanion<DbJob> {
@@ -384,6 +412,7 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
   final Value<String?> lastSync;
   final Value<String?> createDate;
   final Value<String?> createBy;
+  final Value<String?> updatedAt;
   const JobsCompanion({
     this.uid = const Value.absent(),
     this.jobId = const Value.absent(),
@@ -395,6 +424,7 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
     this.lastSync = const Value.absent(),
     this.createDate = const Value.absent(),
     this.createBy = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   JobsCompanion.insert({
     this.uid = const Value.absent(),
@@ -407,6 +437,7 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
     this.lastSync = const Value.absent(),
     this.createDate = const Value.absent(),
     this.createBy = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   static Insertable<DbJob> custom({
     Expression<int>? uid,
@@ -419,6 +450,7 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
     Expression<String>? lastSync,
     Expression<String>? createDate,
     Expression<String>? createBy,
+    Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -431,6 +463,7 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
       if (lastSync != null) 'lastSync': lastSync,
       if (createDate != null) 'CreateDate': createDate,
       if (createBy != null) 'CreateBy': createBy,
+      if (updatedAt != null) 'updatedAt': updatedAt,
     });
   }
 
@@ -444,7 +477,8 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
       Value<int>? jobStatus,
       Value<String?>? lastSync,
       Value<String?>? createDate,
-      Value<String?>? createBy}) {
+      Value<String?>? createBy,
+      Value<String?>? updatedAt}) {
     return JobsCompanion(
       uid: uid ?? this.uid,
       jobId: jobId ?? this.jobId,
@@ -456,6 +490,7 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
       lastSync: lastSync ?? this.lastSync,
       createDate: createDate ?? this.createDate,
       createBy: createBy ?? this.createBy,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -492,6 +527,9 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
     if (createBy.present) {
       map['CreateBy'] = Variable<String>(createBy.value);
     }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
     return map;
   }
 
@@ -507,7 +545,8 @@ class JobsCompanion extends UpdateCompanion<DbJob> {
           ..write('jobStatus: $jobStatus, ')
           ..write('lastSync: $lastSync, ')
           ..write('createDate: $createDate, ')
-          ..write('createBy: $createBy')
+          ..write('createBy: $createBy, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -569,6 +608,12 @@ class $DocumentsTable extends Documents
   late final GeneratedColumn<String> lastSync = GeneratedColumn<String>(
       'lastSync', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -578,7 +623,8 @@ class $DocumentsTable extends Documents
         userId,
         createDate,
         status,
-        lastSync
+        lastSync,
+        updatedAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -628,6 +674,10 @@ class $DocumentsTable extends Documents
       context.handle(_lastSyncMeta,
           lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
     }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
     return context;
   }
 
@@ -653,6 +703,8 @@ class $DocumentsTable extends Documents
           .read(DriftSqlType.int, data['${effectivePrefix}status'])!,
       lastSync: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
     );
   }
 
@@ -671,6 +723,7 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
   final String? createDate;
   final int status;
   final String? lastSync;
+  final String? updatedAt;
   const DbDocument(
       {required this.uid,
       this.documentId,
@@ -679,7 +732,8 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
       this.userId,
       this.createDate,
       required this.status,
-      this.lastSync});
+      this.lastSync,
+      this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -702,6 +756,9 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
     map['status'] = Variable<int>(status);
     if (!nullToAbsent || lastSync != null) {
       map['lastSync'] = Variable<String>(lastSync);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
     }
     return map;
   }
@@ -726,6 +783,9 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
       lastSync: lastSync == null && nullToAbsent
           ? const Value.absent()
           : Value(lastSync),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -741,6 +801,7 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
       createDate: serializer.fromJson<String?>(json['createDate']),
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
   @override
@@ -755,6 +816,7 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
       'createDate': serializer.toJson<String?>(createDate),
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
 
@@ -766,7 +828,8 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
           Value<String?> userId = const Value.absent(),
           Value<String?> createDate = const Value.absent(),
           int? status,
-          Value<String?> lastSync = const Value.absent()}) =>
+          Value<String?> lastSync = const Value.absent(),
+          Value<String?> updatedAt = const Value.absent()}) =>
       DbDocument(
         uid: uid ?? this.uid,
         documentId: documentId.present ? documentId.value : this.documentId,
@@ -777,6 +840,7 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
         createDate: createDate.present ? createDate.value : this.createDate,
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
   DbDocument copyWithCompanion(DocumentsCompanion data) {
     return DbDocument(
@@ -792,6 +856,7 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
           data.createDate.present ? data.createDate.value : this.createDate,
       status: data.status.present ? data.status.value : this.status,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -805,14 +870,15 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
           ..write('userId: $userId, ')
           ..write('createDate: $createDate, ')
           ..write('status: $status, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(uid, documentId, jobId, documentName, userId,
-      createDate, status, lastSync);
+      createDate, status, lastSync, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -824,7 +890,8 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
           other.userId == this.userId &&
           other.createDate == this.createDate &&
           other.status == this.status &&
-          other.lastSync == this.lastSync);
+          other.lastSync == this.lastSync &&
+          other.updatedAt == this.updatedAt);
 }
 
 class DocumentsCompanion extends UpdateCompanion<DbDocument> {
@@ -836,6 +903,7 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
   final Value<String?> createDate;
   final Value<int> status;
   final Value<String?> lastSync;
+  final Value<String?> updatedAt;
   const DocumentsCompanion({
     this.uid = const Value.absent(),
     this.documentId = const Value.absent(),
@@ -845,6 +913,7 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
     this.createDate = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   DocumentsCompanion.insert({
     this.uid = const Value.absent(),
@@ -855,6 +924,7 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
     this.createDate = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   static Insertable<DbDocument> custom({
     Expression<int>? uid,
@@ -865,6 +935,7 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
     Expression<String>? createDate,
     Expression<int>? status,
     Expression<String>? lastSync,
+    Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -875,6 +946,7 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
       if (createDate != null) 'createDate': createDate,
       if (status != null) 'status': status,
       if (lastSync != null) 'lastSync': lastSync,
+      if (updatedAt != null) 'updatedAt': updatedAt,
     });
   }
 
@@ -886,7 +958,8 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
       Value<String?>? userId,
       Value<String?>? createDate,
       Value<int>? status,
-      Value<String?>? lastSync}) {
+      Value<String?>? lastSync,
+      Value<String?>? updatedAt}) {
     return DocumentsCompanion(
       uid: uid ?? this.uid,
       documentId: documentId ?? this.documentId,
@@ -896,6 +969,7 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
       createDate: createDate ?? this.createDate,
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -926,6 +1000,9 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
     if (lastSync.present) {
       map['lastSync'] = Variable<String>(lastSync.value);
     }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
     return map;
   }
 
@@ -939,7 +1016,8 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
           ..write('userId: $userId, ')
           ..write('createDate: $createDate, ')
           ..write('status: $status, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -1031,6 +1109,12 @@ class $DocumentMachinesTable extends DocumentMachines
   late final GeneratedColumn<String> createBy = GeneratedColumn<String>(
       'CreateBy', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -1045,7 +1129,8 @@ class $DocumentMachinesTable extends DocumentMachines
         lastSync,
         id,
         createDate,
-        createBy
+        createBy,
+        updatedAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1122,6 +1207,10 @@ class $DocumentMachinesTable extends DocumentMachines
       context.handle(_createByMeta,
           createBy.isAcceptableOrUnknown(data['CreateBy']!, _createByMeta));
     }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
     return context;
   }
 
@@ -1157,6 +1246,8 @@ class $DocumentMachinesTable extends DocumentMachines
           .read(DriftSqlType.string, data['${effectivePrefix}CreateDate']),
       createBy: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}CreateBy']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
     );
   }
 
@@ -1181,6 +1272,7 @@ class DbDocumentMachine extends DataClass
   final int id;
   final String? createDate;
   final String? createBy;
+  final String? updatedAt;
   const DbDocumentMachine(
       {required this.uid,
       this.jobId,
@@ -1194,7 +1286,8 @@ class DbDocumentMachine extends DataClass
       this.lastSync,
       required this.id,
       this.createDate,
-      this.createBy});
+      this.createBy,
+      this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1230,6 +1323,9 @@ class DbDocumentMachine extends DataClass
     }
     if (!nullToAbsent || createBy != null) {
       map['CreateBy'] = Variable<String>(createBy);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
     }
     return map;
   }
@@ -1268,6 +1364,9 @@ class DbDocumentMachine extends DataClass
       createBy: createBy == null && nullToAbsent
           ? const Value.absent()
           : Value(createBy),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -1288,6 +1387,7 @@ class DbDocumentMachine extends DataClass
       id: serializer.fromJson<int>(json['id']),
       createDate: serializer.fromJson<String?>(json['createDate']),
       createBy: serializer.fromJson<String?>(json['createBy']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
   @override
@@ -1307,6 +1407,7 @@ class DbDocumentMachine extends DataClass
       'id': serializer.toJson<int>(id),
       'createDate': serializer.toJson<String?>(createDate),
       'createBy': serializer.toJson<String?>(createBy),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
 
@@ -1323,7 +1424,8 @@ class DbDocumentMachine extends DataClass
           Value<String?> lastSync = const Value.absent(),
           int? id,
           Value<String?> createDate = const Value.absent(),
-          Value<String?> createBy = const Value.absent()}) =>
+          Value<String?> createBy = const Value.absent(),
+          Value<String?> updatedAt = const Value.absent()}) =>
       DbDocumentMachine(
         uid: uid ?? this.uid,
         jobId: jobId.present ? jobId.value : this.jobId,
@@ -1339,6 +1441,7 @@ class DbDocumentMachine extends DataClass
         id: id ?? this.id,
         createDate: createDate.present ? createDate.value : this.createDate,
         createBy: createBy.present ? createBy.value : this.createBy,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
   DbDocumentMachine copyWithCompanion(DocumentMachinesCompanion data) {
     return DbDocumentMachine(
@@ -1362,6 +1465,7 @@ class DbDocumentMachine extends DataClass
       createDate:
           data.createDate.present ? data.createDate.value : this.createDate,
       createBy: data.createBy.present ? data.createBy.value : this.createBy,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -1380,7 +1484,8 @@ class DbDocumentMachine extends DataClass
           ..write('lastSync: $lastSync, ')
           ..write('id: $id, ')
           ..write('createDate: $createDate, ')
-          ..write('createBy: $createBy')
+          ..write('createBy: $createBy, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -1399,7 +1504,8 @@ class DbDocumentMachine extends DataClass
       lastSync,
       id,
       createDate,
-      createBy);
+      createBy,
+      updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1416,7 +1522,8 @@ class DbDocumentMachine extends DataClass
           other.lastSync == this.lastSync &&
           other.id == this.id &&
           other.createDate == this.createDate &&
-          other.createBy == this.createBy);
+          other.createBy == this.createBy &&
+          other.updatedAt == this.updatedAt);
 }
 
 class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
@@ -1433,6 +1540,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
   final Value<int> id;
   final Value<String?> createDate;
   final Value<String?> createBy;
+  final Value<String?> updatedAt;
   const DocumentMachinesCompanion({
     this.uid = const Value.absent(),
     this.jobId = const Value.absent(),
@@ -1447,6 +1555,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     this.id = const Value.absent(),
     this.createDate = const Value.absent(),
     this.createBy = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   DocumentMachinesCompanion.insert({
     this.uid = const Value.absent(),
@@ -1462,6 +1571,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     required int id,
     this.createDate = const Value.absent(),
     this.createBy = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   }) : id = Value(id);
   static Insertable<DbDocumentMachine> custom({
     Expression<int>? uid,
@@ -1477,6 +1587,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     Expression<int>? id,
     Expression<String>? createDate,
     Expression<String>? createBy,
+    Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -1492,6 +1603,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
       if (id != null) 'id': id,
       if (createDate != null) 'CreateDate': createDate,
       if (createBy != null) 'CreateBy': createBy,
+      if (updatedAt != null) 'updatedAt': updatedAt,
     });
   }
 
@@ -1508,7 +1620,8 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
       Value<String?>? lastSync,
       Value<int>? id,
       Value<String?>? createDate,
-      Value<String?>? createBy}) {
+      Value<String?>? createBy,
+      Value<String?>? updatedAt}) {
     return DocumentMachinesCompanion(
       uid: uid ?? this.uid,
       jobId: jobId ?? this.jobId,
@@ -1523,6 +1636,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
       id: id ?? this.id,
       createDate: createDate ?? this.createDate,
       createBy: createBy ?? this.createBy,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -1568,6 +1682,9 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     if (createBy.present) {
       map['CreateBy'] = Variable<String>(createBy.value);
     }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
     return map;
   }
 
@@ -1586,7 +1703,8 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
           ..write('lastSync: $lastSync, ')
           ..write('id: $id, ')
           ..write('createDate: $createDate, ')
-          ..write('createBy: $createBy')
+          ..write('createBy: $createBy, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -1750,6 +1868,12 @@ class $DocumentRecordsTable extends DocumentRecords
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -1776,7 +1900,8 @@ class $DocumentRecordsTable extends DocumentRecords
         unReadable,
         lastSync,
         createBy,
-        syncStatus
+        syncStatus,
+        updatedAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1904,6 +2029,10 @@ class $DocumentRecordsTable extends DocumentRecords
           syncStatus.isAcceptableOrUnknown(
               data['syncStatus']!, _syncStatusMeta));
     }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
     return context;
   }
 
@@ -1963,6 +2092,8 @@ class $DocumentRecordsTable extends DocumentRecords
           .read(DriftSqlType.string, data['${effectivePrefix}CreateBy']),
       syncStatus: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}syncStatus'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
     );
   }
 
@@ -1999,6 +2130,7 @@ class DbDocumentRecord extends DataClass
   final String? lastSync;
   final String? createBy;
   final int syncStatus;
+  final String? updatedAt;
   const DbDocumentRecord(
       {required this.uid,
       this.documentId,
@@ -2024,7 +2156,8 @@ class DbDocumentRecord extends DataClass
       required this.unReadable,
       this.lastSync,
       this.createBy,
-      required this.syncStatus});
+      required this.syncStatus,
+      this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2095,6 +2228,9 @@ class DbDocumentRecord extends DataClass
       map['CreateBy'] = Variable<String>(createBy);
     }
     map['syncStatus'] = Variable<int>(syncStatus);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
+    }
     return map;
   }
 
@@ -2159,6 +2295,9 @@ class DbDocumentRecord extends DataClass
           ? const Value.absent()
           : Value(createBy),
       syncStatus: Value(syncStatus),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -2192,6 +2331,7 @@ class DbDocumentRecord extends DataClass
       lastSync: serializer.fromJson<String?>(json['lastSync']),
       createBy: serializer.fromJson<String?>(json['createBy']),
       syncStatus: serializer.fromJson<int>(json['syncStatus']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
   @override
@@ -2223,6 +2363,7 @@ class DbDocumentRecord extends DataClass
       'lastSync': serializer.toJson<String?>(lastSync),
       'createBy': serializer.toJson<String?>(createBy),
       'syncStatus': serializer.toJson<int>(syncStatus),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
 
@@ -2251,7 +2392,8 @@ class DbDocumentRecord extends DataClass
           String? unReadable,
           Value<String?> lastSync = const Value.absent(),
           Value<String?> createBy = const Value.absent(),
-          int? syncStatus}) =>
+          int? syncStatus,
+          Value<String?> updatedAt = const Value.absent()}) =>
       DbDocumentRecord(
         uid: uid ?? this.uid,
         documentId: documentId.present ? documentId.value : this.documentId,
@@ -2282,6 +2424,7 @@ class DbDocumentRecord extends DataClass
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
         createBy: createBy.present ? createBy.value : this.createBy,
         syncStatus: syncStatus ?? this.syncStatus,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
   DbDocumentRecord copyWithCompanion(DocumentRecordsCompanion data) {
     return DbDocumentRecord(
@@ -2321,6 +2464,7 @@ class DbDocumentRecord extends DataClass
       createBy: data.createBy.present ? data.createBy.value : this.createBy,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -2351,7 +2495,8 @@ class DbDocumentRecord extends DataClass
           ..write('unReadable: $unReadable, ')
           ..write('lastSync: $lastSync, ')
           ..write('createBy: $createBy, ')
-          ..write('syncStatus: $syncStatus')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -2382,7 +2527,8 @@ class DbDocumentRecord extends DataClass
         unReadable,
         lastSync,
         createBy,
-        syncStatus
+        syncStatus,
+        updatedAt
       ]);
   @override
   bool operator ==(Object other) =>
@@ -2412,7 +2558,8 @@ class DbDocumentRecord extends DataClass
           other.unReadable == this.unReadable &&
           other.lastSync == this.lastSync &&
           other.createBy == this.createBy &&
-          other.syncStatus == this.syncStatus);
+          other.syncStatus == this.syncStatus &&
+          other.updatedAt == this.updatedAt);
 }
 
 class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
@@ -2441,6 +2588,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
   final Value<String?> lastSync;
   final Value<String?> createBy;
   final Value<int> syncStatus;
+  final Value<String?> updatedAt;
   const DocumentRecordsCompanion({
     this.uid = const Value.absent(),
     this.documentId = const Value.absent(),
@@ -2467,6 +2615,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     this.lastSync = const Value.absent(),
     this.createBy = const Value.absent(),
     this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   DocumentRecordsCompanion.insert({
     this.uid = const Value.absent(),
@@ -2494,6 +2643,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     this.lastSync = const Value.absent(),
     this.createBy = const Value.absent(),
     this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   static Insertable<DbDocumentRecord> custom({
     Expression<int>? uid,
@@ -2521,6 +2671,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     Expression<String>? lastSync,
     Expression<String>? createBy,
     Expression<int>? syncStatus,
+    Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -2548,6 +2699,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
       if (lastSync != null) 'lastSync': lastSync,
       if (createBy != null) 'CreateBy': createBy,
       if (syncStatus != null) 'syncStatus': syncStatus,
+      if (updatedAt != null) 'updatedAt': updatedAt,
     });
   }
 
@@ -2576,7 +2728,8 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
       Value<String>? unReadable,
       Value<String?>? lastSync,
       Value<String?>? createBy,
-      Value<int>? syncStatus}) {
+      Value<int>? syncStatus,
+      Value<String?>? updatedAt}) {
     return DocumentRecordsCompanion(
       uid: uid ?? this.uid,
       documentId: documentId ?? this.documentId,
@@ -2603,6 +2756,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
       lastSync: lastSync ?? this.lastSync,
       createBy: createBy ?? this.createBy,
       syncStatus: syncStatus ?? this.syncStatus,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -2684,6 +2838,9 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     if (syncStatus.present) {
       map['syncStatus'] = Variable<int>(syncStatus.value);
     }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
     return map;
   }
 
@@ -2714,7 +2871,8 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
           ..write('unReadable: $unReadable, ')
           ..write('lastSync: $lastSync, ')
           ..write('createBy: $createBy, ')
-          ..write('syncStatus: $syncStatus')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -2783,6 +2941,12 @@ class $JobMachinesTable extends JobMachines
   late final GeneratedColumn<String> lastSync = GeneratedColumn<String>(
       'lastSync', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -2793,7 +2957,8 @@ class $JobMachinesTable extends JobMachines
         description,
         specification,
         status,
-        lastSync
+        lastSync,
+        updatedAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2849,6 +3014,10 @@ class $JobMachinesTable extends JobMachines
       context.handle(_lastSyncMeta,
           lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
     }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
     return context;
   }
 
@@ -2876,6 +3045,8 @@ class $JobMachinesTable extends JobMachines
           .read(DriftSqlType.int, data['${effectivePrefix}Status'])!,
       lastSync: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
     );
   }
 
@@ -2895,6 +3066,7 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
   final String? specification;
   final int status;
   final String? lastSync;
+  final String? updatedAt;
   const DbJobMachine(
       {required this.uid,
       this.jobId,
@@ -2904,7 +3076,8 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
       this.description,
       this.specification,
       required this.status,
-      this.lastSync});
+      this.lastSync,
+      this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2930,6 +3103,9 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
     map['Status'] = Variable<int>(status);
     if (!nullToAbsent || lastSync != null) {
       map['lastSync'] = Variable<String>(lastSync);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
     }
     return map;
   }
@@ -2958,6 +3134,9 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
       lastSync: lastSync == null && nullToAbsent
           ? const Value.absent()
           : Value(lastSync),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -2974,6 +3153,7 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
       specification: serializer.fromJson<String?>(json['specification']),
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
   @override
@@ -2989,6 +3169,7 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
       'specification': serializer.toJson<String?>(specification),
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
 
@@ -3001,7 +3182,8 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
           Value<String?> description = const Value.absent(),
           Value<String?> specification = const Value.absent(),
           int? status,
-          Value<String?> lastSync = const Value.absent()}) =>
+          Value<String?> lastSync = const Value.absent(),
+          Value<String?> updatedAt = const Value.absent()}) =>
       DbJobMachine(
         uid: uid ?? this.uid,
         jobId: jobId.present ? jobId.value : this.jobId,
@@ -3013,6 +3195,7 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
             specification.present ? specification.value : this.specification,
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
   DbJobMachine copyWithCompanion(JobMachinesCompanion data) {
     return DbJobMachine(
@@ -3030,6 +3213,7 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
           : this.specification,
       status: data.status.present ? data.status.value : this.status,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -3044,14 +3228,15 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
           ..write('description: $description, ')
           ..write('specification: $specification, ')
           ..write('status: $status, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(uid, jobId, machineId, machineName,
-      machineType, description, specification, status, lastSync);
+      machineType, description, specification, status, lastSync, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3064,7 +3249,8 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
           other.description == this.description &&
           other.specification == this.specification &&
           other.status == this.status &&
-          other.lastSync == this.lastSync);
+          other.lastSync == this.lastSync &&
+          other.updatedAt == this.updatedAt);
 }
 
 class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
@@ -3077,6 +3263,7 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
   final Value<String?> specification;
   final Value<int> status;
   final Value<String?> lastSync;
+  final Value<String?> updatedAt;
   const JobMachinesCompanion({
     this.uid = const Value.absent(),
     this.jobId = const Value.absent(),
@@ -3087,6 +3274,7 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
     this.specification = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   JobMachinesCompanion.insert({
     this.uid = const Value.absent(),
@@ -3098,6 +3286,7 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
     this.specification = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   static Insertable<DbJobMachine> custom({
     Expression<int>? uid,
@@ -3109,6 +3298,7 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
     Expression<String>? specification,
     Expression<int>? status,
     Expression<String>? lastSync,
+    Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -3120,6 +3310,7 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
       if (specification != null) 'Specification': specification,
       if (status != null) 'Status': status,
       if (lastSync != null) 'lastSync': lastSync,
+      if (updatedAt != null) 'updatedAt': updatedAt,
     });
   }
 
@@ -3132,7 +3323,8 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
       Value<String?>? description,
       Value<String?>? specification,
       Value<int>? status,
-      Value<String?>? lastSync}) {
+      Value<String?>? lastSync,
+      Value<String?>? updatedAt}) {
     return JobMachinesCompanion(
       uid: uid ?? this.uid,
       jobId: jobId ?? this.jobId,
@@ -3143,6 +3335,7 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
       specification: specification ?? this.specification,
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -3176,6 +3369,9 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
     if (lastSync.present) {
       map['lastSync'] = Variable<String>(lastSync.value);
     }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
     return map;
   }
 
@@ -3190,7 +3386,8 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
           ..write('description: $description, ')
           ..write('specification: $specification, ')
           ..write('status: $status, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -3343,6 +3540,12 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
   late final GeneratedColumn<String> tagSelectionValue =
       GeneratedColumn<String>('TagSelectionValue', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -3368,7 +3571,8 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
         createDate,
         createBy,
         valueType,
-        tagSelectionValue
+        tagSelectionValue,
+        updatedAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3490,6 +3694,10 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
           tagSelectionValue.isAcceptableOrUnknown(
               data['TagSelectionValue']!, _tagSelectionValueMeta));
     }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
     return context;
   }
 
@@ -3547,6 +3755,8 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
           .read(DriftSqlType.string, data['${effectivePrefix}ValueType']),
       tagSelectionValue: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}TagSelectionValue']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
     );
   }
 
@@ -3581,6 +3791,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
   final String? createBy;
   final String? valueType;
   final String? tagSelectionValue;
+  final String? updatedAt;
   const DbJobTag(
       {required this.uid,
       this.tagId,
@@ -3605,7 +3816,8 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       this.createDate,
       this.createBy,
       this.valueType,
-      this.tagSelectionValue});
+      this.tagSelectionValue,
+      this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3677,6 +3889,9 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
     if (!nullToAbsent || tagSelectionValue != null) {
       map['TagSelectionValue'] = Variable<String>(tagSelectionValue);
     }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
+    }
     return map;
   }
 
@@ -3742,6 +3957,9 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       tagSelectionValue: tagSelectionValue == null && nullToAbsent
           ? const Value.absent()
           : Value(tagSelectionValue),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -3774,6 +3992,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       valueType: serializer.fromJson<String?>(json['valueType']),
       tagSelectionValue:
           serializer.fromJson<String?>(json['tagSelectionValue']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
   @override
@@ -3804,6 +4023,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       'createBy': serializer.toJson<String?>(createBy),
       'valueType': serializer.toJson<String?>(valueType),
       'tagSelectionValue': serializer.toJson<String?>(tagSelectionValue),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
 
@@ -3831,7 +4051,8 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           Value<String?> createDate = const Value.absent(),
           Value<String?> createBy = const Value.absent(),
           Value<String?> valueType = const Value.absent(),
-          Value<String?> tagSelectionValue = const Value.absent()}) =>
+          Value<String?> tagSelectionValue = const Value.absent(),
+          Value<String?> updatedAt = const Value.absent()}) =>
       DbJobTag(
         uid: uid ?? this.uid,
         tagId: tagId.present ? tagId.value : this.tagId,
@@ -3862,6 +4083,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
         tagSelectionValue: tagSelectionValue.present
             ? tagSelectionValue.value
             : this.tagSelectionValue,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
   DbJobTag copyWithCompanion(JobTagsCompanion data) {
     return DbJobTag(
@@ -3900,6 +4122,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       tagSelectionValue: data.tagSelectionValue.present
           ? data.tagSelectionValue.value
           : this.tagSelectionValue,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -3929,7 +4152,8 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           ..write('createDate: $createDate, ')
           ..write('createBy: $createBy, ')
           ..write('valueType: $valueType, ')
-          ..write('tagSelectionValue: $tagSelectionValue')
+          ..write('tagSelectionValue: $tagSelectionValue, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -3959,7 +4183,8 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
         createDate,
         createBy,
         valueType,
-        tagSelectionValue
+        tagSelectionValue,
+        updatedAt
       ]);
   @override
   bool operator ==(Object other) =>
@@ -3988,7 +4213,8 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           other.createDate == this.createDate &&
           other.createBy == this.createBy &&
           other.valueType == this.valueType &&
-          other.tagSelectionValue == this.tagSelectionValue);
+          other.tagSelectionValue == this.tagSelectionValue &&
+          other.updatedAt == this.updatedAt);
 }
 
 class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
@@ -4016,6 +4242,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
   final Value<String?> createBy;
   final Value<String?> valueType;
   final Value<String?> tagSelectionValue;
+  final Value<String?> updatedAt;
   const JobTagsCompanion({
     this.uid = const Value.absent(),
     this.tagId = const Value.absent(),
@@ -4041,6 +4268,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     this.createBy = const Value.absent(),
     this.valueType = const Value.absent(),
     this.tagSelectionValue = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   JobTagsCompanion.insert({
     this.uid = const Value.absent(),
@@ -4067,6 +4295,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     this.createBy = const Value.absent(),
     this.valueType = const Value.absent(),
     this.tagSelectionValue = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   static Insertable<DbJobTag> custom({
     Expression<int>? uid,
@@ -4093,6 +4322,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     Expression<String>? createBy,
     Expression<String>? valueType,
     Expression<String>? tagSelectionValue,
+    Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -4119,6 +4349,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       if (createBy != null) 'CreateBy': createBy,
       if (valueType != null) 'ValueType': valueType,
       if (tagSelectionValue != null) 'TagSelectionValue': tagSelectionValue,
+      if (updatedAt != null) 'updatedAt': updatedAt,
     });
   }
 
@@ -4146,7 +4377,8 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       Value<String?>? createDate,
       Value<String?>? createBy,
       Value<String?>? valueType,
-      Value<String?>? tagSelectionValue}) {
+      Value<String?>? tagSelectionValue,
+      Value<String?>? updatedAt}) {
     return JobTagsCompanion(
       uid: uid ?? this.uid,
       tagId: tagId ?? this.tagId,
@@ -4172,6 +4404,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       createBy: createBy ?? this.createBy,
       valueType: valueType ?? this.valueType,
       tagSelectionValue: tagSelectionValue ?? this.tagSelectionValue,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -4250,6 +4483,9 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     if (tagSelectionValue.present) {
       map['TagSelectionValue'] = Variable<String>(tagSelectionValue.value);
     }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
     return map;
   }
 
@@ -4279,7 +4515,8 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
           ..write('createDate: $createDate, ')
           ..write('createBy: $createBy, ')
           ..write('valueType: $valueType, ')
-          ..write('tagSelectionValue: $tagSelectionValue')
+          ..write('tagSelectionValue: $tagSelectionValue, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -4444,6 +4681,12 @@ class $ProblemsTable extends Problems
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -4470,7 +4713,8 @@ class $ProblemsTable extends Problems
         unReadable,
         lastSync,
         problemSolvingBy,
-        syncStatus
+        syncStatus,
+        updatedAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4604,6 +4848,10 @@ class $ProblemsTable extends Problems
           syncStatus.isAcceptableOrUnknown(
               data['syncStatus']!, _syncStatusMeta));
     }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
     return context;
   }
 
@@ -4663,6 +4911,8 @@ class $ProblemsTable extends Problems
           .read(DriftSqlType.string, data['${effectivePrefix}SolvingBy']),
       syncStatus: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}syncStatus'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
     );
   }
 
@@ -4698,6 +4948,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
   final String? lastSync;
   final String? problemSolvingBy;
   final int syncStatus;
+  final String? updatedAt;
   const DbProblem(
       {required this.uid,
       this.problemId,
@@ -4723,7 +4974,8 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
       required this.unReadable,
       this.lastSync,
       this.problemSolvingBy,
-      required this.syncStatus});
+      required this.syncStatus,
+      this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4794,6 +5046,9 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
       map['SolvingBy'] = Variable<String>(problemSolvingBy);
     }
     map['syncStatus'] = Variable<int>(syncStatus);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
+    }
     return map;
   }
 
@@ -4859,6 +5114,9 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
           ? const Value.absent()
           : Value(problemSolvingBy),
       syncStatus: Value(syncStatus),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -4893,6 +5151,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
       lastSync: serializer.fromJson<String?>(json['lastSync']),
       problemSolvingBy: serializer.fromJson<String?>(json['problemSolvingBy']),
       syncStatus: serializer.fromJson<int>(json['syncStatus']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
   @override
@@ -4925,6 +5184,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
       'lastSync': serializer.toJson<String?>(lastSync),
       'problemSolvingBy': serializer.toJson<String?>(problemSolvingBy),
       'syncStatus': serializer.toJson<int>(syncStatus),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
 
@@ -4953,7 +5213,8 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
           String? unReadable,
           Value<String?> lastSync = const Value.absent(),
           Value<String?> problemSolvingBy = const Value.absent(),
-          int? syncStatus}) =>
+          int? syncStatus,
+          Value<String?> updatedAt = const Value.absent()}) =>
       DbProblem(
         uid: uid ?? this.uid,
         problemId: problemId.present ? problemId.value : this.problemId,
@@ -4987,6 +5248,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
             ? problemSolvingBy.value
             : this.problemSolvingBy,
         syncStatus: syncStatus ?? this.syncStatus,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
   DbProblem copyWithCompanion(ProblemsCompanion data) {
     return DbProblem(
@@ -5031,6 +5293,7 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
           : this.problemSolvingBy,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -5061,7 +5324,8 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
           ..write('unReadable: $unReadable, ')
           ..write('lastSync: $lastSync, ')
           ..write('problemSolvingBy: $problemSolvingBy, ')
-          ..write('syncStatus: $syncStatus')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -5092,7 +5356,8 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
         unReadable,
         lastSync,
         problemSolvingBy,
-        syncStatus
+        syncStatus,
+        updatedAt
       ]);
   @override
   bool operator ==(Object other) =>
@@ -5122,7 +5387,8 @@ class DbProblem extends DataClass implements Insertable<DbProblem> {
           other.unReadable == this.unReadable &&
           other.lastSync == this.lastSync &&
           other.problemSolvingBy == this.problemSolvingBy &&
-          other.syncStatus == this.syncStatus);
+          other.syncStatus == this.syncStatus &&
+          other.updatedAt == this.updatedAt);
 }
 
 class ProblemsCompanion extends UpdateCompanion<DbProblem> {
@@ -5151,6 +5417,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
   final Value<String?> lastSync;
   final Value<String?> problemSolvingBy;
   final Value<int> syncStatus;
+  final Value<String?> updatedAt;
   const ProblemsCompanion({
     this.uid = const Value.absent(),
     this.problemId = const Value.absent(),
@@ -5177,6 +5444,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
     this.lastSync = const Value.absent(),
     this.problemSolvingBy = const Value.absent(),
     this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   ProblemsCompanion.insert({
     this.uid = const Value.absent(),
@@ -5204,6 +5472,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
     this.lastSync = const Value.absent(),
     this.problemSolvingBy = const Value.absent(),
     this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   static Insertable<DbProblem> custom({
     Expression<int>? uid,
@@ -5231,6 +5500,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
     Expression<String>? lastSync,
     Expression<String>? problemSolvingBy,
     Expression<int>? syncStatus,
+    Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -5259,6 +5529,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
       if (lastSync != null) 'lastSync': lastSync,
       if (problemSolvingBy != null) 'SolvingBy': problemSolvingBy,
       if (syncStatus != null) 'syncStatus': syncStatus,
+      if (updatedAt != null) 'updatedAt': updatedAt,
     });
   }
 
@@ -5287,7 +5558,8 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
       Value<String>? unReadable,
       Value<String?>? lastSync,
       Value<String?>? problemSolvingBy,
-      Value<int>? syncStatus}) {
+      Value<int>? syncStatus,
+      Value<String?>? updatedAt}) {
     return ProblemsCompanion(
       uid: uid ?? this.uid,
       problemId: problemId ?? this.problemId,
@@ -5315,6 +5587,7 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
       lastSync: lastSync ?? this.lastSync,
       problemSolvingBy: problemSolvingBy ?? this.problemSolvingBy,
       syncStatus: syncStatus ?? this.syncStatus,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -5397,6 +5670,9 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
     if (syncStatus.present) {
       map['syncStatus'] = Variable<int>(syncStatus.value);
     }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
     return map;
   }
 
@@ -5427,7 +5703,8 @@ class ProblemsCompanion extends UpdateCompanion<DbProblem> {
           ..write('unReadable: $unReadable, ')
           ..write('lastSync: $lastSync, ')
           ..write('problemSolvingBy: $problemSolvingBy, ')
-          ..write('syncStatus: $syncStatus')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -5478,9 +5755,15 @@ class $SyncsTable extends Syncs with TableInfo<$SyncsTable, DbSync> {
   late final GeneratedColumn<String> nextSync = GeneratedColumn<String>(
       'NextSync', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [uid, syncId, syncName, lastSync, syncStatus, nextSync];
+      [uid, syncId, syncName, lastSync, syncStatus, nextSync, updatedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -5517,6 +5800,10 @@ class $SyncsTable extends Syncs with TableInfo<$SyncsTable, DbSync> {
       context.handle(_nextSyncMeta,
           nextSync.isAcceptableOrUnknown(data['NextSync']!, _nextSyncMeta));
     }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
     return context;
   }
 
@@ -5538,6 +5825,8 @@ class $SyncsTable extends Syncs with TableInfo<$SyncsTable, DbSync> {
           .read(DriftSqlType.int, data['${effectivePrefix}SyncStatus'])!,
       nextSync: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}NextSync']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
     );
   }
 
@@ -5554,13 +5843,15 @@ class DbSync extends DataClass implements Insertable<DbSync> {
   final String? lastSync;
   final int syncStatus;
   final String? nextSync;
+  final String? updatedAt;
   const DbSync(
       {required this.uid,
       this.syncId,
       this.syncName,
       this.lastSync,
       required this.syncStatus,
-      this.nextSync});
+      this.nextSync,
+      this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -5577,6 +5868,9 @@ class DbSync extends DataClass implements Insertable<DbSync> {
     map['SyncStatus'] = Variable<int>(syncStatus);
     if (!nullToAbsent || nextSync != null) {
       map['NextSync'] = Variable<String>(nextSync);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
     }
     return map;
   }
@@ -5596,6 +5890,9 @@ class DbSync extends DataClass implements Insertable<DbSync> {
       nextSync: nextSync == null && nullToAbsent
           ? const Value.absent()
           : Value(nextSync),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -5609,6 +5906,7 @@ class DbSync extends DataClass implements Insertable<DbSync> {
       lastSync: serializer.fromJson<String?>(json['lastSync']),
       syncStatus: serializer.fromJson<int>(json['syncStatus']),
       nextSync: serializer.fromJson<String?>(json['nextSync']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
   @override
@@ -5621,6 +5919,7 @@ class DbSync extends DataClass implements Insertable<DbSync> {
       'lastSync': serializer.toJson<String?>(lastSync),
       'syncStatus': serializer.toJson<int>(syncStatus),
       'nextSync': serializer.toJson<String?>(nextSync),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
 
@@ -5630,7 +5929,8 @@ class DbSync extends DataClass implements Insertable<DbSync> {
           Value<String?> syncName = const Value.absent(),
           Value<String?> lastSync = const Value.absent(),
           int? syncStatus,
-          Value<String?> nextSync = const Value.absent()}) =>
+          Value<String?> nextSync = const Value.absent(),
+          Value<String?> updatedAt = const Value.absent()}) =>
       DbSync(
         uid: uid ?? this.uid,
         syncId: syncId.present ? syncId.value : this.syncId,
@@ -5638,6 +5938,7 @@ class DbSync extends DataClass implements Insertable<DbSync> {
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
         syncStatus: syncStatus ?? this.syncStatus,
         nextSync: nextSync.present ? nextSync.value : this.nextSync,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
   DbSync copyWithCompanion(SyncsCompanion data) {
     return DbSync(
@@ -5648,6 +5949,7 @@ class DbSync extends DataClass implements Insertable<DbSync> {
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
       nextSync: data.nextSync.present ? data.nextSync.value : this.nextSync,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -5659,14 +5961,15 @@ class DbSync extends DataClass implements Insertable<DbSync> {
           ..write('syncName: $syncName, ')
           ..write('lastSync: $lastSync, ')
           ..write('syncStatus: $syncStatus, ')
-          ..write('nextSync: $nextSync')
+          ..write('nextSync: $nextSync, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(uid, syncId, syncName, lastSync, syncStatus, nextSync);
+  int get hashCode => Object.hash(
+      uid, syncId, syncName, lastSync, syncStatus, nextSync, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5676,7 +5979,8 @@ class DbSync extends DataClass implements Insertable<DbSync> {
           other.syncName == this.syncName &&
           other.lastSync == this.lastSync &&
           other.syncStatus == this.syncStatus &&
-          other.nextSync == this.nextSync);
+          other.nextSync == this.nextSync &&
+          other.updatedAt == this.updatedAt);
 }
 
 class SyncsCompanion extends UpdateCompanion<DbSync> {
@@ -5686,6 +5990,7 @@ class SyncsCompanion extends UpdateCompanion<DbSync> {
   final Value<String?> lastSync;
   final Value<int> syncStatus;
   final Value<String?> nextSync;
+  final Value<String?> updatedAt;
   const SyncsCompanion({
     this.uid = const Value.absent(),
     this.syncId = const Value.absent(),
@@ -5693,6 +5998,7 @@ class SyncsCompanion extends UpdateCompanion<DbSync> {
     this.lastSync = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.nextSync = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   SyncsCompanion.insert({
     this.uid = const Value.absent(),
@@ -5701,6 +6007,7 @@ class SyncsCompanion extends UpdateCompanion<DbSync> {
     this.lastSync = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.nextSync = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   static Insertable<DbSync> custom({
     Expression<int>? uid,
@@ -5709,6 +6016,7 @@ class SyncsCompanion extends UpdateCompanion<DbSync> {
     Expression<String>? lastSync,
     Expression<int>? syncStatus,
     Expression<String>? nextSync,
+    Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -5717,6 +6025,7 @@ class SyncsCompanion extends UpdateCompanion<DbSync> {
       if (lastSync != null) 'LastSync': lastSync,
       if (syncStatus != null) 'SyncStatus': syncStatus,
       if (nextSync != null) 'NextSync': nextSync,
+      if (updatedAt != null) 'updatedAt': updatedAt,
     });
   }
 
@@ -5726,7 +6035,8 @@ class SyncsCompanion extends UpdateCompanion<DbSync> {
       Value<String?>? syncName,
       Value<String?>? lastSync,
       Value<int>? syncStatus,
-      Value<String?>? nextSync}) {
+      Value<String?>? nextSync,
+      Value<String?>? updatedAt}) {
     return SyncsCompanion(
       uid: uid ?? this.uid,
       syncId: syncId ?? this.syncId,
@@ -5734,6 +6044,7 @@ class SyncsCompanion extends UpdateCompanion<DbSync> {
       lastSync: lastSync ?? this.lastSync,
       syncStatus: syncStatus ?? this.syncStatus,
       nextSync: nextSync ?? this.nextSync,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -5758,6 +6069,9 @@ class SyncsCompanion extends UpdateCompanion<DbSync> {
     if (nextSync.present) {
       map['NextSync'] = Variable<String>(nextSync.value);
     }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
     return map;
   }
 
@@ -5769,7 +6083,8 @@ class SyncsCompanion extends UpdateCompanion<DbSync> {
           ..write('syncName: $syncName, ')
           ..write('lastSync: $lastSync, ')
           ..write('syncStatus: $syncStatus, ')
-          ..write('nextSync: $nextSync')
+          ..write('nextSync: $nextSync, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -5831,9 +6146,24 @@ class $UsersTable extends Users with TableInfo<$UsersTable, DbUser> {
   late final GeneratedColumn<String> lastSync = GeneratedColumn<String>(
       'lastSync', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
   @override
-  List<GeneratedColumn> get $columns =>
-      [uid, userId, userCode, password, userName, position, status, lastSync];
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        uid,
+        userId,
+        userCode,
+        password,
+        userName,
+        position,
+        status,
+        lastSync,
+        updatedAt
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -5876,6 +6206,10 @@ class $UsersTable extends Users with TableInfo<$UsersTable, DbUser> {
       context.handle(_lastSyncMeta,
           lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
     }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
     return context;
   }
 
@@ -5901,6 +6235,8 @@ class $UsersTable extends Users with TableInfo<$UsersTable, DbUser> {
           .read(DriftSqlType.int, data['${effectivePrefix}Status'])!,
       lastSync: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
     );
   }
 
@@ -5919,6 +6255,7 @@ class DbUser extends DataClass implements Insertable<DbUser> {
   final String? position;
   final int status;
   final String? lastSync;
+  final String? updatedAt;
   const DbUser(
       {required this.uid,
       this.userId,
@@ -5927,7 +6264,8 @@ class DbUser extends DataClass implements Insertable<DbUser> {
       this.userName,
       this.position,
       required this.status,
-      this.lastSync});
+      this.lastSync,
+      this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -5950,6 +6288,9 @@ class DbUser extends DataClass implements Insertable<DbUser> {
     map['Status'] = Variable<int>(status);
     if (!nullToAbsent || lastSync != null) {
       map['lastSync'] = Variable<String>(lastSync);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
     }
     return map;
   }
@@ -5975,6 +6316,9 @@ class DbUser extends DataClass implements Insertable<DbUser> {
       lastSync: lastSync == null && nullToAbsent
           ? const Value.absent()
           : Value(lastSync),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -5990,6 +6334,7 @@ class DbUser extends DataClass implements Insertable<DbUser> {
       position: serializer.fromJson<String?>(json['position']),
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
   @override
@@ -6004,6 +6349,7 @@ class DbUser extends DataClass implements Insertable<DbUser> {
       'position': serializer.toJson<String?>(position),
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
 
@@ -6015,7 +6361,8 @@ class DbUser extends DataClass implements Insertable<DbUser> {
           Value<String?> userName = const Value.absent(),
           Value<String?> position = const Value.absent(),
           int? status,
-          Value<String?> lastSync = const Value.absent()}) =>
+          Value<String?> lastSync = const Value.absent(),
+          Value<String?> updatedAt = const Value.absent()}) =>
       DbUser(
         uid: uid ?? this.uid,
         userId: userId.present ? userId.value : this.userId,
@@ -6025,6 +6372,7 @@ class DbUser extends DataClass implements Insertable<DbUser> {
         position: position.present ? position.value : this.position,
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
   DbUser copyWithCompanion(UsersCompanion data) {
     return DbUser(
@@ -6036,6 +6384,7 @@ class DbUser extends DataClass implements Insertable<DbUser> {
       position: data.position.present ? data.position.value : this.position,
       status: data.status.present ? data.status.value : this.status,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -6049,14 +6398,15 @@ class DbUser extends DataClass implements Insertable<DbUser> {
           ..write('userName: $userName, ')
           ..write('position: $position, ')
           ..write('status: $status, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      uid, userId, userCode, password, userName, position, status, lastSync);
+  int get hashCode => Object.hash(uid, userId, userCode, password, userName,
+      position, status, lastSync, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -6068,7 +6418,8 @@ class DbUser extends DataClass implements Insertable<DbUser> {
           other.userName == this.userName &&
           other.position == this.position &&
           other.status == this.status &&
-          other.lastSync == this.lastSync);
+          other.lastSync == this.lastSync &&
+          other.updatedAt == this.updatedAt);
 }
 
 class UsersCompanion extends UpdateCompanion<DbUser> {
@@ -6080,6 +6431,7 @@ class UsersCompanion extends UpdateCompanion<DbUser> {
   final Value<String?> position;
   final Value<int> status;
   final Value<String?> lastSync;
+  final Value<String?> updatedAt;
   const UsersCompanion({
     this.uid = const Value.absent(),
     this.userId = const Value.absent(),
@@ -6089,6 +6441,7 @@ class UsersCompanion extends UpdateCompanion<DbUser> {
     this.position = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   UsersCompanion.insert({
     this.uid = const Value.absent(),
@@ -6099,6 +6452,7 @@ class UsersCompanion extends UpdateCompanion<DbUser> {
     this.position = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   static Insertable<DbUser> custom({
     Expression<int>? uid,
@@ -6109,6 +6463,7 @@ class UsersCompanion extends UpdateCompanion<DbUser> {
     Expression<String>? position,
     Expression<int>? status,
     Expression<String>? lastSync,
+    Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -6119,6 +6474,7 @@ class UsersCompanion extends UpdateCompanion<DbUser> {
       if (position != null) 'position': position,
       if (status != null) 'Status': status,
       if (lastSync != null) 'lastSync': lastSync,
+      if (updatedAt != null) 'updatedAt': updatedAt,
     });
   }
 
@@ -6130,7 +6486,8 @@ class UsersCompanion extends UpdateCompanion<DbUser> {
       Value<String?>? userName,
       Value<String?>? position,
       Value<int>? status,
-      Value<String?>? lastSync}) {
+      Value<String?>? lastSync,
+      Value<String?>? updatedAt}) {
     return UsersCompanion(
       uid: uid ?? this.uid,
       userId: userId ?? this.userId,
@@ -6140,6 +6497,7 @@ class UsersCompanion extends UpdateCompanion<DbUser> {
       position: position ?? this.position,
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -6170,6 +6528,9 @@ class UsersCompanion extends UpdateCompanion<DbUser> {
     if (lastSync.present) {
       map['lastSync'] = Variable<String>(lastSync.value);
     }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
     return map;
   }
 
@@ -6183,7 +6544,8 @@ class UsersCompanion extends UpdateCompanion<DbUser> {
           ..write('userName: $userName, ')
           ..write('position: $position, ')
           ..write('status: $status, ')
-          ..write('lastSync: $lastSync')
+          ..write('lastSync: $lastSync, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -6293,6 +6655,12 @@ class $ImagesTable extends Images with TableInfo<$ImagesTable, DbImage> {
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -6310,7 +6678,8 @@ class $ImagesTable extends Images with TableInfo<$ImagesTable, DbImage> {
         createDate,
         status,
         lastSync,
-        statusSync
+        statusSync,
+        updatedAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6394,6 +6763,10 @@ class $ImagesTable extends Images with TableInfo<$ImagesTable, DbImage> {
           statusSync.isAcceptableOrUnknown(
               data['statusSync']!, _statusSyncMeta));
     }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
     return context;
   }
 
@@ -6435,6 +6808,8 @@ class $ImagesTable extends Images with TableInfo<$ImagesTable, DbImage> {
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
       statusSync: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}statusSync'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
     );
   }
 
@@ -6461,6 +6836,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
   final int status;
   final String? lastSync;
   final int statusSync;
+  final String? updatedAt;
   const DbImage(
       {required this.uid,
       this.guid,
@@ -6477,7 +6853,8 @@ class DbImage extends DataClass implements Insertable<DbImage> {
       this.createDate,
       required this.status,
       this.lastSync,
-      required this.statusSync});
+      required this.statusSync,
+      this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -6523,6 +6900,9 @@ class DbImage extends DataClass implements Insertable<DbImage> {
       map['lastSync'] = Variable<String>(lastSync);
     }
     map['statusSync'] = Variable<int>(statusSync);
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
+    }
     return map;
   }
 
@@ -6566,6 +6946,9 @@ class DbImage extends DataClass implements Insertable<DbImage> {
           ? const Value.absent()
           : Value(lastSync),
       statusSync: Value(statusSync),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
     );
   }
 
@@ -6589,6 +6972,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
       statusSync: serializer.fromJson<int>(json['statusSync']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
   @override
@@ -6611,6 +6995,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
       'statusSync': serializer.toJson<int>(statusSync),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
 
@@ -6630,7 +7015,8 @@ class DbImage extends DataClass implements Insertable<DbImage> {
           Value<String?> createDate = const Value.absent(),
           int? status,
           Value<String?> lastSync = const Value.absent(),
-          int? statusSync}) =>
+          int? statusSync,
+          Value<String?> updatedAt = const Value.absent()}) =>
       DbImage(
         uid: uid ?? this.uid,
         guid: guid.present ? guid.value : this.guid,
@@ -6648,6 +7034,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
         statusSync: statusSync ?? this.statusSync,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
   DbImage copyWithCompanion(ImagesCompanion data) {
     return DbImage(
@@ -6671,6 +7058,7 @@ class DbImage extends DataClass implements Insertable<DbImage> {
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
       statusSync:
           data.statusSync.present ? data.statusSync.value : this.statusSync,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -6692,7 +7080,8 @@ class DbImage extends DataClass implements Insertable<DbImage> {
           ..write('createDate: $createDate, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
-          ..write('statusSync: $statusSync')
+          ..write('statusSync: $statusSync, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -6714,7 +7103,8 @@ class DbImage extends DataClass implements Insertable<DbImage> {
       createDate,
       status,
       lastSync,
-      statusSync);
+      statusSync,
+      updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -6734,7 +7124,8 @@ class DbImage extends DataClass implements Insertable<DbImage> {
           other.createDate == this.createDate &&
           other.status == this.status &&
           other.lastSync == this.lastSync &&
-          other.statusSync == this.statusSync);
+          other.statusSync == this.statusSync &&
+          other.updatedAt == this.updatedAt);
 }
 
 class ImagesCompanion extends UpdateCompanion<DbImage> {
@@ -6754,6 +7145,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
   final Value<int> status;
   final Value<String?> lastSync;
   final Value<int> statusSync;
+  final Value<String?> updatedAt;
   const ImagesCompanion({
     this.uid = const Value.absent(),
     this.guid = const Value.absent(),
@@ -6771,6 +7163,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
     this.statusSync = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   ImagesCompanion.insert({
     this.uid = const Value.absent(),
@@ -6789,6 +7182,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
     this.statusSync = const Value.absent(),
+    this.updatedAt = const Value.absent(),
   });
   static Insertable<DbImage> custom({
     Expression<int>? uid,
@@ -6807,6 +7201,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
     Expression<int>? status,
     Expression<String>? lastSync,
     Expression<int>? statusSync,
+    Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -6825,6 +7220,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
       if (status != null) 'status': status,
       if (lastSync != null) 'lastSync': lastSync,
       if (statusSync != null) 'statusSync': statusSync,
+      if (updatedAt != null) 'updatedAt': updatedAt,
     });
   }
 
@@ -6844,7 +7240,8 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
       Value<String?>? createDate,
       Value<int>? status,
       Value<String?>? lastSync,
-      Value<int>? statusSync}) {
+      Value<int>? statusSync,
+      Value<String?>? updatedAt}) {
     return ImagesCompanion(
       uid: uid ?? this.uid,
       guid: guid ?? this.guid,
@@ -6862,6 +7259,7 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
       statusSync: statusSync ?? this.statusSync,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
@@ -6916,6 +7314,9 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
     if (statusSync.present) {
       map['statusSync'] = Variable<int>(statusSync.value);
     }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
     return map;
   }
 
@@ -6937,7 +7338,8 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
           ..write('createDate: $createDate, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
-          ..write('statusSync: $statusSync')
+          ..write('statusSync: $statusSync, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -6999,6 +7401,7 @@ typedef $$JobsTableCreateCompanionBuilder = JobsCompanion Function({
   Value<String?> lastSync,
   Value<String?> createDate,
   Value<String?> createBy,
+  Value<String?> updatedAt,
 });
 typedef $$JobsTableUpdateCompanionBuilder = JobsCompanion Function({
   Value<int> uid,
@@ -7011,6 +7414,7 @@ typedef $$JobsTableUpdateCompanionBuilder = JobsCompanion Function({
   Value<String?> lastSync,
   Value<String?> createDate,
   Value<String?> createBy,
+  Value<String?> updatedAt,
 });
 
 class $$JobsTableFilterComposer extends Composer<_$AppDatabase, $JobsTable> {
@@ -7050,6 +7454,9 @@ class $$JobsTableFilterComposer extends Composer<_$AppDatabase, $JobsTable> {
 
   ColumnFilters<String> get createBy => $composableBuilder(
       column: $table.createBy, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$JobsTableOrderingComposer extends Composer<_$AppDatabase, $JobsTable> {
@@ -7089,6 +7496,9 @@ class $$JobsTableOrderingComposer extends Composer<_$AppDatabase, $JobsTable> {
 
   ColumnOrderings<String> get createBy => $composableBuilder(
       column: $table.createBy, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$JobsTableAnnotationComposer
@@ -7129,6 +7539,9 @@ class $$JobsTableAnnotationComposer
 
   GeneratedColumn<String> get createBy =>
       $composableBuilder(column: $table.createBy, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$JobsTableTableManager extends RootTableManager<
@@ -7164,6 +7577,7 @@ class $$JobsTableTableManager extends RootTableManager<
             Value<String?> lastSync = const Value.absent(),
             Value<String?> createDate = const Value.absent(),
             Value<String?> createBy = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               JobsCompanion(
             uid: uid,
@@ -7176,6 +7590,7 @@ class $$JobsTableTableManager extends RootTableManager<
             lastSync: lastSync,
             createDate: createDate,
             createBy: createBy,
+            updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -7188,6 +7603,7 @@ class $$JobsTableTableManager extends RootTableManager<
             Value<String?> lastSync = const Value.absent(),
             Value<String?> createDate = const Value.absent(),
             Value<String?> createBy = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               JobsCompanion.insert(
             uid: uid,
@@ -7200,6 +7616,7 @@ class $$JobsTableTableManager extends RootTableManager<
             lastSync: lastSync,
             createDate: createDate,
             createBy: createBy,
+            updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -7229,6 +7646,7 @@ typedef $$DocumentsTableCreateCompanionBuilder = DocumentsCompanion Function({
   Value<String?> createDate,
   Value<int> status,
   Value<String?> lastSync,
+  Value<String?> updatedAt,
 });
 typedef $$DocumentsTableUpdateCompanionBuilder = DocumentsCompanion Function({
   Value<int> uid,
@@ -7239,6 +7657,7 @@ typedef $$DocumentsTableUpdateCompanionBuilder = DocumentsCompanion Function({
   Value<String?> createDate,
   Value<int> status,
   Value<String?> lastSync,
+  Value<String?> updatedAt,
 });
 
 class $$DocumentsTableFilterComposer
@@ -7273,6 +7692,9 @@ class $$DocumentsTableFilterComposer
 
   ColumnFilters<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$DocumentsTableOrderingComposer
@@ -7308,6 +7730,9 @@ class $$DocumentsTableOrderingComposer
 
   ColumnOrderings<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$DocumentsTableAnnotationComposer
@@ -7342,6 +7767,9 @@ class $$DocumentsTableAnnotationComposer
 
   GeneratedColumn<String> get lastSync =>
       $composableBuilder(column: $table.lastSync, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$DocumentsTableTableManager extends RootTableManager<
@@ -7375,6 +7803,7 @@ class $$DocumentsTableTableManager extends RootTableManager<
             Value<String?> createDate = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               DocumentsCompanion(
             uid: uid,
@@ -7385,6 +7814,7 @@ class $$DocumentsTableTableManager extends RootTableManager<
             createDate: createDate,
             status: status,
             lastSync: lastSync,
+            updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -7395,6 +7825,7 @@ class $$DocumentsTableTableManager extends RootTableManager<
             Value<String?> createDate = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               DocumentsCompanion.insert(
             uid: uid,
@@ -7405,6 +7836,7 @@ class $$DocumentsTableTableManager extends RootTableManager<
             createDate: createDate,
             status: status,
             lastSync: lastSync,
+            updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -7440,6 +7872,7 @@ typedef $$DocumentMachinesTableCreateCompanionBuilder
   required int id,
   Value<String?> createDate,
   Value<String?> createBy,
+  Value<String?> updatedAt,
 });
 typedef $$DocumentMachinesTableUpdateCompanionBuilder
     = DocumentMachinesCompanion Function({
@@ -7456,6 +7889,7 @@ typedef $$DocumentMachinesTableUpdateCompanionBuilder
   Value<int> id,
   Value<String?> createDate,
   Value<String?> createBy,
+  Value<String?> updatedAt,
 });
 
 class $$DocumentMachinesTableFilterComposer
@@ -7505,6 +7939,9 @@ class $$DocumentMachinesTableFilterComposer
 
   ColumnFilters<String> get createBy => $composableBuilder(
       column: $table.createBy, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$DocumentMachinesTableOrderingComposer
@@ -7555,6 +7992,9 @@ class $$DocumentMachinesTableOrderingComposer
 
   ColumnOrderings<String> get createBy => $composableBuilder(
       column: $table.createBy, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$DocumentMachinesTableAnnotationComposer
@@ -7604,6 +8044,9 @@ class $$DocumentMachinesTableAnnotationComposer
 
   GeneratedColumn<String> get createBy =>
       $composableBuilder(column: $table.createBy, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$DocumentMachinesTableTableManager extends RootTableManager<
@@ -7646,6 +8089,7 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<String?> createDate = const Value.absent(),
             Value<String?> createBy = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               DocumentMachinesCompanion(
             uid: uid,
@@ -7661,6 +8105,7 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             id: id,
             createDate: createDate,
             createBy: createBy,
+            updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -7676,6 +8121,7 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             required int id,
             Value<String?> createDate = const Value.absent(),
             Value<String?> createBy = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               DocumentMachinesCompanion.insert(
             uid: uid,
@@ -7691,6 +8137,7 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             id: id,
             createDate: createDate,
             createBy: createBy,
+            updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -7741,6 +8188,7 @@ typedef $$DocumentRecordsTableCreateCompanionBuilder = DocumentRecordsCompanion
   Value<String?> lastSync,
   Value<String?> createBy,
   Value<int> syncStatus,
+  Value<String?> updatedAt,
 });
 typedef $$DocumentRecordsTableUpdateCompanionBuilder = DocumentRecordsCompanion
     Function({
@@ -7769,6 +8217,7 @@ typedef $$DocumentRecordsTableUpdateCompanionBuilder = DocumentRecordsCompanion
   Value<String?> lastSync,
   Value<String?> createBy,
   Value<int> syncStatus,
+  Value<String?> updatedAt,
 });
 
 class $$DocumentRecordsTableFilterComposer
@@ -7855,6 +8304,9 @@ class $$DocumentRecordsTableFilterComposer
 
   ColumnFilters<int> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$DocumentRecordsTableOrderingComposer
@@ -7943,6 +8395,9 @@ class $$DocumentRecordsTableOrderingComposer
 
   ColumnOrderings<int> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$DocumentRecordsTableAnnotationComposer
@@ -8028,6 +8483,9 @@ class $$DocumentRecordsTableAnnotationComposer
 
   GeneratedColumn<int> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$DocumentRecordsTableTableManager extends RootTableManager<
@@ -8082,6 +8540,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             Value<String?> lastSync = const Value.absent(),
             Value<String?> createBy = const Value.absent(),
             Value<int> syncStatus = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               DocumentRecordsCompanion(
             uid: uid,
@@ -8109,6 +8568,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             lastSync: lastSync,
             createBy: createBy,
             syncStatus: syncStatus,
+            updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -8136,6 +8596,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             Value<String?> lastSync = const Value.absent(),
             Value<String?> createBy = const Value.absent(),
             Value<int> syncStatus = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               DocumentRecordsCompanion.insert(
             uid: uid,
@@ -8163,6 +8624,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             lastSync: lastSync,
             createBy: createBy,
             syncStatus: syncStatus,
+            updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -8197,6 +8659,7 @@ typedef $$JobMachinesTableCreateCompanionBuilder = JobMachinesCompanion
   Value<String?> specification,
   Value<int> status,
   Value<String?> lastSync,
+  Value<String?> updatedAt,
 });
 typedef $$JobMachinesTableUpdateCompanionBuilder = JobMachinesCompanion
     Function({
@@ -8209,6 +8672,7 @@ typedef $$JobMachinesTableUpdateCompanionBuilder = JobMachinesCompanion
   Value<String?> specification,
   Value<int> status,
   Value<String?> lastSync,
+  Value<String?> updatedAt,
 });
 
 class $$JobMachinesTableFilterComposer
@@ -8246,6 +8710,9 @@ class $$JobMachinesTableFilterComposer
 
   ColumnFilters<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$JobMachinesTableOrderingComposer
@@ -8284,6 +8751,9 @@ class $$JobMachinesTableOrderingComposer
 
   ColumnOrderings<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$JobMachinesTableAnnotationComposer
@@ -8321,6 +8791,9 @@ class $$JobMachinesTableAnnotationComposer
 
   GeneratedColumn<String> get lastSync =>
       $composableBuilder(column: $table.lastSync, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$JobMachinesTableTableManager extends RootTableManager<
@@ -8358,6 +8831,7 @@ class $$JobMachinesTableTableManager extends RootTableManager<
             Value<String?> specification = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               JobMachinesCompanion(
             uid: uid,
@@ -8369,6 +8843,7 @@ class $$JobMachinesTableTableManager extends RootTableManager<
             specification: specification,
             status: status,
             lastSync: lastSync,
+            updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -8380,6 +8855,7 @@ class $$JobMachinesTableTableManager extends RootTableManager<
             Value<String?> specification = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               JobMachinesCompanion.insert(
             uid: uid,
@@ -8391,6 +8867,7 @@ class $$JobMachinesTableTableManager extends RootTableManager<
             specification: specification,
             status: status,
             lastSync: lastSync,
+            updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -8439,6 +8916,7 @@ typedef $$JobTagsTableCreateCompanionBuilder = JobTagsCompanion Function({
   Value<String?> createBy,
   Value<String?> valueType,
   Value<String?> tagSelectionValue,
+  Value<String?> updatedAt,
 });
 typedef $$JobTagsTableUpdateCompanionBuilder = JobTagsCompanion Function({
   Value<int> uid,
@@ -8465,6 +8943,7 @@ typedef $$JobTagsTableUpdateCompanionBuilder = JobTagsCompanion Function({
   Value<String?> createBy,
   Value<String?> valueType,
   Value<String?> tagSelectionValue,
+  Value<String?> updatedAt,
 });
 
 class $$JobTagsTableFilterComposer
@@ -8548,6 +9027,9 @@ class $$JobTagsTableFilterComposer
   ColumnFilters<String> get tagSelectionValue => $composableBuilder(
       column: $table.tagSelectionValue,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$JobTagsTableOrderingComposer
@@ -8634,6 +9116,9 @@ class $$JobTagsTableOrderingComposer
   ColumnOrderings<String> get tagSelectionValue => $composableBuilder(
       column: $table.tagSelectionValue,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$JobTagsTableAnnotationComposer
@@ -8716,6 +9201,9 @@ class $$JobTagsTableAnnotationComposer
 
   GeneratedColumn<String> get tagSelectionValue => $composableBuilder(
       column: $table.tagSelectionValue, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$JobTagsTableTableManager extends RootTableManager<
@@ -8765,6 +9253,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             Value<String?> createBy = const Value.absent(),
             Value<String?> valueType = const Value.absent(),
             Value<String?> tagSelectionValue = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               JobTagsCompanion(
             uid: uid,
@@ -8791,6 +9280,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             createBy: createBy,
             valueType: valueType,
             tagSelectionValue: tagSelectionValue,
+            updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -8817,6 +9307,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             Value<String?> createBy = const Value.absent(),
             Value<String?> valueType = const Value.absent(),
             Value<String?> tagSelectionValue = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               JobTagsCompanion.insert(
             uid: uid,
@@ -8843,6 +9334,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             createBy: createBy,
             valueType: valueType,
             tagSelectionValue: tagSelectionValue,
+            updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -8889,6 +9381,7 @@ typedef $$ProblemsTableCreateCompanionBuilder = ProblemsCompanion Function({
   Value<String?> lastSync,
   Value<String?> problemSolvingBy,
   Value<int> syncStatus,
+  Value<String?> updatedAt,
 });
 typedef $$ProblemsTableUpdateCompanionBuilder = ProblemsCompanion Function({
   Value<int> uid,
@@ -8916,6 +9409,7 @@ typedef $$ProblemsTableUpdateCompanionBuilder = ProblemsCompanion Function({
   Value<String?> lastSync,
   Value<String?> problemSolvingBy,
   Value<int> syncStatus,
+  Value<String?> updatedAt,
 });
 
 class $$ProblemsTableFilterComposer
@@ -9004,6 +9498,9 @@ class $$ProblemsTableFilterComposer
 
   ColumnFilters<int> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$ProblemsTableOrderingComposer
@@ -9094,6 +9591,9 @@ class $$ProblemsTableOrderingComposer
 
   ColumnOrderings<int> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ProblemsTableAnnotationComposer
@@ -9179,6 +9679,9 @@ class $$ProblemsTableAnnotationComposer
 
   GeneratedColumn<int> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$ProblemsTableTableManager extends RootTableManager<
@@ -9229,6 +9732,7 @@ class $$ProblemsTableTableManager extends RootTableManager<
             Value<String?> lastSync = const Value.absent(),
             Value<String?> problemSolvingBy = const Value.absent(),
             Value<int> syncStatus = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               ProblemsCompanion(
             uid: uid,
@@ -9256,6 +9760,7 @@ class $$ProblemsTableTableManager extends RootTableManager<
             lastSync: lastSync,
             problemSolvingBy: problemSolvingBy,
             syncStatus: syncStatus,
+            updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -9283,6 +9788,7 @@ class $$ProblemsTableTableManager extends RootTableManager<
             Value<String?> lastSync = const Value.absent(),
             Value<String?> problemSolvingBy = const Value.absent(),
             Value<int> syncStatus = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               ProblemsCompanion.insert(
             uid: uid,
@@ -9310,6 +9816,7 @@ class $$ProblemsTableTableManager extends RootTableManager<
             lastSync: lastSync,
             problemSolvingBy: problemSolvingBy,
             syncStatus: syncStatus,
+            updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -9337,6 +9844,7 @@ typedef $$SyncsTableCreateCompanionBuilder = SyncsCompanion Function({
   Value<String?> lastSync,
   Value<int> syncStatus,
   Value<String?> nextSync,
+  Value<String?> updatedAt,
 });
 typedef $$SyncsTableUpdateCompanionBuilder = SyncsCompanion Function({
   Value<int> uid,
@@ -9345,6 +9853,7 @@ typedef $$SyncsTableUpdateCompanionBuilder = SyncsCompanion Function({
   Value<String?> lastSync,
   Value<int> syncStatus,
   Value<String?> nextSync,
+  Value<String?> updatedAt,
 });
 
 class $$SyncsTableFilterComposer extends Composer<_$AppDatabase, $SyncsTable> {
@@ -9372,6 +9881,9 @@ class $$SyncsTableFilterComposer extends Composer<_$AppDatabase, $SyncsTable> {
 
   ColumnFilters<String> get nextSync => $composableBuilder(
       column: $table.nextSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$SyncsTableOrderingComposer
@@ -9400,6 +9912,9 @@ class $$SyncsTableOrderingComposer
 
   ColumnOrderings<String> get nextSync => $composableBuilder(
       column: $table.nextSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$SyncsTableAnnotationComposer
@@ -9428,6 +9943,9 @@ class $$SyncsTableAnnotationComposer
 
   GeneratedColumn<String> get nextSync =>
       $composableBuilder(column: $table.nextSync, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$SyncsTableTableManager extends RootTableManager<
@@ -9459,6 +9977,7 @@ class $$SyncsTableTableManager extends RootTableManager<
             Value<String?> lastSync = const Value.absent(),
             Value<int> syncStatus = const Value.absent(),
             Value<String?> nextSync = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               SyncsCompanion(
             uid: uid,
@@ -9467,6 +9986,7 @@ class $$SyncsTableTableManager extends RootTableManager<
             lastSync: lastSync,
             syncStatus: syncStatus,
             nextSync: nextSync,
+            updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -9475,6 +9995,7 @@ class $$SyncsTableTableManager extends RootTableManager<
             Value<String?> lastSync = const Value.absent(),
             Value<int> syncStatus = const Value.absent(),
             Value<String?> nextSync = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               SyncsCompanion.insert(
             uid: uid,
@@ -9483,6 +10004,7 @@ class $$SyncsTableTableManager extends RootTableManager<
             lastSync: lastSync,
             syncStatus: syncStatus,
             nextSync: nextSync,
+            updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -9512,6 +10034,7 @@ typedef $$UsersTableCreateCompanionBuilder = UsersCompanion Function({
   Value<String?> position,
   Value<int> status,
   Value<String?> lastSync,
+  Value<String?> updatedAt,
 });
 typedef $$UsersTableUpdateCompanionBuilder = UsersCompanion Function({
   Value<int> uid,
@@ -9522,6 +10045,7 @@ typedef $$UsersTableUpdateCompanionBuilder = UsersCompanion Function({
   Value<String?> position,
   Value<int> status,
   Value<String?> lastSync,
+  Value<String?> updatedAt,
 });
 
 class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
@@ -9555,6 +10079,9 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
 
   ColumnFilters<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$UsersTableOrderingComposer
@@ -9589,6 +10116,9 @@ class $$UsersTableOrderingComposer
 
   ColumnOrderings<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$UsersTableAnnotationComposer
@@ -9623,6 +10153,9 @@ class $$UsersTableAnnotationComposer
 
   GeneratedColumn<String> get lastSync =>
       $composableBuilder(column: $table.lastSync, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$UsersTableTableManager extends RootTableManager<
@@ -9656,6 +10189,7 @@ class $$UsersTableTableManager extends RootTableManager<
             Value<String?> position = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               UsersCompanion(
             uid: uid,
@@ -9666,6 +10200,7 @@ class $$UsersTableTableManager extends RootTableManager<
             position: position,
             status: status,
             lastSync: lastSync,
+            updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -9676,6 +10211,7 @@ class $$UsersTableTableManager extends RootTableManager<
             Value<String?> position = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               UsersCompanion.insert(
             uid: uid,
@@ -9686,6 +10222,7 @@ class $$UsersTableTableManager extends RootTableManager<
             position: position,
             status: status,
             lastSync: lastSync,
+            updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -9723,6 +10260,7 @@ typedef $$ImagesTableCreateCompanionBuilder = ImagesCompanion Function({
   Value<int> status,
   Value<String?> lastSync,
   Value<int> statusSync,
+  Value<String?> updatedAt,
 });
 typedef $$ImagesTableUpdateCompanionBuilder = ImagesCompanion Function({
   Value<int> uid,
@@ -9741,6 +10279,7 @@ typedef $$ImagesTableUpdateCompanionBuilder = ImagesCompanion Function({
   Value<int> status,
   Value<String?> lastSync,
   Value<int> statusSync,
+  Value<String?> updatedAt,
 });
 
 class $$ImagesTableFilterComposer
@@ -9799,6 +10338,9 @@ class $$ImagesTableFilterComposer
 
   ColumnFilters<int> get statusSync => $composableBuilder(
       column: $table.statusSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$ImagesTableOrderingComposer
@@ -9857,6 +10399,9 @@ class $$ImagesTableOrderingComposer
 
   ColumnOrderings<int> get statusSync => $composableBuilder(
       column: $table.statusSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$ImagesTableAnnotationComposer
@@ -9915,6 +10460,9 @@ class $$ImagesTableAnnotationComposer
 
   GeneratedColumn<int> get statusSync => $composableBuilder(
       column: $table.statusSync, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$ImagesTableTableManager extends RootTableManager<
@@ -9956,6 +10504,7 @@ class $$ImagesTableTableManager extends RootTableManager<
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
             Value<int> statusSync = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               ImagesCompanion(
             uid: uid,
@@ -9974,6 +10523,7 @@ class $$ImagesTableTableManager extends RootTableManager<
             status: status,
             lastSync: lastSync,
             statusSync: statusSync,
+            updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -9992,6 +10542,7 @@ class $$ImagesTableTableManager extends RootTableManager<
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
             Value<int> statusSync = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
           }) =>
               ImagesCompanion.insert(
             uid: uid,
@@ -10010,6 +10561,7 @@ class $$ImagesTableTableManager extends RootTableManager<
             status: status,
             lastSync: lastSync,
             statusSync: statusSync,
+            updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

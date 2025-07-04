@@ -6,6 +6,7 @@ import 'package:biochecksheet7_flutter/data/models/login_result.dart'; // Import
 import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart';
 import 'package:biochecksheet7_flutter/ui/login/login_form_state.dart';
 import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // <<< เพิ่มบรรทัดนี้
+import 'package:biochecksheet7_flutter/ui/login/login_screen.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final LoginRepository _loginRepository;
@@ -24,6 +25,13 @@ class LoginViewModel extends ChangeNotifier {
 
   String? _syncMessage;
   String? get syncMessage => _syncMessage;
+
+   String? _loginMessage;
+  String? get loginMessage => _loginMessage;
+  set loginMessage(String? value) {
+    _loginMessage = value;
+    notifyListeners();
+  }
 
   Future<void> checkLoggedInUser() async {
     final user = await _loginRepository.getLoggedInUserFromLocal();
@@ -116,14 +124,8 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> logout() async {
-    await _loginRepository.logout();
-    _loggedInUser = null;
-    _loginError = null;
-    _syncMessage = null;
-    _loginFormState = LoginFormState.initial;
-    notifyListeners();
-  }
+ 
+  
 
   bool isUserNameValid(String username) {
     return username.isNotEmpty && username.length > 3;
@@ -131,5 +133,33 @@ class LoginViewModel extends ChangeNotifier {
 
   bool isPasswordValid(String password) {
     return password.isNotEmpty && password.length > 5;
+  }
+
+    /// Logout method for LoginViewModel.
+  /// Clears user data and navigates to the login screen.
+  Future<void> logout(BuildContext context) async { // <<< CRUCIAL FIX: Add BuildContext parameter
+    _loginFormState = _loginFormState.copyWith(isLoading: true);
+    _loginMessage = null;
+    notifyListeners();
+
+    try {
+      await _loginRepository.logout(); // Call logout on the repository
+      _loggedInUser = null; // Clear logged in user
+      _loginMessage = 'Logged out successfully.';
+
+      // CRUCIAL FIX: Navigate back to the login screen and remove all previous routes.
+      // This ensures a clean navigation stack.
+      if (context.mounted) { // Check if context is still valid
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginScreen()), // Navigate to LoginScreen
+          (Route<dynamic> route) => false, // Remove all routes from stack
+        );
+      }
+    } catch (e) {
+      _loginMessage = 'Logout failed: $e';
+    } finally {
+      _loginFormState = _loginFormState.copyWith(isLoading: false);
+      notifyListeners();
+    }
   }
 }

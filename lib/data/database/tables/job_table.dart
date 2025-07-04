@@ -38,4 +38,5 @@ class Jobs extends Table {
   // Primary key definition if not auto-incrementing UID
   // For DbJob, 'jobId' could potentially be a primary key if unique and not null
   // Example: Set<Column> get primaryKey => {jobId};
+  TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
 }

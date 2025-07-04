@@ -27,4 +27,6 @@ class Documents extends Table {
 
   // @ColumnInfo(name = "lastSync") var lastSync: String? = null
   TextColumn get lastSync => text().named('lastSync').nullable()(); // Stored as String (ISO 8601)
+
+  TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
 }

@@ -9,7 +9,8 @@ import 'package:biochecksheet7_flutter/data/network/job_machine_api_service.dart
 import 'package:biochecksheet7_flutter/data/network/job_tag_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/problem_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/sync_metadata_api_service.dart';
-import 'package:biochecksheet7_flutter/data/network/document_api_service.dart'; // <<< เพิ่ม import นี้
+import 'package:biochecksheet7_flutter/data/network/document_api_service.dart';
+
 
 // Import all DAOs
 import 'package:biochecksheet7_flutter/data/database/daos/user_dao.dart';
@@ -18,8 +19,17 @@ import 'package:biochecksheet7_flutter/data/database/daos/document_machine_dao.d
 import 'package:biochecksheet7_flutter/data/database/daos/job_tag_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/problem_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/sync_dao.dart';
-import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart'; // <<< เพิ่ม import นี้
-import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart'; // <<< เพิ่ม import นี้
+import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart';
+
+
+
+// Import all Repositories (for DataSyncService to use them)
+import 'package:biochecksheet7_flutter/data/repositories/document_record_repository.dart'; // <<< NEW: Import DocumentRecordRepository
+
+
+
 // Import table companions for insertion
 import 'package:biochecksheet7_flutter/data/database/tables/user_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart';
@@ -30,7 +40,7 @@ import 'package:biochecksheet7_flutter/data/database/tables/sync_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // <<< เพิ่ม import นี้
 import 'package:biochecksheet7_flutter/data/network/document_record_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import api_response_models.dart
-import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // สำหรับ SyncResult
+
 import 'package:drift/drift.dart' as drift;
 
 class DataSyncService {
@@ -53,6 +63,10 @@ class DataSyncService {
   final SyncDao _syncDao;
   final DocumentDao _documentDao; // <<< เพิ่ม Dependency นี้
   final DocumentRecordDao _documentRecordDao; // <<< เพิ่ม Dependency นี้
+  
+    // Repositories (for DataSyncService to orchestrate)
+  final DocumentRecordRepository _documentRecordRepository; // <<< CRUCIAL FIX: Declare here
+
 
   // Constructor now takes a resolved AppDatabase instance
   DataSyncService({
@@ -66,6 +80,7 @@ class DataSyncService {
     DocumentApiService? documentApiService,
     DocumentRecordApiService?
         documentRecordApiService, // <<< เพิ่มใน Constructor
+       DocumentRecordRepository? documentRecordRepository,    
   })  : _userApiService = userApiService ?? UserApiService(),
         _jobApiService = jobApiService ?? JobApiService(),
         _jobMachineApiService = jobMachineApiService ?? JobMachineApiService(),
@@ -75,6 +90,7 @@ class DataSyncService {
             syncMetadataApiService ?? SyncMetadataApiService(),
         _documentApiService =
             documentApiService ?? DocumentApiService(), // <<< สร้าง instance
+            
         _documentRecordApiService = documentRecordApiService ??
             DocumentRecordApiService(), // <<< สร้าง instance
         _userDao = appDatabase.userDao, // Access dao directly
@@ -86,7 +102,8 @@ class DataSyncService {
         _syncDao = appDatabase.syncDao, // Access dao directly
         _documentDao = appDatabase.documentDao, // <<< สร้าง instance
         _documentRecordDao =
-            appDatabase.documentRecordDao; // Ensure this is initialized
+            appDatabase.documentRecordDao, // Ensure this is initialized
+        _documentRecordRepository = documentRecordRepository ?? DocumentRecordRepository(appDatabase: appDatabase);// <<< CRUCIAL FIX: Initialize here
 
   // Removed old unused imports for tables as they are handled by DAO imports now
   // Removed unused methods (`_syncJobMachinesData`, `_syncJobTagsData`, `_syncProblemsData`, `_syncMetadataData`)
@@ -104,7 +121,7 @@ class DataSyncService {
 
       return const SyncSuccess();
     } on Exception catch (e) {
-      return SyncError(e);
+        return SyncError(exception: 'ข้อผิดพลาดในการซิงค์ผู้ใช้: $e'); // <<< CRUCIAL FIX: Use named parameter
     }
   }
 
@@ -115,7 +132,7 @@ class DataSyncService {
 
       return const SyncSuccess();
     } on Exception catch (e) {
-      return SyncError(e);
+       return SyncError(exception: 'ข้อผิดพลาดในการซิงค์ผู้ใช้: $e'); // <<< CRUCIAL FIX: Use named parameter
     }
   }
 
@@ -356,20 +373,32 @@ class DataSyncService {
     await _documentDao.insertAllDocuments(documentsToInsert);
   }
 
-  /// NEW: Performs upload synchronization for DocumentRecords with status 2 and syncStatus 0.
-  /// Updates status to 3 and syncStatus to 1 upon successful API response.
-  Future<SyncResult> performDocumentRecordUploadSync() async {
+    /// Updates status to 3 and syncStatus to 1 upon successful API response.
+  Future<SyncStatus> performDocumentRecordUploadSync() async {
     try {
       // 1. Get records ready for upload
       final recordsToUpload = await _documentRecordRepository.getRecordsForUpload();
 
       if (recordsToUpload.isEmpty) {
         print('No DocumentRecords found with status 2 and syncStatus 0 for upload.');
-        return SyncSuccess(message: 'ไม่มีข้อมูล DocumentRecord ที่ต้องอัปโหลด.');
+        return const SyncSuccess(message: 'ไม่มีข้อมูล DocumentRecord ที่ต้องอัปโหลด.');
       }
 
-      // 2. Upload records to API
-      final List<UploadRecordResult> uploadResults = await _documentRecordRepository.uploadDocumentRecordsToServer(recordsToUpload);
+      // We need documentCreateDate and documentUserId for the upload API.
+      // These should come from the main document associated with these records.
+      // Assuming all records in recordsToUpload belong to the same documentId.
+      final String? documentId = recordsToUpload.first.documentId;
+      final DbDocument? mainDocument = documentId != null ? await _documentDao.getDocumentById(documentId) : null;
+      
+      if (mainDocument == null) {
+        throw Exception('Main document not found for DocumentRecords. Cannot upload.');
+      }
+
+      final List<UploadRecordResult> uploadResults = await _documentRecordRepository.uploadDocumentRecordsToServer(
+        recordsToUpload,
+        documentCreateDate: mainDocument.createDate,
+        documentUserId: mainDocument.userId,
+      );
 
       // 3. Process results and update local DB
       bool allUploadsSuccessful = true;
@@ -385,20 +414,18 @@ class DataSyncService {
           }
         } else {
           allUploadsSuccessful = false;
-          print('API reported failure for DocumentRecord UID $recordUid. Result code: $apiResultCode, Message: ${result.message}');
-          // Optionally, update local record status to indicate upload failed (e.g., status 2, syncStatus 0)
-          // Or keep it as is, so it's retried later. For now, we keep it as is if not success.
+          print('API reported failure for DocumentRecord UID $recordUid. Result code: $apiResultCode, Message: ${result.message ?? 'No message provided'}');
         }
       }
 
       if (allUploadsSuccessful) {
-        return SyncSuccess(message: 'อัปโหลด DocumentRecord สำเร็จทั้งหมด.');
+        return const SyncSuccess(message: 'อัปโหลด DocumentRecord สำเร็จทั้งหมด.');
       } else {
-        return SyncError(exception: 'มีบาง DocumentRecord ที่อัปโหลดไม่สำเร็จ.');
+        return const SyncError(exception: 'มีบาง DocumentRecord ที่อัปโหลดไม่สำเร็จ.'); // <<< Corrected: Use named parameter
       }
     } catch (e) {
       print('Error during DocumentRecord upload sync: $e');
-      return SyncError(exception: 'ข้อผิดพลาดในการซิงค์ DocumentRecord: $e');
+      return SyncError(exception: 'ข้อผิดพลาดในการซิงค์ DocumentRecord: $e'); // <<< Corrected: Use named parameters
     }
   }
 }

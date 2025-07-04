@@ -79,4 +79,6 @@ class DocumentRecords extends Table {
   TextColumn get createBy => text().named('CreateBy').nullable()(); 
 
   IntColumn get syncStatus => integer().named('syncStatus').withDefault(const Constant(0))(); // Default to 0
+
+   TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
 }

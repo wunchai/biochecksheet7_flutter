@@ -26,4 +26,5 @@ class Images extends Table {
   IntColumn get status => integer().named('status').withDefault(const Constant(0))(); // Status (e.g., 0=local, 1=synced, 2=deleted)
   TextColumn get lastSync => text().named('lastSync').nullable()(); // Last sync timestamp
   IntColumn get statusSync => integer().named('statusSync').withDefault(const Constant(0))(); // Sync status (e.g., 0=pending, 1=synced)
+  TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
 }

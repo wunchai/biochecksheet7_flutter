@@ -50,6 +50,54 @@ import 'package:biochecksheet7_flutter/ui/problem/problem_screen.dart'; // <<< I
 // Import MainWrapperScreen
 import 'package:biochecksheet7_flutter/ui/main_wrapper/main_wrapper_screen.dart'; // <<< Import MainWrapperScreen
 
+
+ // lib/main.dart
+import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// ... (imports อื่นๆ) ...
+
+
+// NEW: Define custom MaterialColor function
+// This function creates a MaterialColor from a single base Color.
+MaterialColor createMaterialColor(Color color) {
+  List<double> strengths = <double>[.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
+  Map<int, Color> swatch = {};
+  final int r = color.red, g = color.green, b = color.blue;
+
+  for (var strength in strengths) {
+    final double ds = 0.5 - strength;
+    swatch[(color.alpha * strength).round()] = Color.fromRGBO(
+      r + ((ds < 0 ? r : (255 - r)) * ds).round(),
+      g + ((ds < 0 ? g : (255 - g)) * ds).round(),
+      b + ((ds < 0 ? b : (255 - b)) * ds).round(),
+      1,
+    );
+  }
+  return MaterialColor(color.value, <int, Color>{
+    50: color.withOpacity(0.1),
+    100: color.withOpacity(0.2),
+    200: color.withOpacity(0.3),
+    300: color.withOpacity(0.4),
+    400: color.withOpacity(0.5), // This is often the default shade for primaryColor
+    500: color.withOpacity(0.6),
+    600: color.withOpacity(0.7),
+    700: color.withOpacity(0.8),
+    800: color.withOpacity(0.9),
+    900: color.withOpacity(1.0),
+  });
+}
+
+// Define your specific theme colors
+const Color _primaryThemeBlue = Color(0xFF3F51B5); // Indigo (from Material Design palette)
+const Color _accentThemeAmber = Color(0xFFFFC107); // Amber (from Material Design palette)
+const Color _scaffoldBackgroundLightGrey = Color(0xFFF5F5F5); // Light Grey (Material Grey 100)
+const Color _darkText = Color(0xFF212121); // Dark grey for text (Material Grey 900)
+const Color _lightText = Colors.white; // White for text on dark backgrounds
+
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // NEW: Print database path for debugging
@@ -67,7 +115,6 @@ Future<void> main() async {
 
   // Initialize LoginRepository now that AppDatabase is ready.
   await LoginRepository.initialize(db);
-
   // Check initial login status
   final loginRepository = LoginRepository(); // Get the singleton instance
   await loginRepository.getLoggedInUserFromLocal();
@@ -87,11 +134,12 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-            create: (_) => LoginViewModel(
-                loginRepository: loginRepository)), // Pass loginRepository
-        ChangeNotifierProvider(
-            create: (_) => HomeViewModel(appDatabase: db)), // Pass appDatabase
+     // Provide LoginRepository as a value, as it's a pre-initialized singleton.
+          Provider<LoginRepository>.value(value: loginRepository), // <<< NEW: Provide LoginRepository
+          ChangeNotifierProvider(create: (_) => LoginViewModel(loginRepository: loginRepository)),
+          // Inject LoginRepository into HomeViewModel
+          ChangeNotifierProvider(create: (_) => HomeViewModel(appDatabase: db, loginRepository: loginRepository)), // <<< CRUCIAL FIX: Pass loginRepository
+      
         ChangeNotifierProvider(
             create: (_) => DashboardViewModel()), // <<< Add DashboardViewModel
         ChangeNotifierProvider(
@@ -131,10 +179,101 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BioCheckSheet7',
+    theme: ThemeData(
+        // Primary Color Palette
+        primarySwatch: createMaterialColor(_primaryThemeBlue),
+        primaryColor: _primaryThemeBlue,
+        
+        // Accent Color (used by FloatingActionButton, etc.)
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: createMaterialColor(_primaryThemeBlue),
+          accentColor: _accentThemeAmber, // Use accent color from your palette
+          backgroundColor: _scaffoldBackgroundLightGrey,
+          // You can define more colors here if needed, like surface, error, etc.
+        ).copyWith(secondary: _accentThemeAmber), // Ensure accentColor is set as secondary
+
+        // Scaffold Background Color
+        scaffoldBackgroundColor: _scaffoldBackgroundLightGrey,
+
+        // AppBar Theme
+        appBarTheme: const AppBarTheme(
+          backgroundColor: _primaryThemeBlue, // Solid primary blue for AppBar
+          foregroundColor: _lightText, // White text/icons on AppBar
+        ),
+
+        // ElevatedButton Theme
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _primaryThemeBlue, // Primary blue for filled buttons
+            foregroundColor: _lightText, // White text on filled buttons
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)), // Rounded corners
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          ),
+        ),
+
+        // OutlinedButton Theme
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: _primaryThemeBlue, // Primary blue text for outlined buttons
+            side: const BorderSide(color: _primaryThemeBlue), // Primary blue border
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          ),
+        ),
+
+        // TextButton Theme
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: _primaryThemeBlue, // Primary blue text for text buttons
+          ),
+        ),
+
+        // TextField/Input Decoration Theme
+        inputDecorationTheme: InputDecorationTheme(
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8.0)), // Rounded corners for inputs
+            borderSide: BorderSide(color: Colors.grey),
+          ),
+          enabledBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8.0)),
+            borderSide: BorderSide(color: Colors.grey),
+          ),
+          focusedBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8.0)),
+            borderSide: BorderSide(color: _primaryThemeBlue, width: 2.0), // Primary blue border when focused
+          ),
+          labelStyle: const TextStyle(color: _darkText), // Color of label text
+          hintStyle: TextStyle(color: _darkText.withOpacity(0.6)), // Color of hint text
+          errorStyle: const TextStyle(color: Colors.red), // Color of error text
+        ),
+
+        // Typography (for general text styles)
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(color: _darkText),
+          displayMedium: TextStyle(color: _darkText),
+          displaySmall: TextStyle(color: _darkText),
+          headlineLarge: TextStyle(color: _darkText),
+          headlineMedium: TextStyle(color: _darkText),
+          headlineSmall: TextStyle(color: _darkText),
+          titleLarge: TextStyle(color: _darkText),
+          titleMedium: TextStyle(color: _darkText),
+          titleSmall: TextStyle(color: _darkText),
+          bodyLarge: TextStyle(color: _darkText),
+          bodyMedium: TextStyle(color: _darkText),
+          bodySmall: TextStyle(color: _darkText),
+          labelLarge: TextStyle(color: _darkText),
+          labelMedium: TextStyle(color: _darkText),
+          labelSmall: TextStyle(color: _darkText),
+        ),
+
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      /*
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      */
       initialRoute: initialRoute,
       routes: {
         '/login': (context) => const LoginScreen(),
@@ -200,4 +339,7 @@ class PlaceholderScreen extends StatelessWidget {
       ),
     );
   }
+
+
+
 }

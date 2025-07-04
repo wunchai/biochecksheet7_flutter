@@ -5,10 +5,13 @@ import 'package:biochecksheet7_flutter/ui/home/home_viewmodel.dart';
 import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // สำหรับ DbJob
 import 'package:biochecksheet7_flutter/ui/document/document_screen.dart'; // <<< Import DocumentScreen
+import 'package:biochecksheet7_flutter/ui/home/widgets/home_app_bar.dart'; // <<< NEW: Import HomeAppBar
+
 
 class HomeScreen extends StatefulWidget {
+  final String title;
   // Constructor for HomeScreen, takes a 'title' string.
-  const HomeScreen({super.key, required String title});
+  const HomeScreen({super.key, this.title = 'Home'});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -32,39 +35,19 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'), // Title for the Home Screen
-        actions: [
-          // Refresh Button
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-               // เชื่อมโยงปุ่ม Refresh กับ performFullSync()
-              Provider.of<HomeViewModel>(context, listen: false).performFullSync(); // <<< แก้ไขตรงนี้
-            },
-          ),
-              // NEW: Upload Document Records button
-          Consumer<HomeViewModel>(
-            builder: (context, viewModel, child) {
-              return IconButton(
-                icon: const Icon(Icons.upload_file), // Icon for upload
-                onPressed: viewModel.isLoading
-                    ? null // Disable if loading
-                    : () {
-                        viewModel.uploadAllDocumentRecords();
-                      },
-              );
-            },
-          ),// Logout Button
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              // Call logout from LoginRepository and navigate back to the login screen.
-              Provider.of<LoginRepository>(context, listen: false).logout();
-              Navigator.of(context).pushReplacementNamed('/login');
-            },
-          ),
-        ],
+          // NEW: Use HomeAppBar
+      appBar: HomeAppBar(
+        title: widget.title,
+        searchController: TextEditingController(), // Pass a new controller for HomeAppBar
+        onRefreshPressed: () {
+          Provider.of<HomeViewModel>(context, listen: false).refreshJobs();
+        },
+        onUploadPressed: () {
+          Provider.of<HomeViewModel>(context, listen: false).uploadAllDocumentRecords();
+        },
+        onLogoutPressed: () {
+          Provider.of<HomeViewModel>(context, listen: false).logout(context);
+        },
       ),
       body: Consumer<HomeViewModel>(
         // Consumer rebuilds its child when HomeViewModel changes.
@@ -87,105 +70,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Main column to arrange UI elements vertically.
                 children: [
                   // --- First Search/Filter Row (Equivalent to linearLayout3 in fragment_home.xml) ---
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center, // Vertically center widgets in the row.
-                      children: [
-                        SizedBox(
-                          width: 55, // Fixed width for the TextView label as per XML.
-                          child: const Text(
-                            "Job ID", // Placeholder for @string/textViewStr.
-                            style: TextStyle(color: Colors.black, fontSize: 16.0),
-                          ),
-                        ),
-                        const SizedBox(width: 8.0), // Space between label and TextField.
-                        Expanded(
-                          // TextField (Equivalent to editText5 in XML).
-                          child: TextField(
-                            controller: viewModel.editText5Controller, // Linked to ViewModel's controller.
-                            decoration: const InputDecoration(
-                              hintText: "Enter Job ID", // Placeholder for @string/editText5hit.
-                              border: OutlineInputBorder(), // Adds a border around the input field.
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0), // Adjusts internal padding.
-                            ),
-                            keyboardType: TextInputType.text,
-                            textInputAction: TextInputAction.next, // Moves to the next input field on keyboard 'done'.
-                          ),
-                        ),
-                        const SizedBox(width: 8.0), // Space before the button.
-                        SizedBox(
-                          width: 100, // Fixed width for the button as per XML.
-                          height: 40, // Adjusted height for better visual appeal.
-                          child: ElevatedButton(
-                            onPressed: viewModel.onButton3Pressed, // Calls ViewModel's method on press.
-                            child: const Text("Button3"), // Placeholder for @string/button3str.
-                          ),
-                        ),
-                      ],
+                Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      viewModel.statusMessage,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                      textAlign: TextAlign.center,
                     ),
                   ),
-
-                  // --- Second Search/Filter Row (Equivalent to linearLayout4 in fragment_home.xml) ---
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 50, // Fixed width for the TextView label as per XML.
-                          child: const Text(
-                            "Unit", // Placeholder for @string/txUnitStr.
-                            style: TextStyle(color: Colors.black, fontSize: 16.0),
-                          ),
-                        ),
-                        // Increased spacing here to make this TextField visually distinct/offset from the first one.
-                        const SizedBox(width: 18.0), // More space to create a visual offset.
-                        Expanded(
-                          // TextField (Equivalent to editText6 in XML).
-                          child: TextField(
-                            controller: viewModel.editText6Controller, // Linked to ViewModel's controller.
-                            decoration: const InputDecoration(
-                              hintText: "Enter Unit", // Placeholder for @string/editText6hit.
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                            ),
-                            keyboardType: TextInputType.text,
-                            textInputAction: TextInputAction.done, // Closes keyboard on 'done'.
-                          ),
-                        ),
-                        const SizedBox(width: 8.0), // Space before the button.
-                        SizedBox(
-                          width: 100, // Fixed width for the button as per XML.
-                          height: 40, // Adjusted height for better visual appeal.
-                          child: ElevatedButton(
-                            onPressed: viewModel.onButton4Pressed, // Calls ViewModel's method on press.
-                            child: const Text("Button4"), // Placeholder for @string/button4str.
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // --- Search Button Row (Equivalent to linearLayout5 in fragment_home.xml) ---
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    child: Container(
-                      height: 48, // Fixed height for the container as per XML.
-                      color: Colors.deepPurple, // Background color (assuming purple_200 is deepPurple).
-                      alignment: Alignment.center, // Centers the child (button) within this container.
-                      child: SizedBox(
-                        width: 320, // Fixed width for the button as per XML.
-                        child: ElevatedButton(
-                          onPressed: viewModel.isLoading // Disable button if ViewModel is in loading state.
-                              ? null
-                              : viewModel.applyFilters, // Calls ViewModel's method to apply filters.
-                          child: const Text("Search"), // Placeholder for @string/button2str.
-                        ),
-                      ),
-                    ),
-                  ),
-
                   // --- Job List (Equivalent to homelist RecyclerView in XML) ---
                   Expanded(
                     // Takes up the remaining vertical space.

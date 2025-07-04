@@ -9,6 +9,8 @@ import 'package:biochecksheet7_flutter/data/network/api_response_models.dart';
 
 const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
 
+
+/*
 // NEW: Define a data class for API upload response (if API returns specific format)
 class UploadRecordResult {
   final int uid;
@@ -23,6 +25,7 @@ class UploadRecordResult {
     );
   }
 }
+*/
 
 class DocumentRecordApiService {
   /// Fetches historical record data from API for charting.
@@ -154,32 +157,52 @@ class DocumentRecordApiService {
       throw Exception("An unexpected error occurred uploading records: $e");
     }
   }
-   /// Returns a list of UploadRecordResult indicating success/failure for each record.
-  Future<List<UploadRecordResult>> uploadDocumentRecords(List<DbDocumentRecord> recordsToUpload) async {
-    final uri = Uri.parse("$_baseUrl/CheckSheet_DocumentRecord_Upload"); // Assumed API Endpoint
+  /// Uploads a list of DbDocumentRecord to the API.
+  /// Returns a list of UploadRecordResult indicating success/failure for each record.
+  Future<List<UploadRecordResult>> uploadDocumentRecords(
+    List<DbDocumentRecord> recordsToUpload,
+    {String? documentCreateDate, String? documentUserId} // <<< CRUCIAL FIX: Add these parameters
+  ) async {
+    final uri = Uri.parse("$_baseUrl/CHECKSHEET_DOCUMENTRECORD_SYNC"); // Assumed API Endpoint
     print("Uploading document records to API: $uri");
     final headers = {"Content-Type": "application/json"};
 
     final List<Map<String, dynamic>> jsonRecords = recordsToUpload.map((record) {
       return {
-        "DocumentId": record.documentId,
-        "MachineId": record.machineId,
-        "JobId": record.jobId,
-        "TagId": record.tagId,
-        "Value": record.value,
-        "Remark": record.remark,
-        "UnReadable": record.unReadable ? 1 : 0, // Convert bool to int for API
+        "createDate": documentCreateDate,
+        "userId": documentUserId,
+        "uid": record.uid,
+        "documentId": record.documentId,
+        "machineId": record.machineId,
+        "jobId": record.jobId,
+        "tagId": record.tagId,
+        "tagName": record.tagName,
+        "tagType": record.tagType,     
+        "tagSelectionValue": record.tagSelectionValue,
+        "queryStr": record.queryStr,
+        "description": record.description,
+        "specification": record.specification,
+        "specMin": record.specMin,
+        "specMax": record.specMax,
+        "unit": record.unit,
+        "value": record.value,
+        "ValueType": record.valueType,
         "Status": record.status,
-        "SyncStatus": record.syncStatus,
-        "LastSync": record.lastSync,
-        "RecordBy": record.recordBy,
-        "uid": record.uid, // Make sure UID is included for mapping results
+        "UnReadable": record.unReadable,
+        "Remark": record.remark
       };
     }).toList();
 
+    final Map<String, dynamic> parameterObject = {      
+      "record": jsonEncode(jsonRecords),
+      "username": "000000" // Assuming username parameter is still required for auth/context
+      // ถ้ามี Password ก็เพิ่ม Passw
+      //ord: "your_password"
+    };
+
     final body = jsonEncode({
-      "ServiceName": "CheckSheet_DocumentRecord_Upload",
-      "Paremeter": jsonEncode(jsonRecords)
+      "ServiceName": "CHECKSHEET_DOCUMENTRECORD_SYNC",
+      "Paremeter": jsonEncode(parameterObject)
     });
     print("Request body for document record upload: $body");
 
@@ -191,9 +214,8 @@ class DocumentRecordApiService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
-        // Assuming server returns a 'Table' key with a list of results
-        if (responseJson['Table'] != null && responseJson['Table'] is List) {
-          final List<dynamic> resultsList = responseJson['Table'];
+        if (responseJson['Table1'] != null && responseJson['Table1'] is List) {
+          final List<dynamic> resultsList = responseJson['Table1'];
           return resultsList.map((item) => UploadRecordResult.fromJson(item)).toList();
         } else {
           throw Exception("Document Record Upload API response format invalid (missing 'Table' key or not a list).");

@@ -37,29 +37,33 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase> with _$DocumentRec
               tbl.syncStatus.equals(0))) // SyncStatus 0: Not yet synced
         .watch();
   }
-
-  /// NEW: Updates the status and syncStatus of a DocumentRecord by UID.
+  
+ /// NEW: Updates the status and syncStatus of a DocumentRecord by UID.
   Future<bool> updateDocumentRecordStatusAndSyncStatus(
       int uid, int newStatus, int newSyncStatus) async {
-    return (update(documentRecords)..where((tbl) => tbl.uid.equals(uid))).go({
+    // CRUCIAL FIX: Use .write() for UpdateStatement
+    final updatedRows = await (update(documentRecords)..where((tbl) => tbl.uid.equals(uid))).write(
       DocumentRecordsCompanion(
-        status: Value(newStatus),
-        syncStatus: Value(newSyncStatus),
-        lastSync: Value(DateTime.now().toIso8601String()), // Update last sync time
+        status: drift.Value(newStatus),
+        syncStatus: drift.Value(newSyncStatus),
+        lastSync: drift.Value(DateTime.now().toIso8601String()), // Update last sync time
       ),
-    });
+    );
+    return updatedRows > 0; // Return true if at least one row was updated
   }
 
-  
+    // NEW: Delete all document records associated with a specific documentId
+  Future<int> deleteAllRecordsByDocumentId(String documentId) {
+    return (delete(documentRecords)..where((tbl) => tbl.documentId.equals(documentId))).go();
+  }
+
+
  // Gets a single document record by its local UID.
   Future<DbDocumentRecord?> getDocumentRecordByUid(int uid) {
     return (select(documentRecords)..where((tbl) => tbl.uid.equals(uid))).getSingleOrNull();
   }
 
-   // NEW: Delete all document records associated with a specific documentId
-  Future<int> deleteAllRecordsByDocumentId(String documentId) {
-    return (delete(documentRecords)..where((tbl) => tbl.documentId.equals(documentId))).go();
-  }
+
 
   // NEW: Get all document records associated with a specific documentId (for copy operation)
   Future<List<DbDocumentRecord>> getRecordsByDocumentId(String documentId) {

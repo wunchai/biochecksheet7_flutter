@@ -38,4 +38,5 @@ class DocumentMachines extends Table {
   IntColumn get id => integer().named('id')(); // API has 'id' as int
   TextColumn get createDate => text().named('CreateDate').nullable()();
   TextColumn get createBy => text().named('CreateBy').nullable()();
+  TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
 }

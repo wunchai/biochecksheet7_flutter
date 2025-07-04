@@ -21,4 +21,5 @@ class Syncs extends Table {
 
   // @ColumnInfo(name = "NextSync") var nextSync: String? = null
   TextColumn get nextSync => text().named('NextSync').nullable()(); // Stored as String (ISO 8601)
+  TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
 }

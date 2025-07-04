@@ -61,4 +61,6 @@ class JobTags extends Table {
   TextColumn get createBy => text().named('CreateBy').nullable()();
   TextColumn get valueType => text().named('ValueType').nullable()(); // API has 'ValueType'
   TextColumn get tagSelectionValue => text().named('TagSelectionValue').nullable()(); // API has 'TagSelectionValue'
+
+  TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
 }

@@ -25,11 +25,13 @@ class LoginRepository {
         _userDao = appDatabase.userDao;
 
   static LoginRepository? _instance;
+
   factory LoginRepository() {
     if (_instance == null) {
       throw Exception("LoginRepository must be initialized after AppDatabase is ready.");
+      
     }
-    return _instance!;
+        return _instance!;
   }
 
   static Future<void> initialize(AppDatabase appDatabase) async {
@@ -43,7 +45,9 @@ class LoginRepository {
 
   Future<void> logout() async {
     _user = null;
-    await _userDao.deleteAllUsers();
+ // REMOVED: await _userDao.deleteAllUsers(); // <<< REMOVE THIS LINE
+    print('LoginRepository: User logged out. Local user data retained for offline use.'); // Debugging
+ 
   }
 
   Future<LoginResult> login(String username, String password) async {
@@ -87,10 +91,10 @@ class LoginRepository {
       }).toList();
 
       await _userDao.insertAllUsers(usersToInsert);
-
-      return const SyncSuccess();
+     return const SyncSuccess(message: 'ซิงค์ข้อมูลผู้ใช้สำเร็จ!'); // <<< CRUCIAL FIX: Use named parameter
+     
     } on Exception catch (e) {
-      return SyncError(e);
+        return SyncError(exception: 'ข้อผิดพลาดในการซิงค์ผู้ใช้: $e'); // <<< CRUCIAL FIX: Use named parameter
     }
   }
 

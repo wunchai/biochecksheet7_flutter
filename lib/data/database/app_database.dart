@@ -4,8 +4,8 @@ import 'package:drift/drift.dart';
 //import 'package:biochecksheet7_flutter/data/database/shared.dart'; // สำหรับ connect()
 //import 'package:drift/wasm.dart'; // สำหรับ WasmDatabase ใน connectWorker()
 // Import the conditional connection.dart with an alias to avoid name conflicts
-import 'package:biochecksheet7_flutter/data/database/connection/connection.dart' as platform_connection; // <<< เปลี่ยนเป็น platform_connection
-
+import 'package:biochecksheet7_flutter/data/database/connection/connection.dart'
+    as platform_connection; // <<< เปลี่ยนเป็น platform_connection
 
 // Import all table definitions (should be present from previous steps)
 import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart';
@@ -69,9 +69,90 @@ class AppDatabase extends _$AppDatabase {
     _instance ??= AppDatabase._(await platform_connection.connect());
     return _instance!;
   }
- // NEW: Add getter for ImageDao
+
+  // NEW: Add getter for ImageDao
   ImageDao get imageDao => ImageDao(this); // <<< NEW: Add ImageDao getter
-  
+
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 4;
+
+  // Define the migration strategy.
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (Migrator m) async {
+          await m.createAll();
+          await _createAllUpdatedAtTriggers(m);
+        },
+        onUpgrade: (Migrator m, int from, int to) async {
+          if (from < 2) {
+            await m.addColumn(documentRecords, documentRecords.updatedAt);
+            // If you had other tables in v1 that need updatedAt, add them here.
+          }
+          if (from < 3) {
+            // Add 'updatedAt' column to all *newly added* tables or tables that didn't have it before v3
+            await m.addColumn(jobs, jobs.updatedAt);
+            await m.addColumn(documents, documents.updatedAt);
+            await m.addColumn(documentMachines, documentMachines.updatedAt);
+            await m.addColumn(jobMachines, jobMachines.updatedAt);
+            await m.addColumn(jobTags, jobTags.updatedAt);
+            await m.addColumn(problems, problems.updatedAt);
+            await m.addColumn(syncs, syncs.updatedAt);
+            await m.addColumn(users, users.updatedAt);
+            await m.addColumn(images, images.updatedAt);
+
+            await _createAllUpdatedAtTriggers(m);
+          }
+          if (from < 4) {
+            // <<< NEW: If upgrading from version 3 to 4
+            // Re-create all triggers to include AFTER INSERT
+            await _createAllUpdatedAtTriggers(m);
+          }
+        },
+      );
+
+  // Helper method to create a single SQL trigger for updatedAt column
+  Future<void> _createUpdatedAtTrigger(
+      Migrator m, String tableName, String columnName) async {
+    final triggerName = 'update_${tableName}_${columnName}';
+    // CRUCIAL FIX: Access customStatement via m.database (which is the AppDatabase instance)
+    await m.database.customStatement(
+        // <<< CRUCIAL FIX: Changed m.customStatement to m.database.customStatement
+        '''
+      CREATE TRIGGER IF NOT EXISTS $triggerName
+      AFTER UPDATE ON $tableName
+      FOR EACH ROW
+      BEGIN
+        UPDATE $tableName SET $columnName = STRFTIME('%Y-%m-%dT%H:%M:%f', 'now') WHERE uid = OLD.uid;
+      END;
+      ''');
+    print('SQL Trigger "$triggerName" created/ensured.');
+
+      // NEW: Trigger for AFTER INSERT
+    final insertTriggerName = 'update_${tableName}_${columnName}_on_insert';
+    await m.database.customStatement(
+      '''
+      CREATE TRIGGER IF NOT EXISTS $insertTriggerName
+      AFTER INSERT ON $tableName
+      FOR EACH ROW
+      BEGIN
+        UPDATE $tableName SET $columnName = STRFTIME('%Y-%m-%dT%H:%M:%f', 'now') WHERE uid = NEW.uid;
+      END;
+      '''
+    );
+    print('SQL Trigger "$insertTriggerName" created/ensured.');
+  }
+
+  // Helper method to create triggers for all tables
+  Future<void> _createAllUpdatedAtTriggers(Migrator m) async {
+    await _createUpdatedAtTrigger(m, 'jobs', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'documents', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'document_machines', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'document_records', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'job_machines', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'job_tags', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'problems', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'syncs', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'users', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'images', 'updatedAt');
+  }
 }

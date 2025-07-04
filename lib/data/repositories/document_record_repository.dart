@@ -16,6 +16,7 @@ import 'package:collection/collection.dart'; // For IterableExtension, if needed
 import 'package:biochecksheet7_flutter/data/network/document_record_api_service.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart'; // <<< NEW: Import DocumentDao
 import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // <<< NEW: Import DbDocument
+import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< CRUCIAL FIX: Add this import for UploadRecordResult
 
 import 'dart:math'; // <<< NEW: Import for atan and pow
 
@@ -400,7 +401,8 @@ class DocumentRecordRepository {
 
   /// Uploads records with Status 1 (Locally Validated) to the server.
   /// After successful upload, updates their status to 2 (Posted).
-  Future<bool> uploadRecordsToServer({required String documentId, required String machineId, required String jobId}) async {
+  Future<bool> uploadRecordsToServer({required String documentId, required String machineId, required String jobId,  String? documentCreateDate, 
+    String? documentUserId     }) async {
     try {
       // 1. Get records that are ready for upload (Status 1 or 2)
       final allRecordsForDocMachine = await _documentRecordDao.getDocumentRecordsList(documentId, machineId).first;
@@ -473,10 +475,17 @@ class DocumentRecordRepository {
         uid, newStatus, newSyncStatus);
   }
 
-  /// NEW: Uploads a list of DbDocumentRecord to the API.
+ /// NEW: Uploads a list of DbDocumentRecord to the API.
   /// Returns a list of UploadRecordResult indicating success/failure for each record.
   Future<List<UploadRecordResult>> uploadDocumentRecordsToServer(
-      List<DbDocumentRecord> recordsToUpload) async {
-    return _documentRecordApiService.uploadDocumentRecords(recordsToUpload);
+    List<DbDocumentRecord> recordsToUpload,
+    {String? documentCreateDate, String? documentUserId} // <<< CRUCIAL FIX: Add these parameters
+  ) async {
+    return _documentRecordApiService.uploadDocumentRecords(
+      recordsToUpload,
+      documentCreateDate: documentCreateDate,
+      documentUserId: documentUserId,
+    );
   }
+
 }
