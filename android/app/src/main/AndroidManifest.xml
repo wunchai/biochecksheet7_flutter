@@ -40,6 +40,17 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+            <service android:name="dev.fluttercommunity.workmanager.WorkmanagerService" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="false"/>
+        <receiver android:name="dev.fluttercommunity.workmanager.WorkmanagerBroadcastReceiver" android:exported="false"/>
+        <receiver android:name="dev.fluttercommunity.workmanager.RescheduleReceiver" android:exported="false"/>
+        <receiver android:name="dev.fluttercommunity.workmanager.SystemRescheduleReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            </intent-filter>
+        </receiver>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

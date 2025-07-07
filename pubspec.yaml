@@ -63,8 +63,13 @@ dependencies:
   image_picker: ^1.1.2 # สำหรับถ่ายรูปและเลือกรูปจาก Gallery
   image: ^4.2.0 # สำหรับจัดการรูปภาพ (resize, compress)
   uuid: ^4.4.0 # For generating unique IDs for images
-# NEW: Photo Viewer
+  # NEW: Photo Viewer
   photo_view: ^0.15.0 # สำหรับดูรูปภาพพร้อม Zoom และ Pan
+
+  archive: ^3.5.1 # <<< NEW: For zipping files
+  http_parser: ^4.0.2 # <<< NEW: For MediaType in MultipartRequest (part of http package family)
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

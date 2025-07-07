@@ -6,7 +6,7 @@ sealed class SyncStatus {
 
 // แสดงว่า Sync สำเร็จ
 class SyncSuccess extends SyncStatus {
-   final String? message; // <<< NEW: Add message parameter
+  final String? message; // <<< NEW: Add message parameter
 
   const SyncSuccess({this.message}); // <<< Add to constructor
 }
@@ -19,7 +19,9 @@ class SyncFailed extends SyncStatus {
 
 // แสดงว่า Sync มีข้อผิดพลาดทางเทคนิค (เช่น Network error, Parsing error)
 class SyncError extends SyncStatus {
-    final dynamic exception; // <<< NEW: Add exception parameter
+  final dynamic exception; // <<< NEW: Add exception parameter
 
-  const SyncError({this.exception}); // <<< Add to constructor
+  final String? message; // <<< CRUCIAL FIX: Add message parameter
+
+  const SyncError({this.exception, this.message}); // <<< Add to constructor
 }

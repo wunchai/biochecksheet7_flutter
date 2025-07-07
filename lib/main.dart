@@ -46,24 +46,75 @@ import 'package:biochecksheet7_flutter/ui/imagerecord/image_record_screen.dart';
 import 'package:biochecksheet7_flutter/ui/problem/problem_viewmodel.dart'; // <<< Import ViewModel
 import 'package:biochecksheet7_flutter/ui/problem/problem_screen.dart'; // <<< Import Screen
 
-
 // Import MainWrapperScreen
 import 'package:biochecksheet7_flutter/ui/main_wrapper/main_wrapper_screen.dart'; // <<< Import MainWrapperScreen
-
-
- // lib/main.dart
+import 'package:biochecksheet7_flutter/data/services/database_maintenance_service.dart';
+// lib/main.dart
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:workmanager/workmanager.dart';
 
 // ... (imports อื่นๆ) ...
+// NEW: Top-level function for background tasks
+@pragma('vm:entry-point') // Mandatory for workmanager
+void callbackDispatcher() {
+  Workmanager().executeTask((taskName, inputData) async {
+    print("Native/Web: Background task '$taskName' started."); // Debugging
 
+    try {
+      // Initialize AppDatabase for the background task.
+      final appDatabase =
+          await AppDatabase.instance; // Needs AppDatabase to be a static getter
+
+      // Initialize DataSyncService for the background task.
+      final dataSyncService = DataSyncService(appDatabase: appDatabase);
+
+      // Perform the specific sync operation based on taskName.
+      if (taskName == "documentRecordUploadSyncTask") {
+        final syncResult =
+            await dataSyncService.performDocumentRecordUploadSync();
+        if (syncResult is SyncSuccess) {
+          print(
+              "Native/Web: DocumentRecord upload sync SUCCESS: ${syncResult.message}");
+          return Future.value(true); // Task successful
+        } else if (syncResult is SyncError) {
+          print(
+              "Native/Web: DocumentRecord upload sync FAILED: ${syncResult.exception}");
+          return Future.value(false); // Task failed
+        }
+      }
+      // TODO: Add other background tasks here (e.g., database backup/restore)
+      // For example, if taskName == "databaseBackupTask":
+      //   final dbBackupService = DatabaseMaintenanceService(appDatabase: appDatabase);
+      //   final backupResult = await dbBackupService.backupAndUploadDb();
+      //   return Future.value(backupResult);
+
+      print("Native/Web: Background task '$taskName' finished. Unknown task.");
+      return Future.value(false); // Indicate failure for unknown task
+    } catch (e) {
+      print("Native/Web: Background task '$taskName' caught error: $e");
+      return Future.value(false); // Indicate failure
+    }
+  });
+}
 
 // NEW: Define custom MaterialColor function
 // This function creates a MaterialColor from a single base Color.
 MaterialColor createMaterialColor(Color color) {
-  List<double> strengths = <double>[.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
+  List<double> strengths = <double>[
+    .05,
+    0.1,
+    0.2,
+    0.3,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9
+  ];
   Map<int, Color> swatch = {};
   final int r = color.red, g = color.green, b = color.blue;
 
@@ -81,7 +132,8 @@ MaterialColor createMaterialColor(Color color) {
     100: color.withOpacity(0.2),
     200: color.withOpacity(0.3),
     300: color.withOpacity(0.4),
-    400: color.withOpacity(0.5), // This is often the default shade for primaryColor
+    400: color
+        .withOpacity(0.5), // This is often the default shade for primaryColor
     500: color.withOpacity(0.6),
     600: color.withOpacity(0.7),
     700: color.withOpacity(0.8),
@@ -91,12 +143,15 @@ MaterialColor createMaterialColor(Color color) {
 }
 
 // Define your specific theme colors
-const Color _primaryThemeBlue = Color(0xFF3F51B5); // Indigo (from Material Design palette)
-const Color _accentThemeAmber = Color(0xFFFFC107); // Amber (from Material Design palette)
-const Color _scaffoldBackgroundLightGrey = Color(0xFFF5F5F5); // Light Grey (Material Grey 100)
-const Color _darkText = Color(0xFF212121); // Dark grey for text (Material Grey 900)
+const Color _primaryThemeBlue =
+    Color(0xFF3F51B5); // Indigo (from Material Design palette)
+const Color _accentThemeAmber =
+    Color(0xFFFFC107); // Amber (from Material Design palette)
+const Color _scaffoldBackgroundLightGrey =
+    Color(0xFFF5F5F5); // Light Grey (Material Grey 100)
+const Color _darkText =
+    Color(0xFF212121); // Dark grey for text (Material Grey 900)
 const Color _lightText = Colors.white; // White for text on dark backgrounds
-
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -110,6 +165,26 @@ Future<void> main() async {
   } catch (e) {
     print('Error getting database path: $e');
   }
+
+// NEW: Initialize Workmanager
+  await Workmanager().initialize(
+    callbackDispatcher, // The top-level function to run in background
+    isInDebugMode: kDebugMode, // Set to true in debug mode for easier testing
+  );
+
+  // NEW: Register and schedule the task (e.g., a periodic task)
+  await Workmanager().registerPeriodicTask(
+    "documentRecordUploadSyncTask", // Unique name for your task
+    "documentRecordUploadSyncTask", // Task name (must match in executeTask)
+    frequency: const Duration(hours: 4), // Run every 4 hours
+    initialDelay: const Duration(minutes: 1), // Start after 1 minute
+    constraints: Constraints(
+      // Optional: Add constraints
+      networkType: NetworkType.connected, // Only run when connected to network
+    ),
+    // You can also use registerOneOffTask for one-time tasks.
+  );
+
   // Initialize AppDatabase instance first, await it.
   final db = await AppDatabase.instance();
 
@@ -131,15 +206,24 @@ Future<void> main() async {
     imageProcessor =
         ImageProcessorNative(); // Now ImageProcessorNative is defined
   }
+
+  final DatabaseMaintenanceService databaseMaintenanceService =
+      DatabaseMaintenanceService(appDatabase: db); // <<< NEW
   runApp(
     MultiProvider(
       providers: [
-     // Provide LoginRepository as a value, as it's a pre-initialized singleton.
-          Provider<LoginRepository>.value(value: loginRepository), // <<< NEW: Provide LoginRepository
-          ChangeNotifierProvider(create: (_) => LoginViewModel(loginRepository: loginRepository)),
-          // Inject LoginRepository into HomeViewModel
-          ChangeNotifierProvider(create: (_) => HomeViewModel(appDatabase: db, loginRepository: loginRepository)), // <<< CRUCIAL FIX: Pass loginRepository
-      
+        // Provide LoginRepository as a value, as it's a pre-initialized singleton.
+        Provider<LoginRepository>.value(
+            value: loginRepository), // <<< NEW: Provide LoginRepository
+        ChangeNotifierProvider(
+            create: (_) => LoginViewModel(loginRepository: loginRepository)),
+        // Inject LoginRepository into HomeViewModel
+        ChangeNotifierProvider(
+            create: (_) => HomeViewModel(
+                appDatabase: db,
+                loginRepository:
+                    loginRepository)), // <<< CRUCIAL FIX: Pass loginRepository
+
         ChangeNotifierProvider(
             create: (_) => DashboardViewModel()), // <<< Add DashboardViewModel
         ChangeNotifierProvider(
@@ -159,7 +243,14 @@ Future<void> main() async {
             create: (_) => ImageViewModel(
                 appDatabase: db,
                 imageProcessor: imageProcessor)), // <<< Pass imageProcessor
-      ChangeNotifierProvider(create: (_) => ProblemViewModel(appDatabase: db)), // <<< NEW: Add ProblemViewModel
+        ChangeNotifierProvider(
+            create: (_) => ProblemViewModel(
+                appDatabase: db)), // <<< NEW: Add ProblemViewModel
+        ChangeNotifierProvider(
+            create: (_) => DataSyncService(
+                appDatabase: db,
+                databaseMaintenanceService:
+                    databaseMaintenanceService)), // <<< Inject
       ],
       child: MyApp(
         initialRoute: loginRepository.isLoggedIn
@@ -179,18 +270,20 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BioCheckSheet7',
-    theme: ThemeData(
+      theme: ThemeData(
         // Primary Color Palette
         primarySwatch: createMaterialColor(_primaryThemeBlue),
         primaryColor: _primaryThemeBlue,
-        
+
         // Accent Color (used by FloatingActionButton, etc.)
         colorScheme: ColorScheme.fromSwatch(
           primarySwatch: createMaterialColor(_primaryThemeBlue),
           accentColor: _accentThemeAmber, // Use accent color from your palette
           backgroundColor: _scaffoldBackgroundLightGrey,
           // You can define more colors here if needed, like surface, error, etc.
-        ).copyWith(secondary: _accentThemeAmber), // Ensure accentColor is set as secondary
+        ).copyWith(
+            secondary:
+                _accentThemeAmber), // Ensure accentColor is set as secondary
 
         // Scaffold Background Color
         scaffoldBackgroundColor: _scaffoldBackgroundLightGrey,
@@ -204,9 +297,11 @@ class MyApp extends StatelessWidget {
         // ElevatedButton Theme
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: _primaryThemeBlue, // Primary blue for filled buttons
+            backgroundColor:
+                _primaryThemeBlue, // Primary blue for filled buttons
             foregroundColor: _lightText, // White text on filled buttons
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)), // Rounded corners
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0)), // Rounded corners
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
         ),
@@ -214,9 +309,12 @@ class MyApp extends StatelessWidget {
         // OutlinedButton Theme
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
-            foregroundColor: _primaryThemeBlue, // Primary blue text for outlined buttons
-            side: const BorderSide(color: _primaryThemeBlue), // Primary blue border
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+            foregroundColor:
+                _primaryThemeBlue, // Primary blue text for outlined buttons
+            side: const BorderSide(
+                color: _primaryThemeBlue), // Primary blue border
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0)),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
         ),
@@ -224,14 +322,16 @@ class MyApp extends StatelessWidget {
         // TextButton Theme
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            foregroundColor: _primaryThemeBlue, // Primary blue text for text buttons
+            foregroundColor:
+                _primaryThemeBlue, // Primary blue text for text buttons
           ),
         ),
 
         // TextField/Input Decoration Theme
         inputDecorationTheme: InputDecorationTheme(
           border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(8.0)), // Rounded corners for inputs
+            borderRadius: BorderRadius.all(
+                Radius.circular(8.0)), // Rounded corners for inputs
             borderSide: BorderSide(color: Colors.grey),
           ),
           enabledBorder: const OutlineInputBorder(
@@ -240,10 +340,13 @@ class MyApp extends StatelessWidget {
           ),
           focusedBorder: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(8.0)),
-            borderSide: BorderSide(color: _primaryThemeBlue, width: 2.0), // Primary blue border when focused
+            borderSide: BorderSide(
+                color: _primaryThemeBlue,
+                width: 2.0), // Primary blue border when focused
           ),
           labelStyle: const TextStyle(color: _darkText), // Color of label text
-          hintStyle: TextStyle(color: _darkText.withOpacity(0.6)), // Color of hint text
+          hintStyle: TextStyle(
+              color: _darkText.withOpacity(0.6)), // Color of hint text
           errorStyle: const TextStyle(color: Colors.red), // Color of error text
         ),
 
@@ -315,11 +418,14 @@ class MyApp extends StatelessWidget {
             machineId: args?['machineId'] ?? '',
             jobId: args?['jobId'] ?? '',
             tagId: args?['tagId'] ?? '',
-            problemId: args?['problemId']?.toString() ?? '', // <<< CRUCIAL FIX: Ensure it's String and not null
-            isReadOnly: args?['isReadOnly'] ?? false, // <<< NEW: Receive isReadOnly
+            problemId: args?['problemId']?.toString() ??
+                '', // <<< CRUCIAL FIX: Ensure it's String and not null
+            isReadOnly:
+                args?['isReadOnly'] ?? false, // <<< NEW: Receive isReadOnly
           );
         },
-        '/problem': (context) => const ProblemScreen(title: 'Problem List'), // <<< NEW: Add ProblemScreen Route
+        '/problem': (context) => const ProblemScreen(
+            title: 'Problem List'), // <<< NEW: Add ProblemScreen Route
       },
     );
   }
@@ -339,7 +445,4 @@ class PlaceholderScreen extends StatelessWidget {
       ),
     );
   }
-
-
-
 }

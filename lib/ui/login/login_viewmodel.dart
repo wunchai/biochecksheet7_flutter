@@ -26,7 +26,7 @@ class LoginViewModel extends ChangeNotifier {
   String? _syncMessage;
   String? get syncMessage => _syncMessage;
 
-   String? _loginMessage;
+  String? _loginMessage;
   String? get loginMessage => _loginMessage;
   set loginMessage(String? value) {
     _loginMessage = value;
@@ -67,12 +67,39 @@ class LoginViewModel extends ChangeNotifier {
     }
 
     _loginFormState = _loginFormState.copyWith(
+      username: username,
+      password: password,
       usernameError: usernameError,
       passwordError: passwordError,
       isDataValid: isDataValid,
       isLoading: false,
     );
     notifyListeners();
+  }
+
+  void _validateForm() {
+    String? usernameError;
+    String? passwordError;
+
+    // Use the current username and password from _loginFormState
+    if (_loginFormState.username.isEmpty) {
+      // <<< Use _loginFormState.username
+      usernameError = 'Username cannot be empty';
+    }
+    if (_loginFormState.password.isEmpty) {
+      // <<< Use _loginFormState.password
+      passwordError = 'Password cannot be empty';
+    }
+
+    _loginFormState = _loginFormState.copyWith(
+      usernameError: usernameError,
+      passwordError: passwordError,
+      isDataValid: usernameError == null && passwordError == null,
+      // CRUCIAL FIX: Ensure username and password are also passed to copyWith
+      // to maintain their values across state updates from validation.
+      username: _loginFormState.username, // <<< Pass username
+      password: _loginFormState.password, // <<< Pass password
+    );
   }
 
   Future<void> login(String username, String password) async {
@@ -113,19 +140,21 @@ class LoginViewModel extends ChangeNotifier {
 
     final result = await _loginRepository.syncUsers();
 
-    if (result is SyncSuccess) { // Check specifically for SyncSuccess
+    if (result is SyncSuccess) {
+      // Check specifically for SyncSuccess
       _syncMessage = "User data synced successfully!";
-    } else if (result is SyncFailed) { // Check specifically for SyncFailed
-      _syncMessage = "Sync failed: ${result.errorMessage}"; // Access errorMessage safely
-    } else if (result is SyncError) { // Check specifically for SyncError
-      _syncMessage = "Sync error: ${result.exception.toString()}"; // Access exception safely
+    } else if (result is SyncFailed) {
+      // Check specifically for SyncFailed
+      _syncMessage =
+          "Sync failed: ${result.errorMessage}"; // Access errorMessage safely
+    } else if (result is SyncError) {
+      // Check specifically for SyncError
+      _syncMessage =
+          "Sync error: ${result.exception.toString()}"; // Access exception safely
     }
     _loginFormState = _loginFormState.copyWith(isLoading: false);
     notifyListeners();
   }
-
- 
-  
 
   bool isUserNameValid(String username) {
     return username.isNotEmpty && username.length > 3;
@@ -135,9 +164,10 @@ class LoginViewModel extends ChangeNotifier {
     return password.isNotEmpty && password.length > 5;
   }
 
-    /// Logout method for LoginViewModel.
+  /// Logout method for LoginViewModel.
   /// Clears user data and navigates to the login screen.
-  Future<void> logout(BuildContext context) async { // <<< CRUCIAL FIX: Add BuildContext parameter
+  Future<void> logout(BuildContext context) async {
+    // <<< CRUCIAL FIX: Add BuildContext parameter
     _loginFormState = _loginFormState.copyWith(isLoading: true);
     _loginMessage = null;
     notifyListeners();
@@ -149,9 +179,12 @@ class LoginViewModel extends ChangeNotifier {
 
       // CRUCIAL FIX: Navigate back to the login screen and remove all previous routes.
       // This ensures a clean navigation stack.
-      if (context.mounted) { // Check if context is still valid
+      if (context.mounted) {
+        // Check if context is still valid
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const LoginScreen()), // Navigate to LoginScreen
+          MaterialPageRoute(
+              builder: (context) =>
+                  const LoginScreen()), // Navigate to LoginScreen
           (Route<dynamic> route) => false, // Remove all routes from stack
         );
       }
