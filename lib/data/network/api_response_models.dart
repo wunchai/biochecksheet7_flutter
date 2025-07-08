@@ -15,4 +15,27 @@ class UploadRecordResult {
       message: json['message']?.toString(), // Optional message from API
     );
   }
+
+  
+}
+/// NEW: Response model for SyncMetadata API.
+/// Represents an action/command received from the server.
+class SyncMetadataResponse {
+  final String actionId;
+  final String actionType; // e.g., "transferDB", "update", "cleanEndData"
+  final String? actionSql; // SQL query for "update" action (optional)
+
+  SyncMetadataResponse({
+    required this.actionId,
+    required this.actionType,
+    this.actionSql,
+  });
+
+  factory SyncMetadataResponse.fromJson(Map<String, dynamic> json) {
+    return SyncMetadataResponse(
+      actionId: json['ActionId']?.toString() ?? '', // Assuming PascalCase from API
+      actionType: json['ActionType']?.toString() ?? '',
+      actionSql: json['ActionSql']?.toString(), // Optional SQL string
+    );
+  }
 }

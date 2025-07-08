@@ -9,8 +9,7 @@ import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // For Sy
 import 'package:http_parser/http_parser.dart'; // <<< CRUCIAL FIX: Import MediaType
 
 // TODO: Define your API endpoint for database upload
-const String _dbUploadApiUrl =
-    "http://10.1.200.26/ServiceJson/Service4.svc/UploadDatabase"; // Placeholder API endpoint
+const String _dbUploadApiUrl = "http://10.1.200.26/ServiceJson/Service4.svc/UploadDatabase"; // Placeholder API endpoint
 
 class DatabaseMaintenanceService {
   final AppDatabase _appDatabase;
@@ -19,8 +18,7 @@ class DatabaseMaintenanceService {
       : _appDatabase = appDatabase;
 
   /// Performs a backup of the local SQLite database, zips it, and uploads it to a server.
-  Future<SyncStatus> backupAndUploadDb(
-      {String? userId, String? deviceId}) async {
+  Future<SyncStatus> backupAndUploadDb({String? userId, String? deviceId}) async {
     try {
       // CRUCIAL FIX: Do NOT close/reopen database here.
       // The database connection should be managed by the AppDatabase.instance getter
@@ -30,39 +28,31 @@ class DatabaseMaintenanceService {
       // For simplicity, we assume AppDatabase.instance manages its own connection.
 
       final dbFolder = await getApplicationDocumentsDirectory();
-      final dbFilePath = p.join(dbFolder.path,
-          'biochecksheet.sqlite'); // The actual database file name
+      final dbFilePath = p.join(dbFolder.path, 'biochecksheet.sqlite'); // The actual database file name
 
       final dbFile = File(dbFilePath);
       if (!await dbFile.exists()) {
-        return const SyncError(
-            message:
-                'Database file not found locally.'); // <<< CRUCIAL FIX: Use named parameter
+        return const SyncError(message: 'Database file not found locally.'); // <<< CRUCIAL FIX: Use named parameter
       }
 
       // 1. Create a zip archive
       // CRUCIAL FIX: Ensure readAsBytesSync() returns non-null List<int>
       final List<int> fileBytes = dbFile.readAsBytesSync();
       if (fileBytes.isEmpty) {
-        return const SyncError(
-            message:
-                'Database file is empty or could not be read.'); // <<< CRUCIAL FIX: Use named parameter
+        return const SyncError(message: 'Database file is empty or could not be read.'); // <<< CRUCIAL FIX: Use named parameter
       }
-
+      
       final archive = Archive();
-      archive.addFile(ArchiveFile('biochecksheet.sqlite', fileBytes.length,
-          fileBytes)); // <<< Pass non-nullable List<int>
+      archive.addFile(ArchiveFile('biochecksheet.sqlite', fileBytes.length, fileBytes)); // <<< Pass non-nullable List<int>
       final zipBytes = ZipEncoder().encode(archive);
 
       final backupDir = Directory(p.join(dbFolder.path, 'db_backups'));
       if (!await backupDir.exists()) {
         await backupDir.create(recursive: true);
       }
-      final backupFilePath = p.join(backupDir.path,
-          'biochecksheet_backup_${DateTime.now().millisecondsSinceEpoch}.zip');
+      final backupFilePath = p.join(backupDir.path, 'biochecksheet_backup_${DateTime.now().millisecondsSinceEpoch}.zip');
       final backupFile = File(backupFilePath);
-      await backupFile
-          .writeAsBytes(zipBytes!); // zipBytes can be null if encode fails
+      await backupFile.writeAsBytes(zipBytes!); // zipBytes can be null if encode fails
 
       print('Database backed up to: $backupFilePath');
 
@@ -92,10 +82,7 @@ class DatabaseMaintenanceService {
       }
     } on Exception catch (e) {
       print('Error during database backup and upload: $e');
-      return SyncError(
-          exception: e,
-          message:
-              'ข้อผิดพลาดในการสำรองและอัปโหลดฐานข้อมูล: $e'); // <<< CRUCIAL FIX: Use named parameter
+      return SyncError(exception: e, message: 'ข้อผิดพลาดในการสำรองและอัปโหลดฐานข้อมูล: $e'); // <<< CRUCIAL FIX: Use named parameter
     } finally {
       // Reopen the database connection after operation (if it was closed).
       // This is not needed if AppDatabase.instance manages connection.
@@ -113,8 +100,7 @@ class DatabaseMaintenanceService {
       return const SyncSuccess(message: 'รัน Raw SQL Query สำเร็จ!');
     } on Exception catch (e) {
       print('Error executing raw SQL query: $e');
-      return SyncError(
-          exception: e, message: 'ข้อผิดพลาดในการรัน Raw SQL Query: $e');
+      return SyncError(exception: e, message: 'ข้อผิดพลาดในการรัน Raw SQL Query: $e');
     }
   }
 }

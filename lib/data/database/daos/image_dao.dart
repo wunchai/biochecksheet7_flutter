@@ -19,6 +19,15 @@ class ImageDao extends DatabaseAccessor<AppDatabase> with _$ImageDaoMixin {
   // Deletes a specific image record.
   Future<int> deleteImage(DbImage entry) => delete(images).delete(entry);
 
+ /// NEW: Deletes images by a list of documentIds.
+  Future<int> deleteImagesByDocumentIds(List<String> documentIds) {
+    return (delete(images)..where((tbl) => tbl.documentId.isIn(documentIds))).go();
+  }
+
+  /// NEW: Deletes images by a list of problemIds.
+  Future<int> deleteImagesByProblemIds(List<String> problemIds) {
+    return (delete(images)..where((tbl) => tbl.problemId.isIn(problemIds))).go();
+  }
   // Gets all images for a specific document, machine, job, and tag.
   Stream<List<DbImage>> watchImagesForRecord({
     required String documentId,

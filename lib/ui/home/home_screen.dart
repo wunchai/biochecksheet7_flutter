@@ -6,7 +6,7 @@ import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // สำหรับ DbJob
 import 'package:biochecksheet7_flutter/ui/document/document_screen.dart'; // <<< Import DocumentScreen
 import 'package:biochecksheet7_flutter/ui/home/widgets/home_app_bar.dart'; // <<< NEW: Import HomeAppBar
-
+import 'package:biochecksheet7_flutter/ui/deviceinfo/device_info_screen.dart'; // <<< NEW: Import DeviceInfoScreen
 
 class HomeScreen extends StatefulWidget {
   final String title;
@@ -161,6 +161,30 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
+       // NEW: Floating Action Button for Device Info
+      // NEW: Floating Action Button for Manual Metadata Sync
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // Position it to the right
+      floatingActionButton: Column( // Use Column to stack multiple FABs
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: "deviceInfoFab", // Unique tag for multiple FABs
+            onPressed: () {
+              Navigator.pushNamed(context, '/device_info');
+            },
+            child: const Icon(Icons.info_outline),
+          ),
+          const SizedBox(height: 16), // Space between FABs
+          FloatingActionButton(
+            heroTag: "manualSyncFab", // Unique tag
+            onPressed: () {
+              Provider.of<HomeViewModel>(context, listen: false).performManualMetadataSync();
+            },
+            child: const Icon(Icons.sync), // Sync icon
+          ),
+        ],
+      ),
     );
+    
   }
 }

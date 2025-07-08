@@ -1,5 +1,7 @@
 // lib/ui/home/home_viewmodel.dart
 import 'package:flutter/material.dart';
+import 'package:drift/drift.dart' as drift;
+import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/repositories/job_repository.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/job_dao.dart';
@@ -9,13 +11,14 @@ import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; /
 import 'package:biochecksheet7_flutter/ui/login/login_viewmodel.dart'; // Make sure LoginViewModel is imported
 import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart'; // Make sure LoginRepository is imported
 import 'package:biochecksheet7_flutter/ui/login/login_viewmodel.dart';
-import 'package:drift/drift.dart' as drift;
-import 'package:provider/provider.dart';
+import 'package:biochecksheet7_flutter/data/services/device_info_service.dart'; // <<< NEW: Import DeviceInfoService
+import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import API Response Models (for SyncMetadataResponse)
 
 class HomeViewModel extends ChangeNotifier {
     final JobRepository _jobRepository;
   final LoginRepository _loginRepository;
   final DataSyncService _dataSyncService;
+  final DeviceInfoService _deviceInfoService; // <<< NEW: Add DeviceInfoService dependency
 
   String? _searchQuery; // <<< NEW: Search Query property
   String? get searchQuery => _searchQuery; // Getter for search query
@@ -47,19 +50,80 @@ class HomeViewModel extends ChangeNotifier {
       {required AppDatabase appDatabase,required LoginRepository loginRepository, DataSyncService? dataSyncService})
       :  _jobRepository = JobRepository(appDatabase: appDatabase),
         _loginRepository = loginRepository, // <<< Initialize from parameter
-        _dataSyncService =
-            dataSyncService ?? DataSyncService(appDatabase: appDatabase) {
-              loadJobs();
-    // Pass appDatabase to DataSyncService
-    //_applyJobFilters();
-  }
+        _dataSyncService = dataSyncService ?? DataSyncService(appDatabase: appDatabase),
+        _deviceInfoService = DeviceInfoService() // <<< NEW: Initialize DeviceInfoService
+         {loadJobs();}
+  
+  
+  /// Performs manual metadata sync and processes server actions.
+  Future<void> performManualMetadataSync() async {
+    _isLoading = true;
+    _syncMessage = null;
+    _statusMessage = "กำลังซิงค์ข้อมูล Metadata...";
+    notifyListeners();
 
-  @override
-  void dispose() {
-   
-    super.dispose();
-  }
+    try {
+      // 1. Get device info
+      final String deviceId = await _deviceInfoService.getDeviceId();
+      final String serialNo = await _deviceInfoService.getSerialNo();
+      final String appVersion = await _deviceInfoService.getAppVersion();
+      final String ipAddress = await _deviceInfoService.getIpAddress();
+      final String wifiStrength = await _deviceInfoService.getWifiStrength();
+      final String username = _loginRepository.loggedInUser?.userId ?? 'unknown_user';
 
+      // 2. Call checkSyncMetadata API
+      final List<SyncMetadataResponse> syncMetadataResults = await _dataSyncService.checkSyncMetadata(
+        username: username,
+        deviceId: deviceId,
+        serialNo: serialNo,
+        version: appVersion,
+        ipAddress: ipAddress,
+        wifiStrength: wifiStrength,
+      );
+
+      // 3. Process actions from server response
+      bool allActionsSuccessful = true;
+      for (final action in syncMetadataResults) {
+        print("HomeViewModel: Processing action: ${action.actionType} (ID: ${action.actionId})");
+        switch (action.actionType) {
+          case "transferDB":
+            final result = await _dataSyncService.databaseMaintenanceService.backupAndUploadDb(userId: username, deviceId: deviceId); // <<< CRUCIAL FIX: Use getter
+            if (result is SyncError) allActionsSuccessful = false;
+            break;
+          case "update":
+            if (action.actionSql != null && action.actionSql!.isNotEmpty) {
+              final result = await _dataSyncService.databaseMaintenanceService.executeRawSqlQuery(action.actionSql!); // <<< CRUCIAL FIX: Use getter
+              if (result is SyncError) allActionsSuccessful = false;
+            }
+            break;
+          case "cleanEndData":
+            final result = await _dataSyncService.dataCleanupService.cleanEndData(); // <<< CRUCIAL FIX: Use getter
+            if (result is SyncError) allActionsSuccessful = false;
+            break;
+          default:
+            print("HomeViewModel: Unknown actionType: ${action.actionType}");
+            allActionsSuccessful = false;
+            break;
+        }
+      }
+      await _dataSyncService.performFullSync();
+
+      if (allActionsSuccessful) {
+        _syncMessage = "ซิงค์ Metadata และดำเนินการสำเร็จ!";
+        _statusMessage = "ซิงค์สำเร็จ.";
+      } else {
+        _syncMessage = "ซิงค์ Metadata และดำเนินการบางส่วนล้มเหลว.";
+        _statusMessage = "ซิงค์ล้มเหลว.";
+      }
+    } catch (e) {
+      _syncMessage = "ข้อผิดพลาดในการซิงค์ Metadata: $e";
+      _statusMessage = "ซิงค์ Metadata ล้มเหลว: $e";
+      print("Error performing manual metadata sync: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
  
 
   

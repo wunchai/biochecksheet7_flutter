@@ -17,6 +17,12 @@ class ProblemDao extends DatabaseAccessor<AppDatabase> with _$ProblemDaoMixin {
     return update(problems).replace(entry);
   }
 
+
+  /// NEW: Deletes problem records filtered by syncStatus.
+  Future<int> deleteProblemsBySyncStatus(int syncStatus) {
+    return (delete(problems)..where((tbl) => tbl.syncStatus.equals(syncStatus))).go();
+  }
+  
   // Deletes a specific problem record.
   Future<int> deleteProblem(DbProblem entry) => delete(problems).delete(entry);
 
@@ -30,6 +36,10 @@ class ProblemDao extends DatabaseAccessor<AppDatabase> with _$ProblemDaoMixin {
     return (select(problems)..where((tbl) => tbl.uid.equals(uid))).getSingleOrNull();
   }
 
+  /// NEW: Gets problem records filtered by syncStatus.
+  Future<List<DbProblem>> getProblemsBySyncStatus(int syncStatus) { // <<< NEW METHOD
+    return (select(problems)..where((tbl) => tbl.syncStatus.equals(syncStatus))).get();
+  }
   // NEW: Gets a single problem record by its problemId (from API/backend).
   Future<DbProblem?> getProblemByProblemId(String problemId) {
     return (select(problems)..where((tbl) => tbl.problemId.equals(problemId))).getSingleOrNull();

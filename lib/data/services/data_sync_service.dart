@@ -35,7 +35,13 @@ import 'package:biochecksheet7_flutter/data/database/tables/sync_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // <<< เพิ่ม import นี้
 import 'package:biochecksheet7_flutter/data/network/document_record_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import api_response_models.dart
+import 'package:biochecksheet7_flutter/data/network/api_request_models.dart'; // For SyncMetadataRequest
 import 'package:biochecksheet7_flutter/data/services/database_maintenance_service.dart';
+import 'package:biochecksheet7_flutter/data/services/data_cleanup_service.dart'; // Make sure this is imported
+
+
+
+
 
 import 'package:drift/drift.dart' as drift;
 
@@ -46,7 +52,7 @@ class DataSyncService {
   final JobMachineApiService _jobMachineApiService;
   final JobTagApiService _jobTagApiService;
   final ProblemApiService _problemApiService;
-  final SyncMetadataApiService _syncMetadataApiService;
+  final SyncMetadataApiService _syncMetadataApiService; // <<< Use this
   final DocumentApiService _documentApiService; // <<< เพิ่ม Dependency
   final DocumentRecordApiService
       _documentRecordApiService; // <<< เพิ่ม Dependency นี้
@@ -65,6 +71,12 @@ class DataSyncService {
       _documentRecordRepository; // <<< CRUCIAL FIX: Declare here
   final DatabaseMaintenanceService _databaseMaintenanceService;
 
+  final DataCleanupService _dataCleanupService; // <<< Declare here
+  // NEW: Public getters for services used by HomeViewModel
+  DatabaseMaintenanceService get databaseMaintenanceService => _databaseMaintenanceService; // <<< NEW GETTER
+  DataCleanupService get dataCleanupService => _dataCleanupService; // <<< NEW GETTER
+
+
   // Constructor now takes a resolved AppDatabase instance
   DataSyncService({
     required AppDatabase appDatabase, // <<< Change to AppDatabase
@@ -73,19 +85,19 @@ class DataSyncService {
     JobMachineApiService? jobMachineApiService,
     JobTagApiService? jobTagApiService,
     ProblemApiService? problemApiService,
-    SyncMetadataApiService? syncMetadataApiService,
+    SyncMetadataApiService? syncMetadataApiService, // <<< Add to constructor
     DocumentApiService? documentApiService,
     DocumentRecordApiService?
         documentRecordApiService, // <<< เพิ่มใน Constructor
     DocumentRecordRepository? documentRecordRepository,
     DatabaseMaintenanceService? databaseMaintenanceService,
+    DataCleanupService? dataCleanupService, // <<< Add to constructor
   })  : _userApiService = userApiService ?? UserApiService(),
         _jobApiService = jobApiService ?? JobApiService(),
         _jobMachineApiService = jobMachineApiService ?? JobMachineApiService(),
         _jobTagApiService = jobTagApiService ?? JobTagApiService(),
         _problemApiService = problemApiService ?? ProblemApiService(),
-        _syncMetadataApiService =
-            syncMetadataApiService ?? SyncMetadataApiService(),
+          _syncMetadataApiService = syncMetadataApiService ?? SyncMetadataApiService(), // <<< Initialize here
         _documentApiService =
             documentApiService ?? DocumentApiService(), // <<< สร้าง instance
 
@@ -106,7 +118,8 @@ class DataSyncService {
                 appDatabase: appDatabase), // <<< CRUCIAL FIX: Initialize here
         _databaseMaintenanceService = databaseMaintenanceService ??
             DatabaseMaintenanceService(
-                appDatabase: appDatabase); // <<< NEW: Initialize here
+                appDatabase: appDatabase),// <<< NEW: Initialize here
+        _dataCleanupService = dataCleanupService ?? DataCleanupService(appDatabase: appDatabase); // <<< Initialize here
 
   // Removed old unused imports for tables as they are handled by DAO imports now
   // Removed unused methods (`_syncJobMachinesData`, `_syncJobTagsData`, `_syncProblemsData`, `_syncMetadataData`)
@@ -354,6 +367,26 @@ class DataSyncService {
         'Problem sync complete. Processed ${problemsFromApi.length} problems from API.');
   }
 
+ /// NEW: Checks sync metadata from API and retrieves actions/commands.
+  Future<List<SyncMetadataResponse>> checkSyncMetadata({
+    required String username,
+    required String deviceId,
+    required String serialNo,
+    required String version,
+    required String ipAddress,
+    required String wifiStrength,
+  }) async {
+    return _syncMetadataApiService.checkSyncStatus(
+      username: username,
+      deviceId: deviceId,
+      serialNo: serialNo,
+      version: version,
+      ipAddress: ipAddress,
+      wifiStrength: wifiStrength,
+    );
+  }
+  
+/*
   Future<void> _syncMetadataData() async {
     final syncs = await _syncMetadataApiService.checkSyncStatus();
     await _syncDao.deleteAllSyncs();
@@ -368,7 +401,7 @@ class DataSyncService {
     }).toList();
     await _syncDao.insertAllSyncs(syncsToInsert);
   }
-
+*/
   // NEW: Public method for Document sync (removed underscore)
   Future<void> syncDocumentsData() async {
     // <<< เปลี่ยนชื่อเมธอด (ลบ _ ออก)

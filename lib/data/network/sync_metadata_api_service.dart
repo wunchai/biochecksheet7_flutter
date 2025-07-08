@@ -1,51 +1,75 @@
 // lib/data/network/sync_metadata_api_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:biochecksheet7_flutter/data/database/app_database.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/sync_table.dart'; // สำหรับ DbSync
+import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // For SyncStatus (though not directly used here)
+import 'package:biochecksheet7_flutter/data/network/api_request_models.dart'; // <<< NEW: Import API Request Models
+import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import API Response Models (for SyncMetadataResponse)
 
 const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
 
 class SyncMetadataApiService {
-  Future<List<DbSync>> checkSyncStatus() async {
-    final uri = Uri.parse("$_baseUrl/CheckSheet_MasterSync_Check"); // สันนิษฐานว่า API นี้ใช้สำหรับ Sync Metadata
+  /// Checks the synchronization status and retrieves metadata actions from the API.
+  /// Now sends device-specific information.
+  /// Returns a list of SyncMetadataResponse objects.
+  Future<List<SyncMetadataResponse>> checkSyncStatus({ // <<< Changed return type
+    required String username,
+    required String deviceId,
+    required String serialNo,
+    required String version,
+    required String ipAddress,
+    required String wifiStrength,
+  }) async {
+    final uri = Uri.parse("$_baseUrl/CHECKSHEET_DEVICE_INFO_SYNC"); // Assumed API Endpoint
     print("Checking sync status with URL: $uri");
     final headers = {"Content-Type": "application/json"};
+
+
+    // Create the request body using the new model
+    final requestBody = SyncMetadataRequest(
+      username: username,
+      deviceId: deviceId,
+      serialNo: serialNo,
+      version: version,
+      ipAddress: ipAddress,
+      wifiStrength: wifiStrength,
+    );
+
+    final Map<String, dynamic> parameterObject = {      
+      "record": jsonEncode(requestBody.toJson()),
+      "username": "000000" // Assuming username parameter is still required for auth/context
+      // ถ้ามี Password ก็เพิ่ม Passw
+      //ord: "your_password"
+    };
+
+
+  
+
     final body = jsonEncode({
-      "ServiceName": "CheckSheet_MasterSync_Check",
-      "Paremeter": {} // Assuming no parameters
+      "ServiceName": "CHECKSHEET_DEVICE_INFO_SYNC",
+      "Paremeter": jsonEncode(parameterObject), // Convert request model to JSON string
     });
-    print("Request body: $body");
+    print("Request body for sync metadata: $body");
 
     try {
       final response = await http.post(uri, headers: headers, body: body);
-      
-      final String decodedBody = utf8.decode(response.bodyBytes); // <<< แก้ไขตรงนี้
-      print("Job Sync API Response: $decodedBody"); // Debugging log with decoded body
+      final String decodedBody = utf8.decode(response.bodyBytes);
+      print("Sync Metadata API Response status: ${response.statusCode}");
+      print("Sync Metadata API Response body: $decodedBody");
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
+        // Assuming API returns a 'Table' key with a list of actions
         if (responseJson['Table'] != null && responseJson['Table'] is List) {
-          final List<dynamic> syncList = responseJson['Table'];
-          final List<DbSync> syncedMetadata = syncList.map((syncData) {
-            return DbSync(
-              uid: 0,
-              syncId: syncData['SyncId'] ?? '',
-              syncName: syncData['SyncName'] ?? '',
-              lastSync: syncData['LastSync'] ?? '', // API อาจส่ง String วันที่มาให้
-              syncStatus: int.tryParse(syncData['SyncStatus'].toString()) ?? 0,
-              nextSync: syncData['NextSync'] ?? '',
-            );
-          }).toList();
-          return syncedMetadata;
+          final List<dynamic> actionsList = responseJson['Table'];
+          return actionsList.map((item) => SyncMetadataResponse.fromJson(item)).toList(); // Map to SyncMetadataResponse
         } else {
-          throw Exception("Sync Metadata API response format invalid.");
+          throw Exception("Sync Metadata API response format invalid (missing 'Table1' key or not a list).");
         }
       } else {
-        throw Exception("Sync Metadata failed: Status code ${response.statusCode}");
+        throw Exception("Sync Metadata API failed: Status code ${response.statusCode}");
       }
     } on http.ClientException catch (e) {
-      print("Network error during sync metadata: ${e}");
+      print("Network error during sync metadata: ${e.message}");
       throw Exception("Network error during sync metadata: ${e.message}");
     } catch (e) {
       print("An unexpected error occurred during sync metadata: $e");

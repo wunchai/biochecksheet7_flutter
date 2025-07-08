@@ -38,6 +38,17 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase> with _$DocumentRec
         .watch();
   }
   
+
+  /// NEW: Gets DocumentRecords filtered by syncStatus.
+  Future<List<DbDocumentRecord>> getRecordsBySyncStatus(int syncStatus) {
+    return (select(documentRecords)..where((tbl) => tbl.syncStatus.equals(syncStatus))).get();
+  }
+
+  /// NEW: Deletes DocumentRecords filtered by syncStatus.
+  Future<int> deleteRecordsBySyncStatus(int syncStatus) {
+    return (delete(documentRecords)..where((tbl) => tbl.syncStatus.equals(syncStatus))).go();
+  }
+  
  /// NEW: Updates the status and syncStatus of a DocumentRecord by UID.
   Future<bool> updateDocumentRecordStatusAndSyncStatus(
       int uid, int newStatus, int newSyncStatus) async {

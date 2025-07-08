@@ -18,7 +18,10 @@ class DocumentDao extends DatabaseAccessor<AppDatabase> with _$DocumentDaoMixin 
       batch.insertAll(documents, entries);
     });
   }
-
+/// NEW: Deletes documents by a list of documentIds.
+  Future<int> deleteDocumentsByIds(List<String> documentIds) {
+    return (delete(documents)..where((tbl) => tbl.documentId.isIn(documentIds))).go();
+  }
   // Equivalent to suspend fun getDocument(documentId: String): DbDocument?
   Future<DbDocument?> getDocument(String documentId) {
     return (select(documents)..where((tbl) => tbl.documentId.equals(documentId))).getSingleOrNull();

@@ -1,3 +1,4 @@
+// android/app/build.gradle.kts
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -7,10 +8,8 @@ plugins {
 
 android {
     namespace = "com.example.biochecksheet7_flutter"
-    //compileSdk = flutter.compileSdkVersion
-    //ndkVersion = flutter.ndkVersion
     compileSdk = 36 // หรือเวอร์ชันที่สูงกว่าที่คุณใช้
-    ndkVersion = "28.1.13356709" // <<< เพิ่มบรรทัดนี้
+    ndkVersion = "28.1.13356709" // <<< เพิ่มบรรทัดนี้ (ถ้าจำเป็น)
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -22,23 +21,28 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.biochecksheet7_flutter"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 21 // Workmanager requires minSdkVersion 21 or higher
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+}
+
+// CRUCIAL FIX: Define kotlin_version here
+val kotlin_version = "1.9.0" // <<< NEW: Define kotlin_version (use your actual Kotlin version if different)
+
+dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    implementation("androidx.multidex:multidex:2.0.1")
+    // ... (dependencies อื่นๆ ที่มีอยู่แล้ว - ตรวจสอบว่าใช้ syntax แบบ Kotlin DSL) ...
 }
 
 flutter {
