@@ -57,7 +57,8 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
         ImageProcessorNative(); // Now ImageProcessorNative is defined
   }
   // Create DeviceInfoService instance
-  final DeviceInfoService deviceInfoService = DeviceInfoService();
+  final DeviceInfoService deviceInfoService = DeviceInfoService(); 
+  final DataSyncService dataSyncService = DataSyncService(appDatabase: appDatabase); // Create instance once
 
   return [
     // Repositories (provided as value as they are singletons)
@@ -90,8 +91,7 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
         create: (context) => DeviceInfoViewModel(
             deviceInfoService: Provider.of<DeviceInfoService>(context,
                 listen:
-                    false))), // <<< Change to (context) ChangeNotifierProvider(create: (_) => DeviceInfoViewModel(deviceInfoService: Provider.of<DeviceInfoService>(context, listen: false))), // <<< Get DeviceInfoService from Provider
-
+                    false), dataSyncService: dataSyncService)),
     Provider<DataSyncService>(
         create: (_) => DataSyncService(appDatabase: appDatabase)),
     Provider<DatabaseMaintenanceService>(

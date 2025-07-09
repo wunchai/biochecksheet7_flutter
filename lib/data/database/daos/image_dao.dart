@@ -19,6 +19,12 @@ class ImageDao extends DatabaseAccessor<AppDatabase> with _$ImageDaoMixin {
   // Deletes a specific image record.
   Future<int> deleteImage(DbImage entry) => delete(images).delete(entry);
 
+/// NEW: Gets a single image by its GUID.
+  Future<DbImage?> getImageByGuid(String guid) {
+    return (select(images)..where((tbl) => tbl.guid.equals(guid))).getSingleOrNull();
+  }
+
+
  /// NEW: Deletes images by a list of documentIds.
   Future<int> deleteImagesByDocumentIds(List<String> documentIds) {
     return (delete(images)..where((tbl) => tbl.documentId.isIn(documentIds))).go();
@@ -52,6 +58,11 @@ class ImageDao extends DatabaseAccessor<AppDatabase> with _$ImageDaoMixin {
     return query.watch();
   }
   
+   /// NEW: Gets all images filtered only by syncStatus.
+  Future<List<DbImage>> getImagesBySyncStatus(int syncStatus) {
+    return (select(images)..where((tbl) => tbl.statusSync.equals(syncStatus))).get();
+  }
+
  // Corrected: Counts images for a specific problemId.
    Future<int> countImagesForProblem(String problemId) async {
     // CRUCIAL FIX: Correct way to get a single count.

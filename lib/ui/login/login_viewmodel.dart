@@ -23,9 +23,13 @@ class LoginViewModel extends ChangeNotifier {
   String? _loginError;
   String? get loginError => _loginError;
 
-  String? _syncMessage;
+ String? _syncMessage;
   String? get syncMessage => _syncMessage;
-
+  // CRUCIAL FIX: Add setter for syncMessage
+  set syncMessage(String? value) { // <<< NEW: Setter
+    _syncMessage = value;
+    notifyListeners();
+  }
   String? _loginMessage;
   String? get loginMessage => _loginMessage;
   set loginMessage(String? value) {
@@ -102,7 +106,36 @@ class LoginViewModel extends ChangeNotifier {
     );
   }
 
-  Future<void> login(String username, String password) async {
+  Future<LoginResult> login(String username, String password) async { // <<< CRUCIAL FIX: Change return type to Future<LoginResult>
+    _loginFormState = _loginFormState.copyWith(isLoading: true);
+    _loginMessage = null;
+    notifyListeners();
+
+    try {
+      final LoginResult result = await _loginRepository.login(username, password); // Get LoginResult from repository
+
+      if (result is LoginSuccess) {
+        _loggedInUser = result.loggedInUser; // Set loggedInUser from LoginSuccess
+        _loginMessage = 'Login successful!';
+        _loginFormState = _loginFormState.copyWith(isLoading: false);
+      } else if (result is LoginFailed) {
+        _loginMessage = result.errorMessage; // Set error message from LoginFailed
+        _loginFormState = _loginFormState.copyWith(isLoading: false);
+      } else if (result is LoginError) {
+        _loginMessage = 'Login failed: ${result.exception}'; // Set error message from LoginError
+        _loginFormState = _loginFormState.copyWith(isLoading: false);
+      }
+      return result; // <<< Return the LoginResult
+    } catch (e) {
+      _loginMessage = 'Login failed: $e';
+      _loginFormState = _loginFormState.copyWith(isLoading: false);
+      return LoginError(Exception('Unexpected error during login: $e')); // Return LoginError for unexpected exceptions
+    } finally {
+      notifyListeners();
+    }
+    
+  }
+  Future<void> loginold(String username, String password) async {
     _loginFormState = _loginFormState.copyWith(isLoading: true);
     notifyListeners();
 

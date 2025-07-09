@@ -174,14 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             child: const Icon(Icons.info_outline),
           ),
-          const SizedBox(height: 16), // Space between FABs
-          FloatingActionButton(
-            heroTag: "manualSyncFab", // Unique tag
-            onPressed: () {
-              Provider.of<HomeViewModel>(context, listen: false).performManualMetadataSync();
-            },
-            child: const Icon(Icons.sync), // Sync icon
-          ),
+       
         ],
       ),
     );

@@ -87,6 +87,15 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
           }
         },
       ),
+      // NEW: Floating Action Button for Manual Metadata Sync
+      floatingActionButton: FloatingActionButton(
+        heroTag: "manualSyncFab", // Unique tag for multiple FABs
+        onPressed: () {
+          Provider.of<DeviceInfoViewModel>(context, listen: false).performManualMetadataSync();
+        },
+        child: const Icon(Icons.sync), // Sync icon
+      ),
     );
+    
   }
 }

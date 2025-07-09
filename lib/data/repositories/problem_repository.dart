@@ -20,7 +20,10 @@ class ProblemRepository {
   Stream<List<DbProblem>> watchProblemsByStatus(List<int> statuses) {
     return _problemDao.watchProblemsByStatus(statuses);
   }
-
+// NEW: Gets a single problem record by its problemId (from API/backend).
+  Future<DbProblem?> getProblemByProblemId(String problemId) { // <<< NEW METHOD
+    return _problemDao.getProblemByProblemId(problemId);
+  }
   /// Gets a single problem record by its UID.
   Future<DbProblem?> getProblemByUid(int uid) {
     return _problemDao.getProblemByUid(uid);

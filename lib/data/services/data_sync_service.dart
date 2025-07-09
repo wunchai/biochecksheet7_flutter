@@ -22,8 +22,6 @@ import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart';
 
-// Import all Repositories (for DataSyncService to use them)
-import 'package:biochecksheet7_flutter/data/repositories/document_record_repository.dart'; // <<< NEW: Import DocumentRecordRepository
 
 // Import table companions for insertion
 import 'package:biochecksheet7_flutter/data/database/tables/user_table.dart';
@@ -40,11 +38,14 @@ import 'package:biochecksheet7_flutter/data/services/database_maintenance_servic
 import 'package:biochecksheet7_flutter/data/services/data_cleanup_service.dart'; // Make sure this is imported
 
 
-
+// Import all Repositories (for DataSyncService to use them)
+import 'package:biochecksheet7_flutter/data/repositories/document_record_repository.dart'; // <<< NEW: Import DocumentRecordRepository
+import 'package:biochecksheet7_flutter/data/repositories/problem_repository.dart'; // <<< NEW: Import DocumentRecordRepository
+import 'package:biochecksheet7_flutter/data/repositories/image_repository.dart'; // <<< NEW: Import ImageRepository
 
 
 import 'package:drift/drift.dart' as drift;
-
+import 'dart:typed_data'; // <<< CRUCIAL FIX: Import for Uint8List
 class DataSyncService {
   // API Services
   final UserApiService _userApiService;
@@ -76,7 +77,8 @@ class DataSyncService {
   DatabaseMaintenanceService get databaseMaintenanceService => _databaseMaintenanceService; // <<< NEW GETTER
   DataCleanupService get dataCleanupService => _dataCleanupService; // <<< NEW GETTER
 
-
+  final ImageRepository _imageRepository; // <<< NEW: Declare here
+ final ProblemRepository _problemRepositoryInstance; // Now correctly named
   // Constructor now takes a resolved AppDatabase instance
   DataSyncService({
     required AppDatabase appDatabase, // <<< Change to AppDatabase
@@ -92,6 +94,8 @@ class DataSyncService {
     DocumentRecordRepository? documentRecordRepository,
     DatabaseMaintenanceService? databaseMaintenanceService,
     DataCleanupService? dataCleanupService, // <<< Add to constructor
+    ImageRepository? imageRepository, 
+    ProblemRepository?  problemRepository,  // <<< Add to constructor
   })  : _userApiService = userApiService ?? UserApiService(),
         _jobApiService = jobApiService ?? JobApiService(),
         _jobMachineApiService = jobMachineApiService ?? JobMachineApiService(),
@@ -119,8 +123,9 @@ class DataSyncService {
         _databaseMaintenanceService = databaseMaintenanceService ??
             DatabaseMaintenanceService(
                 appDatabase: appDatabase),// <<< NEW: Initialize here
-        _dataCleanupService = dataCleanupService ?? DataCleanupService(appDatabase: appDatabase); // <<< Initialize here
-
+        _dataCleanupService = dataCleanupService ?? DataCleanupService(appDatabase: appDatabase), // <<< Initialize here
+         _imageRepository = imageRepository ?? ImageRepository(appDatabase: appDatabase),
+          _problemRepositoryInstance = problemRepository ?? ProblemRepository(appDatabase: appDatabase); // <<< Initialize here // <<< Initialize here
   // Removed old unused imports for tables as they are handled by DAO imports now
   // Removed unused methods (`_syncJobMachinesData`, `_syncJobTagsData`, `_syncProblemsData`, `_syncMetadataData`)
   // As they are called directly in performFullSync
@@ -493,6 +498,78 @@ class DataSyncService {
       return SyncError(
           exception:
               'ข้อผิดพลาดในการซิงค์ DocumentRecord: $e'); // <<< Corrected: Use named parameters
+    }
+  }
+
+  /// NEW: Performs upload synchronization for images.
+  /// It checks images with syncStatus = 0 and ensures their related DocumentRecord/Problem are status 2 or 3.
+  /// Performs upload synchronization for images.
+  /// It checks images with syncStatus = 0 and ensures their related DocumentRecord/Problem are status 2 or 3.
+  Future<SyncStatus> performImageUploadSync() async {
+    print('DataSyncService: Starting image upload sync...');
+    bool allImageUploadsSuccessful = true;
+    try {
+      // Get all images pending upload (syncStatus = 0)
+      final imagesToUpload = await _imageRepository.getImagesForUpload();
+
+      if (imagesToUpload.isEmpty) {
+        print('No images found with syncStatus 0 for upload.');
+        return const SyncSuccess(message: 'ไม่มีรูปภาพที่ต้องอัปโหลด.');
+      }
+
+      for (final image in imagesToUpload) {
+        bool canUploadImage = false;
+        if (image.problemId != null && image.problemId!.isNotEmpty) {
+          // Image is tied to a Problem
+          final DbProblem? problem = await _problemRepositoryInstance.getProblemByProblemId(image.problemId!); // <<< CRUCIAL FIX: Use _problemRepositoryInstance
+          if (problem != null && (problem.problemStatus == 2 || problem.problemStatus == 3)) {
+            canUploadImage = true;
+          }
+        } else if (image.documentId != null && image.documentId!.isNotEmpty) {
+          // Image is tied to a DocumentRecord (assuming documentId and tagId are sufficient to find the record)
+          // This requires a method to get DbDocumentRecord by its documentId, machineId, jobId, tagId.
+          // For simplicity, let's assume we can get it or just check status of ALL records for that document.
+          // A more robust check might be needed here to find the *specific* record it belongs to.
+          final List<DbDocumentRecord> docRecords = await _documentRecordDao.getRecordsByDocumentId(image.documentId!); // Assuming getRecordsByDocumentId exists
+          // Check if any of its associated document records are status 2 or 3
+          if (docRecords.any((dr) => dr.status == 2 || dr.status == 3)) {
+            canUploadImage = true;
+          }
+        }
+
+        if (canUploadImage) {
+          // Read image file bytes
+          final Uint8List? imageBytes = await _imageRepository.getImageBytesFromPath(image.filepath);
+          if (imageBytes == null || imageBytes.isEmpty) {
+            print('Image UID ${image.uid} file not found or empty. Skipping upload.');
+            allImageUploadsSuccessful = false;
+            continue;
+          }
+
+          // Upload image to API
+          final ImageUploadResult apiResult = await _imageRepository.uploadImageToServer(image, imageBytes);
+
+          if (apiResult.result == 3) { // Assuming 3 is success
+            await _imageRepository.updateImageSyncStatusByGuid(apiResult.guid, 1); // Update syncStatus to 1
+            print('Image UID ${image.uid} (GUID: ${apiResult.guid}) uploaded successfully.');
+          } else {
+            allImageUploadsSuccessful = false;
+            print('Image UID ${image.uid} (GUID: ${apiResult.guid}) failed to upload. API result: ${apiResult.result}, Message: ${apiResult.message}');
+          }
+        } else {
+          print('Image UID ${image.uid} not eligible for upload (related record/problem not status 2 or 3).');
+          // Optionally, you might want to update its syncStatus to indicate it's not ready yet.
+        }
+      }
+
+      if (allImageUploadsSuccessful) {
+        return const SyncSuccess(message: 'อัปโหลดรูปภาพสำเร็จทั้งหมด!');
+      } else {
+        return const SyncError(message: 'มีบางรูปภาพที่อัปโหลดไม่สำเร็จ.');
+      }
+    } catch (e) {
+      print('Error during image upload sync: $e');
+      return SyncError(exception: e, message: 'ข้อผิดพลาดในการซิงค์รูปภาพ: $e');
     }
   }
 }

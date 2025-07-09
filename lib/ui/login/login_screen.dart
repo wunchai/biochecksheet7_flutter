@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/ui/login/login_viewmodel.dart';
 import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart';
-import 'package:biochecksheet7_flutter/ui/main_wrapper/main_wrapper_screen.dart'; // <<< NEW: Import MainWrapperScreen
-
+import 'package:biochecksheet7_flutter/ui/main_wrapper/main_wrapper_screen.dart';
+import 'package:biochecksheet7_flutter/ui/widgets/error_dialog.dart';
+import 'package:biochecksheet7_flutter/data/models/login_result.dart'; // <<< NEW: Import LoginResult
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,11 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _usernameController.addListener(_onLoginDataChanged);
     _passwordController.addListener(_onLoginDataChanged);
-
-    // <<< ลบบรรทัดนี้ออก: ไม่จำเป็นต้องเรียก checkLoggedInUser จาก initState ของ LoginScreen แล้ว
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   Provider.of<LoginViewModel>(context, listen: false).checkLoggedInUser();
-    // });
   }
 
   @override
@@ -45,56 +41,86 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _onLoginPressed() async { // <<< Make async to await login result
+  void _onLoginPressed() async {
     final viewModel = Provider.of<LoginViewModel>(context, listen: false);
-    await viewModel.login(
+    
+    // CRUCIAL FIX: Get LoginResult directly from viewModel.login()
+    final LoginResult loginResult = await viewModel.login( // <<< Get the result
       _usernameController.text,
       _passwordController.text,
     );
-    // <<< เพิ่ม Logic การนำทางหลัง Login สำเร็จที่นี่
-    // CRUCIAL FIX: Use pushAndRemoveUntil to make MainWrapperScreen the new root.
-    if (viewModel.loggedInUser != null && mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const MainWrapperScreen()),
-        (Route<dynamic> route) => false, // Remove all previous routes
-      );
+
+    if (mounted) { // Ensure widget is still mounted before navigating or showing dialog
+      if (loginResult is LoginSuccess) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const MainWrapperScreen()),
+          (Route<dynamic> route) => false,
+        );
+      } else if (loginResult is LoginFailed) {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return ErrorDialog(
+              title: 'เข้าสู่ระบบล้มเหลว',
+              message: loginResult.errorMessage, // LoginFailed has 'error' property
+            );
+          },
+        );
+      } else if (loginResult is LoginError) {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return ErrorDialog(
+              title: 'ข้อผิดพลาด',
+              message: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ: ${loginResult.exception}', // LoginError has 'exception'
+            );
+          },
+        );
+      }
     }
+    // No need to clear loginMessage here, as it's not used for error display anymore.
   }
 
-  void _onSyncUsersPressed() {
-    Provider.of<LoginViewModel>(context, listen: false).syncUsers();
+  void _onSyncUsersPressed() async { // Make this async to await sync result
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    await viewModel.syncUsers(); // Await the sync operation
+
+    if (mounted) { // Ensure widget is still mounted
+      // Handle sync message/error after sync completes
+      if (viewModel.syncMessage != null) {
+        bool isError = viewModel.syncMessage!.toLowerCase().contains('failed') ||
+                       viewModel.syncMessage!.toLowerCase().contains('error');
+        
+        if (isError) {
+          showDialog(
+            context: context,
+            builder: (BuildContext dialogContext) {
+              return ErrorDialog(
+                title: 'ข้อผิดพลาดในการซิงค์ข้อมูล',
+                message: viewModel.syncMessage!,
+              );
+            },
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(viewModel.syncMessage!)),
+          );
+        }
+        // Clear syncMessage from ViewModel after showing
+        viewModel.syncMessage = null; // Direct assignment is fine here
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<LoginViewModel>(
       builder: (context, viewModel, child) {
-        // Show SnackBar for login errors
-        if (viewModel.loginError != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(viewModel.loginError!)),
-            );
-            viewModel.loginDataChanged(_usernameController.text, _passwordController.text);
-          });
-        }
+        // REMOVED: Old loginMessage handling as it's now done in _onLoginPressed
+        // if (viewModel.loginMessage != null) { ... }
 
-        // Show SnackBar for sync messages
-        if (viewModel.syncMessage != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(viewModel.syncMessage!)),
-            );
-            viewModel.loginDataChanged(_usernameController.text, _passwordController.text);
-          });
-        }
-
-        // <<< ลบ Logic การนำทางอัตโนมัติจากตรงนี้ออก:
-        // if (viewModel.loggedInUser != null) {
-        //   WidgetsBinding.instance.addPostFrameCallback((_) {
-        //     Navigator.of(context).pushReplacementNamed('/home');
-        //   });
-        // }
+        // REMOVED: Old syncMessage handling as it's now done in _onSyncUsersPressed
+        // if (viewModel.syncMessage != null) { ... }
 
         return Scaffold(
           appBar: AppBar(
@@ -106,15 +132,13 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  // NEW: โลโก้รูปภาพ
-                    Image.asset(
-                      'assets/images/logo.png', // <<< Path ของรูปภาพ
-                      height: 150, // กำหนดความสูง
-                      width: 150, // กำหนดความกว้าง
-                      fit: BoxFit.contain, // ปรับขนาดรูปภาพให้พอดี
-                    ),
-                    const SizedBox(height: 32.0), // ช่องว่าง
-
+                  Image.asset(
+                    'assets/images/logo.png',
+                    height: 150,
+                    width: 150,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: 32.0),
                   TextField(
                     controller: _usernameController,
                     decoration: InputDecoration(
@@ -124,10 +148,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
+                    onChanged: (text) {
+                      _onLoginDataChanged();
+                    },
                     onSubmitted: (_) => FocusScope.of(context).nextFocus(),
                   ),
                   const SizedBox(height: 16.0),
-
                   TextField(
                     controller: _passwordController,
                     decoration: InputDecoration(
@@ -137,10 +163,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     obscureText: true,
                     textInputAction: TextInputAction.done,
+                    onChanged: (text) {
+                      _onLoginDataChanged();
+                    },
                     onSubmitted: (_) => _onLoginPressed(),
                   ),
                   const SizedBox(height: 24.0),
-
                   ElevatedButton(
                     onPressed: viewModel.loginFormState.isDataValid && !viewModel.loginFormState.isLoading
                         ? _onLoginPressed
@@ -153,7 +181,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         : const Text('Sign in'),
                   ),
                   const SizedBox(height: 16.0),
-
                   OutlinedButton(
                     onPressed: viewModel.loginFormState.isLoading
                         ? null
@@ -167,7 +194,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         : const Text('Sync User Data'),
                   ),
                   const SizedBox(height: 16.0),
-
                   TextButton(
                     onPressed: () {
                       print('Register button pressed');

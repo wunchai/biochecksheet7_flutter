@@ -18,24 +18,50 @@ class UploadRecordResult {
 
   
 }
-/// NEW: Response model for SyncMetadata API.
+/// Response model for SyncMetadata API.
 /// Represents an action/command received from the server.
 class SyncMetadataResponse {
+  final String? deviceId; // <<< NEW: Add deviceId (from API Response)
   final String actionId;
-  final String actionType; // e.g., "transferDB", "update", "cleanEndData"
-  final String? actionSql; // SQL query for "update" action (optional)
+  final String actionType;
+  final String? actionSql;
+  final String? actionValue; // <<< NEW: Add actionValue (from API Response)
 
   SyncMetadataResponse({
+    this.deviceId, // <<< Add to constructor
     required this.actionId,
     required this.actionType,
     this.actionSql,
+    this.actionValue, // <<< Add to constructor
   });
 
   factory SyncMetadataResponse.fromJson(Map<String, dynamic> json) {
     return SyncMetadataResponse(
-      actionId: json['ActionId']?.toString() ?? '', // Assuming PascalCase from API
-      actionType: json['ActionType']?.toString() ?? '',
-      actionSql: json['ActionSql']?.toString(), // Optional SQL string
+      deviceId: json['deviceId']?.toString(), // <<< CRUCIAL FIX: Map deviceId (camelCase)
+      actionId: json['actionId']?.toString() ?? '', // <<< CRUCIAL FIX: Map actionId (camelCase)
+      actionType: json['actionType']?.toString() ?? '', // <<< CRUCIAL FIX: Map actionType (camelCase)
+      actionSql: json['actionSql']?.toString(), // <<< CRUCIAL FIX: Map actionSql (camelCase)
+      actionValue: json['actionValue']?.toString(), // <<< CRUCIAL FIX: Map actionValue (camelCase)
+    );
+  }
+
+  
+}
+
+/// NEW: Response model for Image Upload API.
+/// Assumed API returns { "Table": [ { "guid": "...", "result": 3, "message": "..." } ] }
+class ImageUploadResult {
+  final String guid; // GUID of the uploaded image (from API)
+  final int result; // API result code (e.g., 3 for success, others for failure)
+  final String? message; // Optional: API message
+
+  ImageUploadResult({required this.guid, required this.result, this.message});
+
+  factory ImageUploadResult.fromJson(Map<String, dynamic> json) {
+    return ImageUploadResult(
+      guid: json['guid']?.toString() ?? '', // Assuming 'guid' key from API response
+      result: int.tryParse(json['result']?.toString() ?? '0') ?? 0, // Assuming 'result' key from API response
+      message: json['message']?.toString(), // Optional 'message' key
     );
   }
 }

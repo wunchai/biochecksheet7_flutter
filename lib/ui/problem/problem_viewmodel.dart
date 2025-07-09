@@ -312,17 +312,36 @@ class ProblemViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final success = await _problemRepository.uploadProblemsToServer();
+     // 1. Upload Problems
+      final problemUploadSuccess = await _problemRepository.uploadProblemsToServer();
 
-      if (success) {
-        _syncMessage = "ส่งข้อมูลปัญหาขึ้น Server สำเร็จแล้ว!";
-        _statusMessage = "ข้อมูลถูกส่งแล้ว.";
-        await refreshProblems(); // Refresh list to show new status (3)
+      // 2. Upload associated Images (for problems)
+      final imageUploadSuccess = await _dataSyncService.performImageUploadSync(); // <<< NEW: Call image upload
+
+      bool allSuccessful = true;
+      String finalMessage = "";
+
+      if (problemUploadSuccess) { // problemRepository.uploadProblemsToServer returns bool
+        finalMessage += "อัปโหลดปัญหาสำเร็จ.\n";
       } else {
-        _syncMessage = "ไม่สามารถส่งข้อมูลปัญหาขึ้น Server ได้.";
-        _statusMessage = "ส่งข้อมูลล้มเหลว.";
+        finalMessage += "อัปโหลดปัญหาล้มเหลว.\n";
+        allSuccessful = false;
       }
-      return success;
+
+      if (imageUploadSuccess is SyncSuccess) {
+        finalMessage += "อัปโหลดรูปภาพปัญหา: ${imageUploadSuccess.message}\n";
+      } else if (imageUploadSuccess is SyncError) {
+        finalMessage += "อัปโหลดรูปภาพปัญหาล้มเหลว: ${imageUploadSuccess.exception}\n";
+        allSuccessful = false;
+      }
+
+      
+      _syncMessage = finalMessage.trim();
+      _statusMessage = allSuccessful ? "อัปโหลดทั้งหมดสำเร็จ." : "อัปโหลดบางส่วนล้มเหลว.";
+
+      await refreshProblems(); // Refresh list to show new status (3)
+      return problemUploadSuccess;
+
     } on Exception catch (e) {
       _syncMessage = "ข้อผิดพลาดในการส่งข้อมูลปัญหาขึ้น Server: $e";
       _statusMessage = "ส่งข้อมูลล้มเหลว: $e";

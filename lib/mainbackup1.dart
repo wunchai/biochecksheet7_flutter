@@ -357,6 +357,8 @@ Future<void> main1() async {
     // This ensures it's available in the widget tree for DeviceInfoViewModel
     // and also allows it to be passed to DataSyncService in the background.
     final DeviceInfoService deviceInfoService = DeviceInfoService(); // Create instance once
+  final DataSyncService dataSyncService = DataSyncService(appDatabase: db); // Create instance once
+
 
   final DatabaseMaintenanceService databaseMaintenanceService =
       DatabaseMaintenanceService(appDatabase: db); // <<< NEW
@@ -375,7 +377,7 @@ Future<void> main1() async {
           ChangeNotifierProvider(create: (_) => ProblemViewModel(appDatabase: db)),
                // CRUCIAL FIX: Provide DeviceInfoService as a regular Provider
           Provider<DeviceInfoService>(create: (context) => DeviceInfoService()), // <<< Change to (context)
-          ChangeNotifierProvider(create: (context) => DeviceInfoViewModel(deviceInfoService: Provider.of<DeviceInfoService>(context, listen: false))), // <<< Change to (context) ChangeNotifierProvider(create: (_) => DeviceInfoViewModel(deviceInfoService: Provider.of<DeviceInfoService>(context, listen: false))), // <<< Get DeviceInfoService from Provider
+          ChangeNotifierProvider(create: (context) => DeviceInfoViewModel(deviceInfoService: Provider.of<DeviceInfoService>(context, listen: false), dataSyncService: dataSyncService)), // <<< Change to (context) ChangeNotifierProvider(create: (_) => DeviceInfoViewModel(deviceInfoService: Provider.of<DeviceInfoService>(context, listen: false))), // <<< Get DeviceInfoService from Provider
           Provider<DataSyncService>(create: (_) => DataSyncService(appDatabase: db)),
           Provider<DatabaseMaintenanceService>(create: (_) => DatabaseMaintenanceService(appDatabase: db)),
           Provider<DataCleanupService>(create: (_) => DataCleanupService(appDatabase: db)),

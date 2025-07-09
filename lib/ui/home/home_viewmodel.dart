@@ -219,15 +219,34 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final syncResult = await _dataSyncService.performDocumentRecordUploadSync();
+         // 1. Upload DocumentRecords
+      final docSyncResult = await _dataSyncService.performDocumentRecordUploadSync();
 
-      if (syncResult is SyncSuccess) {
-        _syncMessage = syncResult.message;
-        _statusMessage = "อัปโหลด DocumentRecords สำเร็จ.";
-      } else if (syncResult is SyncError) {
-        _syncMessage = syncResult.exception;
-        _statusMessage = "อัปโหลด DocumentRecords ล้มเหลว.";
+
+        // 2. Upload associated Images
+      final imageSyncResult = await _dataSyncService.performImageUploadSync(); // <<< NEW: Call image upload
+
+     bool allSuccessful = true;
+      String finalMessage = "";
+
+        if (docSyncResult is SyncSuccess) {
+        finalMessage += "อัปโหลดบันทึก: ${docSyncResult.message}\n";
+      } else if (docSyncResult is SyncError) {
+        finalMessage += "อัปโหลดบันทึกล้มเหลว: ${docSyncResult.exception}\n";
+        allSuccessful = false;
       }
+
+      if (imageSyncResult is SyncSuccess) {
+        finalMessage += "อัปโหลดรูปภาพ: ${imageSyncResult.message}\n";
+      } else if (imageSyncResult is SyncError) {
+        finalMessage += "อัปโหลดรูปภาพล้มเหลว: ${imageSyncResult.exception}\n";
+        allSuccessful = false;
+      }
+
+      _syncMessage = finalMessage.trim();
+      _statusMessage = allSuccessful ? "อัปโหลดทั้งหมดสำเร็จ." : "อัปโหลดบางส่วนล้มเหลว.";
+
+
     } catch (e) {
       _syncMessage = "ข้อผิดพลาดในการอัปโหลด DocumentRecords: $e";
       _statusMessage = "อัปโหลด DocumentRecords ล้มเหลว: $e";
