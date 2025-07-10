@@ -8,6 +8,7 @@ import 'dart:io'; // For File (แสดงรูปภาพจาก path)
 import 'package:biochecksheet7_flutter/ui/imagerecord/widgets/image_viewer_dialog.dart'; // NEW: Import ImageViewerDialog
 import 'package:flutter/foundation.dart'; // NEW: Import for kIsWeb
 import 'dart:convert'; // For base64Decode
+import 'package:biochecksheet7_flutter/ui/widgets/error_dialog.dart'; // <<< NEW: Import ErrorDialog
 
 
 
@@ -38,6 +39,8 @@ class ImageRecordScreen extends StatefulWidget {
 }
 
 class _ImageRecordScreenState extends State<ImageRecordScreen> {
+   bool _isShowingDialog = false; // <<< NEW: Flag to prevent multiple dialogs/snackbars
+
   @override
   void initState() {
     super.initState();
@@ -90,12 +93,45 @@ class _ImageRecordScreenState extends State<ImageRecordScreen> {
       ),
       body: Consumer<ImageViewModel>(
         builder: (context, viewModel, child) {
-          if (viewModel.syncMessage != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(viewModel.syncMessage!)),
-              );
-              viewModel.syncMessage = null;
+            // NEW: Show ErrorDialog/SnackBar for sync messages
+          if (viewModel.syncMessage != null && !_isShowingDialog) { // <<< Check _isShowingDialog
+            // Capture the message before async operation
+            final String currentSyncMessage = viewModel.syncMessage!; 
+            print('ImageRecordScreen: 1.currentSyncMessage (outside callback) is $currentSyncMessage'); // Debugging
+            _isShowingDialog = true; // Set flag to true
+
+            WidgetsBinding.instance.addPostFrameCallback((_) async { // Make callback async
+              if (mounted) {
+                print('ImageRecordScreen: 2.currentSyncMessage (inside callback) is $currentSyncMessage'); // Debugging
+
+                bool isError = currentSyncMessage.toLowerCase().contains('ล้มเหลว') ||
+                               currentSyncMessage.toLowerCase().contains('ข้อผิดพลาด') ||
+                               currentSyncMessage.toLowerCase().contains('failed') ||
+                               currentSyncMessage.toLowerCase().contains('error') ||
+                               currentSyncMessage.toLowerCase().contains('exception') ||
+                               currentSyncMessage.toLowerCase().contains('timed out') ||
+                               currentSyncMessage.toLowerCase().contains('ไม่สามารถเชื่อมต่อ');
+
+                if (isError) {
+                  await showDialog( // Await the dialog to close
+                    context: context,
+                    builder: (BuildContext dialogContext) {
+                      return ErrorDialog(
+                        title: 'ข้อผิดพลาดในการจัดการรูปภาพ',
+                        message: currentSyncMessage, // Use captured message
+                      );
+                    },
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(currentSyncMessage)), // Use captured message
+                  );
+                }
+                // CRUCIAL FIX: Clear the message AFTER the dialog/snackbar has been shown and potentially closed.
+                // Reset flag after operation
+                viewModel.syncMessage = null; 
+                _isShowingDialog = false; // Reset flag
+              }
             });
           }
 

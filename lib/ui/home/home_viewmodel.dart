@@ -183,11 +183,12 @@ class HomeViewModel extends ChangeNotifier {
       final syncResult = await _dataSyncService.performFullSync(); // Perform a full sync
       if (syncResult is SyncSuccess) {
         _syncMessage = syncResult.message;
+         _statusMessage = "Refresh Jobs สำเร็จ."; // Update status message on success
       } else if (syncResult is SyncError) {
         _syncMessage = syncResult.exception.toString();
+        _statusMessage = "Refresh Jobs ล้มเหลว."; // Update status message on error
       }
-      await loadJobs(); // Reload jobs from local DB after sync
-      _syncMessage = "Jobs Refresh แล้ว!";
+      await loadJobs(); // Reload jobs from local DB after sync    
     } catch (e) {
       _syncMessage = "ข้อผิดพลาดในการ Refresh Jobs: $e";
       _statusMessage = "ข้อผิดพลาดในการ Refresh Jobs.";
@@ -215,7 +216,7 @@ class HomeViewModel extends ChangeNotifier {
   Future<void> uploadAllDocumentRecords() async {
     _isLoading = true;
     _syncMessage = null;
-    _statusMessage = "กำลังอัปโหลด DocumentRecords...";
+       _statusMessage = "กำลังอัปโหลด DocumentRecords และรูปภาพ...";
     notifyListeners();
 
     try {

@@ -7,6 +7,7 @@ import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // ส�
 import 'package:biochecksheet7_flutter/ui/document/document_screen.dart'; // <<< Import DocumentScreen
 import 'package:biochecksheet7_flutter/ui/home/widgets/home_app_bar.dart'; // <<< NEW: Import HomeAppBar
 import 'package:biochecksheet7_flutter/ui/deviceinfo/device_info_screen.dart'; // <<< NEW: Import DeviceInfoScreen
+import 'package:biochecksheet7_flutter/ui/widgets/error_dialog.dart'; // <<< NEW: Import ErrorDialog
 
 class HomeScreen extends StatefulWidget {
   final String title;
@@ -52,15 +53,39 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Consumer<HomeViewModel>(
         // Consumer rebuilds its child when HomeViewModel changes.
         builder: (context, viewModel, child) {
-           // Show SnackBar for sync messages from HomeViewModel
+            // CRUCIAL FIX: Handle sync messages after the dialog/snackbar is closed.
+          // This ensures viewModel.syncMessage is not null when accessed by the builder.
           if (viewModel.syncMessage != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(viewModel.syncMessage!)),
-              );
-              // Clear the message after showing to prevent repeat
-              viewModel.syncMessage = null; // ต้องมี setter ใน ViewModel หรือเปลี่ยนเป็น method
-              // หรือ: ใช้ Provider.of<HomeViewModel>(context, listen: false).clearSyncMessage();
+            final String currentSyncMessage = viewModel.syncMessage!; // Capture message
+            final bool isError = currentSyncMessage.toLowerCase().contains('ล้มเหลว') ||
+                                 currentSyncMessage.toLowerCase().contains('ข้อผิดพลาด') ||
+                                 currentSyncMessage.toLowerCase().contains('failed') ||
+                                 currentSyncMessage.toLowerCase().contains('error') ||
+                                 currentSyncMessage.toLowerCase().contains('exception') ||
+                                 currentSyncMessage.toLowerCase().contains('timed out');
+            WidgetsBinding.instance.addPostFrameCallback((_) async { // Make callback async
+              if (mounted) {
+                if (isError) {
+                  await showDialog( // Await the dialog to close
+                    context: context,
+                    builder: (BuildContext dialogContext) {
+                      return ErrorDialog(
+                        title: 'ข้อผิดพลาดในการซิงค์/อัปโหลด',
+                        message: currentSyncMessage, // Use captured message
+                      );
+                    },
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(currentSyncMessage)), // Use captured message
+                  );
+                  // For SnackBar, it's generally safe to clear after showing,
+                  // but awaiting showSnackBar is not common.
+                  // The key is that the message is captured *before* the async dialog/snackbar call.
+                }
+                // CRUCIAL FIX: Clear the message AFTER the dialog/snackbar has been shown and potentially closed.
+                viewModel.syncMessage = null; 
+              }
             });
           }
           return Stack(

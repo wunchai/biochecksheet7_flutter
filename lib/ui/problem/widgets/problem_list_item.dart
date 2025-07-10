@@ -9,7 +9,7 @@ import 'package:biochecksheet7_flutter/ui/problem/problem_viewmodel.dart'; // Fo
 class ProblemListItem extends StatefulWidget {
   final DbProblem problem;
   final ProblemViewModel viewModel;
-  final TextEditingController solvingDescController; // Controller for solvingDescription
+  // final TextEditingController solvingDescController; // REMOVED: Controller will be managed internally
   final VoidCallback onTap; // Callback when the item is tapped (to show details)
   final VoidCallback onShowOnlineChart; // Callback to show online chart for this problem's tag
 
@@ -17,7 +17,7 @@ class ProblemListItem extends StatefulWidget {
     super.key,
     required this.problem,
     required this.viewModel,
-    required this.solvingDescController,
+    // required this.solvingDescController, // REMOVED
     required this.onTap,
     required this.onShowOnlineChart,
   });
@@ -27,26 +27,44 @@ class ProblemListItem extends StatefulWidget {
 }
 
 class _ProblemListItemState extends State<ProblemListItem> {
+  late TextEditingController _internalSolvingDescController; // <<< NEW: Internal controller
+
   @override
   void initState() {
     super.initState();
-    // Ensure controller text is initialized to problem.problemSolvingDescription
-    widget.solvingDescController.text = widget.problem.problemSolvingDescription ?? '';
+    // Initialize controller with the problem's solving description
+    _internalSolvingDescController = TextEditingController(text: widget.problem.problemSolvingDescription ?? '');
   }
 
   @override
   void didUpdateWidget(covariant ProblemListItem oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Update controller text if problem.problemSolvingDescription changes from outside
-    if (widget.solvingDescController.text != widget.problem.problemSolvingDescription) {
-      widget.solvingDescController.text = widget.problem.problemSolvingDescription ?? '';
+    if (_internalSolvingDescController.text != (widget.problem.problemSolvingDescription ?? '')) {
+      _internalSolvingDescController.text = widget.problem.problemSolvingDescription ?? '';
+      // Keep cursor at the end
+      _internalSolvingDescController.selection = TextSelection.fromPosition(TextPosition(offset: _internalSolvingDescController.text.length));
     }
+  }
+
+  @override
+  void dispose() {
+    _internalSolvingDescController.dispose(); // Dispose the internal controller
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     // Determine if problemSolvingDescription is read-only (if problemStatus is 1 or 2)
     final bool isProblemReadOnly = widget.problem.problemStatus == 1 || widget.problem.problemStatus == 2;
+    // Get ViewModel's loading status
+    final bool viewModelIsLoading = widget.viewModel.isLoading; // Access isLoading from injected ViewModel
+
+    // Determine if the TextField should be enabled
+    final bool isEnabled = !isProblemReadOnly && !viewModelIsLoading;
+    // Determine if the TextField should be read-only
+    final bool isReadOnly = isProblemReadOnly || viewModelIsLoading;
+
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -58,6 +76,8 @@ class _ProblemListItemState extends State<ProblemListItem> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
+              /*
               Text(
                 widget.problem.problemName ?? 'N/A',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -68,24 +88,24 @@ class _ProblemListItemState extends State<ProblemListItem> {
               Text('Machine: ${widget.problem.machineName ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall),
               Text('Tag: ${widget.problem.tagName ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall),
               Text('Status: ${widget.problem.problemStatus}', style: Theme.of(context).textTheme.bodySmall),
-
+             */
               const SizedBox(height: 8.0),
               // Input field for problemSolvingDescription
               TextField(
-                controller: widget.solvingDescController,
-                enabled: !isProblemReadOnly, // Disable if read-only
-                readOnly: isProblemReadOnly, // Make read-only if read-only
+                controller: _internalSolvingDescController, // <<< Use internal controller
+                enabled: isEnabled, // Use calculated enabled state
+                readOnly: isReadOnly, // Use calculated readOnly state
                 maxLines: 2,
                 decoration: InputDecoration(
                   labelText: 'คำอธิบายการแก้ไข',
-                  hintText: isProblemReadOnly ? 'ไม่สามารถแก้ไขได้' : 'ป้อนคำอธิบายการแก้ไข',
+                  hintText: isReadOnly ? 'ไม่สามารถแก้ไขได้' : 'ป้อนคำอธิบายการแก้ไข',
                   border: const OutlineInputBorder(),
                   errorText: widget.viewModel.problemErrors[widget.problem.uid], // Display validation error
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.check),
-                    onPressed: isProblemReadOnly ? null : () {
-                      widget.viewModel.updateProblemSolvingDescription(widget.problem.uid, widget.solvingDescController.text);
-                    },
+                    onPressed: isEnabled ? () { // Only enable button if TextField is enabled
+                      widget.viewModel.updateProblemSolvingDescription(widget.problem.uid, _internalSolvingDescController.text);
+                    } : null,
                   ),
                 ),
               ),
@@ -95,8 +115,8 @@ class _ProblemListItemState extends State<ProblemListItem> {
                 children: [
                   // Post button
                   TextButton(
-                    onPressed: (widget.viewModel.isLoading || isProblemReadOnly || widget.problem.problemStatus != 0) ? null : () {
-                      widget.viewModel.postProblem(widget.problem.uid, widget.solvingDescController.text);
+                    onPressed: (viewModelIsLoading || isProblemReadOnly || widget.problem.problemStatus != 0) ? null : () {
+                      widget.viewModel.postProblem(widget.problem.uid, _internalSolvingDescController.text);
                     },
                     child: const Text('ส่งข้อมูล'),
                   ),

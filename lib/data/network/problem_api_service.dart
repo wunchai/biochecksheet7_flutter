@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart'; // For DbProblem
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import api_response_models.dart
+import 'dart:async';
 
 const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
 
@@ -24,7 +25,7 @@ class ProblemApiService {
     print("Request body: $body");
 
     try {
-      final response = await http.post(uri, headers: headers, body: body);
+      final response = await http.post(uri, headers: headers, body: body) .timeout(const Duration(seconds: 15)); // <<< CRUCIAL FIX: กำหนด Timeout ที่นี่ (15 วินาที)
       final String decodedBody = utf8.decode(response.bodyBytes);
       print("Problem Sync API Response status: ${response.statusCode}");
       print("Problem Sync API Response body: $decodedBody");
@@ -70,12 +71,15 @@ class ProblemApiService {
       } else {
         throw Exception("Problem Sync failed: Status code ${response.statusCode}");
       }
-    } on http.ClientException catch (e) {
+     } on TimeoutException { // <<< CRUCIAL FIX: Re-throw TimeoutException
+      print("Network timeout during problem sync.");
+      rethrow; // Re-throw the original TimeoutException
+    } on http.ClientException catch (e) { // <<< CRUCIAL FIX: Re-throw ClientException
       print("Network error during problem sync: ${e.message}");
-      throw Exception("Network error during problem sync: ${e.message}");
+      rethrow; // Re-throw the original ClientException
     } catch (e) {
       print("An unexpected error occurred during problem sync: $e");
-      throw Exception("An unexpected error occurred during problem sync: $e");
+      throw Exception("เกิดข้อผิดพลาดที่ไม่คาดคิดในการซิงค์ปัญหา: $e");
     }
   }
 

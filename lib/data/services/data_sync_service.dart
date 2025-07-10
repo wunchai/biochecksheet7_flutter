@@ -22,7 +22,6 @@ import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart';
 
-
 // Import table companions for insertion
 import 'package:biochecksheet7_flutter/data/database/tables/user_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart';
@@ -37,15 +36,14 @@ import 'package:biochecksheet7_flutter/data/network/api_request_models.dart'; //
 import 'package:biochecksheet7_flutter/data/services/database_maintenance_service.dart';
 import 'package:biochecksheet7_flutter/data/services/data_cleanup_service.dart'; // Make sure this is imported
 
-
 // Import all Repositories (for DataSyncService to use them)
 import 'package:biochecksheet7_flutter/data/repositories/document_record_repository.dart'; // <<< NEW: Import DocumentRecordRepository
 import 'package:biochecksheet7_flutter/data/repositories/problem_repository.dart'; // <<< NEW: Import DocumentRecordRepository
 import 'package:biochecksheet7_flutter/data/repositories/image_repository.dart'; // <<< NEW: Import ImageRepository
 
-
 import 'package:drift/drift.dart' as drift;
 import 'dart:typed_data'; // <<< CRUCIAL FIX: Import for Uint8List
+
 class DataSyncService {
   // API Services
   final UserApiService _userApiService;
@@ -74,11 +72,13 @@ class DataSyncService {
 
   final DataCleanupService _dataCleanupService; // <<< Declare here
   // NEW: Public getters for services used by HomeViewModel
-  DatabaseMaintenanceService get databaseMaintenanceService => _databaseMaintenanceService; // <<< NEW GETTER
-  DataCleanupService get dataCleanupService => _dataCleanupService; // <<< NEW GETTER
+  DatabaseMaintenanceService get databaseMaintenanceService =>
+      _databaseMaintenanceService; // <<< NEW GETTER
+  DataCleanupService get dataCleanupService =>
+      _dataCleanupService; // <<< NEW GETTER
 
   final ImageRepository _imageRepository; // <<< NEW: Declare here
- final ProblemRepository _problemRepositoryInstance; // Now correctly named
+  final ProblemRepository _problemRepositoryInstance; // Now correctly named
   // Constructor now takes a resolved AppDatabase instance
   DataSyncService({
     required AppDatabase appDatabase, // <<< Change to AppDatabase
@@ -94,14 +94,15 @@ class DataSyncService {
     DocumentRecordRepository? documentRecordRepository,
     DatabaseMaintenanceService? databaseMaintenanceService,
     DataCleanupService? dataCleanupService, // <<< Add to constructor
-    ImageRepository? imageRepository, 
-    ProblemRepository?  problemRepository,  // <<< Add to constructor
+    ImageRepository? imageRepository,
+    ProblemRepository? problemRepository, // <<< Add to constructor
   })  : _userApiService = userApiService ?? UserApiService(),
         _jobApiService = jobApiService ?? JobApiService(),
         _jobMachineApiService = jobMachineApiService ?? JobMachineApiService(),
         _jobTagApiService = jobTagApiService ?? JobTagApiService(),
         _problemApiService = problemApiService ?? ProblemApiService(),
-          _syncMetadataApiService = syncMetadataApiService ?? SyncMetadataApiService(), // <<< Initialize here
+        _syncMetadataApiService = syncMetadataApiService ??
+            SyncMetadataApiService(), // <<< Initialize here
         _documentApiService =
             documentApiService ?? DocumentApiService(), // <<< สร้าง instance
 
@@ -122,16 +123,22 @@ class DataSyncService {
                 appDatabase: appDatabase), // <<< CRUCIAL FIX: Initialize here
         _databaseMaintenanceService = databaseMaintenanceService ??
             DatabaseMaintenanceService(
-                appDatabase: appDatabase),// <<< NEW: Initialize here
-        _dataCleanupService = dataCleanupService ?? DataCleanupService(appDatabase: appDatabase), // <<< Initialize here
-         _imageRepository = imageRepository ?? ImageRepository(appDatabase: appDatabase),
-          _problemRepositoryInstance = problemRepository ?? ProblemRepository(appDatabase: appDatabase); // <<< Initialize here // <<< Initialize here
+                appDatabase: appDatabase), // <<< NEW: Initialize here
+        _dataCleanupService = dataCleanupService ??
+            DataCleanupService(appDatabase: appDatabase), // <<< Initialize here
+        _imageRepository =
+            imageRepository ?? ImageRepository(appDatabase: appDatabase),
+        _problemRepositoryInstance = problemRepository ??
+            ProblemRepository(
+                appDatabase:
+                    appDatabase); // <<< Initialize here // <<< Initialize here
   // Removed old unused imports for tables as they are handled by DAO imports now
   // Removed unused methods (`_syncJobMachinesData`, `_syncJobTagsData`, `_syncProblemsData`, `_syncMetadataData`)
   // As they are called directly in performFullSync
 
   Future<SyncStatus> performFullSync() async {
     try {
+      /*
       await _syncUsersData();
       await _syncJobsData();
       //await syncDocumentsData();
@@ -139,91 +146,135 @@ class DataSyncService {
       await _syncJobTagsData();
       await _syncProblemsData(); // <<< NEW: Call sync problems
       //await _syncMetadataData(); // Added the call for sync metadata
+      */
 
-      return const SyncSuccess();
+      SyncStatus result;
+
+      result = await _syncUsersData();
+      if (result is SyncError) return result;
+
+      result = await _syncJobsData();
+      if (result is SyncError) return result;
+
+      //result = await syncDocumentsData();
+      //if (result is SyncError) return result;
+
+      result = await syncJobMachinesData();
+      if (result is SyncError) return result;
+
+      result = await _syncJobTagsData();
+      if (result is SyncError) return result;
+
+      result = await _syncProblemsData();
+      if (result is SyncError) return result;
+
+      //result = await _syncMetadataData();
+      //if (result is SyncError) return result;
+
+      return const SyncSuccess(message: 'Full Sync สำเร็จ!');
     } on Exception catch (e) {
       return SyncError(
-          exception:
-              'ข้อผิดพลาดในการซิงค์ผู้ใช้: $e'); // <<< CRUCIAL FIX: Use named parameter
+          exception: e, message: 'ข้อผิดพลาดในการทำ Full Sync: $e');
     }
   }
 
+   /// Performs a synchronization of problem data only.
+  /// CRUCIAL FIX: Directly return the result from _syncProblemsData().
   Future<SyncStatus> performProblemsSync() async {
     try {
-      await _syncProblemsData(); // <<< NEW: Call sync problems
-
-      return const SyncSuccess();
+      final result = await _syncProblemsData(); // _syncProblemsData already returns SyncStatus (Success or Error)
+      return result; // <<< CRUCIAL FIX: Directly return the result
     } on Exception catch (e) {
-      return SyncError(
-          exception:
-              'ข้อผิดพลาดในการซิงค์ผู้ใช้: $e'); // <<< CRUCIAL FIX: Use named parameter
+      // This catch block is for unexpected exceptions thrown by _syncProblemsData
+      // that were not caught and wrapped into SyncError within _syncProblemsData itself.
+      return SyncError(exception: e, message: 'ข้อผิดพลาดในการซิงค์ปัญหา: $e');
     }
   }
 
-  Future<void> _syncUsersData() async {
-    final users = await _userApiService.syncUsers();
-    await _userDao.deleteAllUsers();
-    final usersToInsert = users.map((user) {
-      return UsersCompanion(
-        userId: drift.Value(user.userId),
-        userCode: drift.Value(user.userCode),
-        password: drift.Value(user.password),
-        userName: drift.Value(user.displayName),
-        position: drift.Value(user.position),
-        status: drift.Value(user.status!),
-        lastSync: drift.Value(DateTime.now().toIso8601String()),
-      );
-    }).toList();
-    await _userDao.insertAllUsers(usersToInsert);
+  Future<SyncStatus> _syncUsersData() async {
+    try {
+      final users = await _userApiService.syncUsers();
+      await _userDao.deleteAllUsers();
+      final usersToInsert = users.map((user) {
+        return UsersCompanion(
+          userId: drift.Value(user.userId),
+          userCode: drift.Value(user.userCode),
+          password: drift.Value(user.password),
+          userName: drift.Value(user.displayName),
+          position: drift.Value(user.position),
+          status: drift.Value(user.status!),
+          lastSync: drift.Value(DateTime.now().toIso8601String()),
+        );
+      }).toList();
+      await _userDao.insertAllUsers(usersToInsert);
+      return const SyncSuccess(message: 'ซิงค์ข้อมูลผู้ใช้สำเร็จ!');
+    } on Exception catch (e) {
+      print('Error syncing users: $e');
+      return SyncError(exception: e, message: 'ข้อผิดพลาดในการซิงค์ผู้ใช้: $e');
+    }
   }
 
-  Future<void> _syncJobsData() async {
-    final jobs = await _jobApiService.syncJobs();
-    await _jobDao.deleteAllJobs();
-    final jobsToInsert = jobs.map((job) {
-      return JobsCompanion(
-        jobId: drift.Value(job.jobId),
-        jobName: drift.Value(job.jobName),
-        machineName: drift.Value(job.machineName),
-        documentId: drift.Value(job.documentId),
-        location: drift.Value(job.location),
-        jobStatus: drift.Value(job.jobStatus),
-        lastSync: drift.Value(DateTime.now().toIso8601String()),
-      );
-    }).toList();
-    await _jobDao.insertAllJobs(jobsToInsert);
+  Future<SyncStatus> _syncJobsData() async {
+    try {
+      final jobs = await _jobApiService.syncJobs();
+      await _jobDao.deleteAllJobs();
+      final jobsToInsert = jobs.map((job) {
+        return JobsCompanion(
+          jobId: drift.Value(job.jobId),
+          jobName: drift.Value(job.jobName),
+          machineName: drift.Value(job.machineName),
+          documentId: drift.Value(job.documentId),
+          location: drift.Value(job.location),
+          jobStatus: drift.Value(job.jobStatus),
+          lastSync: drift.Value(DateTime.now().toIso8601String()),
+        );
+      }).toList();
+      await _jobDao.insertAllJobs(jobsToInsert);
+      return const SyncSuccess(message: 'ซิงค์ข้อมูล Jobs สำเร็จ!');
+    } on Exception catch (e) {
+      print('Error syncing jobs: $e');
+      return SyncError(exception: e, message: 'ข้อผิดพลาดในการซิงค์ Jobs: $e');
+    }
   }
 
-  Future<void> syncJobMachinesData() async {
-    final machines = await _jobMachineApiService
-        .syncJobMachines(); // This returns List<DbDocumentMachine>
-    await _documentMachineDao.deleteAllDocumentMachines();
-    final machinesToInsert = machines.map((machine) {
-      return DocumentMachinesCompanion(
-        // This is the companion object being built
-        // CRITICAL FIX: Map 'id', 'createDate', 'createBy'
-        id: drift.Value(machine.id), // <<< Map 'id' (int)
-        jobId: drift.Value(machine.jobId),
-        documentId: drift.Value(machine.documentId),
-        machineId: drift.Value(machine.machineId),
-        machineName: drift.Value(machine.machineName),
-        machineType: drift.Value(machine.machineType),
-        description: drift.Value(machine.description),
-        specification: drift.Value(machine.specification),
-        status: drift.Value(machine.status),
-        lastSync: drift.Value(DateTime.now().toIso8601String()),
-        createDate: drift.Value(machine.createDate), // <<< Map 'createDate'
-        createBy: drift.Value(machine.createBy), // <<< Map 'createBy'
-      );
-    }).toList();
-    await _documentMachineDao.insertAllDocumentMachines(machinesToInsert);
+  Future<SyncStatus> syncJobMachinesData() async {
+    try {
+      final machines = await _jobMachineApiService
+          .syncJobMachines(); // This returns List<DbDocumentMachine>
+      await _documentMachineDao.deleteAllDocumentMachines();
+      final machinesToInsert = machines.map((machine) {
+        return DocumentMachinesCompanion(
+          // This is the companion object being built
+          // CRITICAL FIX: Map 'id', 'createDate', 'createBy'
+          id: drift.Value(machine.id), // <<< Map 'id' (int)
+          jobId: drift.Value(machine.jobId),
+          documentId: drift.Value(machine.documentId),
+          machineId: drift.Value(machine.machineId),
+          machineName: drift.Value(machine.machineName),
+          machineType: drift.Value(machine.machineType),
+          description: drift.Value(machine.description),
+          specification: drift.Value(machine.specification),
+          status: drift.Value(machine.status),
+          lastSync: drift.Value(DateTime.now().toIso8601String()),
+          createDate: drift.Value(machine.createDate), // <<< Map 'createDate'
+          createBy: drift.Value(machine.createBy), // <<< Map 'createBy'
+        );
+      }).toList();
+      await _documentMachineDao.insertAllDocumentMachines(machinesToInsert);
+      return const SyncSuccess(message: 'ซิงค์ข้อมูล Machines สำเร็จ!');
+    } on Exception catch (e) {
+      print('Error syncing machines: $e');
+      return SyncError(
+          exception: e, message: 'ข้อผิดพลาดในการซิงค์ Machines: $e');
+    }
   }
 
-  Future<void> _syncJobTagsData() async {
-    final tags = await _jobTagApiService.syncJobTags();
-    await _jobTagDao.deleteAllJobTags();
-    final tagsToInsert = tags.map((tag) {
-      /*
+  Future<SyncStatus> _syncJobTagsData() async {
+    try {
+      final tags = await _jobTagApiService.syncJobTags();
+      await _jobTagDao.deleteAllJobTags();
+      final tagsToInsert = tags.map((tag) {
+        /*
     print('Processing DbJobTag for insertion:');
     print('  TagId: ${tag.tagId} (Type: ${tag.tagId.runtimeType})');
     print('  JobId: ${tag.jobId} (Type: ${tag.jobId.runtimeType})');
@@ -237,74 +288,122 @@ class DataSyncService {
     print('----------------------------------------');
 */
 
-      return JobTagsCompanion(
-        uid: drift.Value.absent(), // <<< เพิ่ม uid (auto-increment)
-        tagId: drift.Value(tag.tagId),
-        jobId: drift.Value(tag.jobId),
-        machineId: drift.Value(tag.machineId),
-        tagName: drift.Value(tag.tagName),
-        tagType: drift.Value(tag.tagType),
-        tagGroupId: drift.Value(tag.tagGroupId),
-        tagGroupName: drift.Value(tag.tagGroupName),
-        description: drift.Value(tag.description),
-        specification: drift.Value(tag.specification),
-        specMin: drift.Value(tag.specMin),
-        specMax: drift.Value(tag.specMax),
-        unit: drift.Value(tag.unit),
-        queryStr: drift.Value(tag.queryStr),
-        status: drift.Value(tag.status),
-        lastSync: drift.Value(DateTime.now().toIso8601String()),
+        return JobTagsCompanion(
+          uid: drift.Value.absent(), // <<< เพิ่ม uid (auto-increment)
+          tagId: drift.Value(tag.tagId),
+          jobId: drift.Value(tag.jobId),
+          machineId: drift.Value(tag.machineId),
+          tagName: drift.Value(tag.tagName),
+          tagType: drift.Value(tag.tagType),
+          tagGroupId: drift.Value(tag.tagGroupId),
+          tagGroupName: drift.Value(tag.tagGroupName),
+          description: drift.Value(tag.description),
+          specification: drift.Value(tag.specification),
+          specMin: drift.Value(tag.specMin),
+          specMax: drift.Value(tag.specMax),
+          unit: drift.Value(tag.unit),
+          queryStr: drift.Value(tag.queryStr),
+          status: drift.Value(tag.status),
+          lastSync: drift.Value(DateTime.now().toIso8601String()),
 
-        // CRUCIAL ADDITIONS: Map the missing fields
-        note: drift.Value(tag.note), // <<< เพิ่ม
-        value: drift.Value(tag.value), // <<< เพิ่ม
-        remark: drift.Value(tag.remark), // <<< เพิ่ม
-        createDate: drift.Value(tag.createDate), // <<< เพิ่ม
-        createBy: drift.Value(tag.createBy), // <<< เพิ่ม
-        valueType: drift.Value(tag.valueType), // <<< เพิ่ม
-        tagSelectionValue: drift.Value(tag.tagSelectionValue), // <<< เพิ่ม
-        driftQueryStr:
-            drift.Value(tag.driftQueryStr), // <<< NEW: Map driftQueryStr
-      );
-    }).toList();
-    await _jobTagDao.insertAllJobTags(tagsToInsert);
-    print('Successfully inserted ${tagsToInsert.length} JobTags into DB.');
+          // CRUCIAL ADDITIONS: Map the missing fields
+          note: drift.Value(tag.note), // <<< เพิ่ม
+          value: drift.Value(tag.value), // <<< เพิ่ม
+          remark: drift.Value(tag.remark), // <<< เพิ่ม
+          createDate: drift.Value(tag.createDate), // <<< เพิ่ม
+          createBy: drift.Value(tag.createBy), // <<< เพิ่ม
+          valueType: drift.Value(tag.valueType), // <<< เพิ่ม
+          tagSelectionValue: drift.Value(tag.tagSelectionValue), // <<< เพิ่ม
+          driftQueryStr:
+              drift.Value(tag.driftQueryStr), // <<< NEW: Map driftQueryStr
+        );
+      }).toList();
+      await _jobTagDao.insertAllJobTags(tagsToInsert);
+      print('Successfully inserted ${tagsToInsert.length} JobTags into DB.');
+      return const SyncSuccess(message: 'ซิงค์ข้อมูล Tags สำเร็จ!');
+    } on Exception catch (e) {
+      print('Error syncing tags: $e');
+      return SyncError(exception: e, message: 'ข้อผิดพลาดในการซิงค์ Tags: $e');
+    }
   }
 
   // Corrected: Private method for Problem sync - now handles conditional update/insert
-  Future<void> _syncProblemsData() async {
-    final problemsFromApi =
-        await _problemApiService.syncProblems(); // Gets all problems from API
+  Future<SyncStatus> _syncProblemsData() async {
+    try {
+      final problemsFromApi =
+          await _problemApiService.syncProblems(); // Gets all problems from API
 
-    for (final apiProblem in problemsFromApi) {
-      print(
-          'DataSyncService: Processing API problem for ProblemId: "${apiProblem.problemId}", DocumentId: "${apiProblem.documentId}"'); // <<< Debugging
-      // Try to find the existing local problem by problemId
-      final existingLocalProblem =
-          await _problemDao.getProblemByProblemId(apiProblem.problemId ?? '');
+      for (final apiProblem in problemsFromApi) {
+        print(
+            'DataSyncService: Processing API problem for ProblemId: "${apiProblem.problemId}", DocumentId: "${apiProblem.documentId}"'); // <<< Debugging
+        // Try to find the existing local problem by problemId
+        final existingLocalProblem =
+            await _problemDao.getProblemByProblemId(apiProblem.problemId ?? '');
 
-      if (existingLocalProblem != null) {
-        // If local problem exists, check its status
-        if (existingLocalProblem.problemStatus == 0) {
-          // Only update if local status is 0 (pending/initial)
+        if (existingLocalProblem != null) {
+          // If local problem exists, check its status
+          if (existingLocalProblem.problemStatus == 0) {
+            // Only update if local status is 0 (pending/initial)
+            print(
+                'DataSyncService: Updating local problem UID ${existingLocalProblem.uid} (Status 0) with API data for ProblemId: ${apiProblem.problemId}, DocumentId: ${apiProblem.documentId}'); // <<< Debuggingawait _problemDao.updateProblem(
+            await _problemDao.updateProblem(
+              ProblemsCompanion(
+                uid: drift.Value(
+                    existingLocalProblem.uid), // Specify UID for update
+                problemId: drift.Value(apiProblem.problemId),
+                problemName: drift.Value(apiProblem.problemName),
+                problemDescription: drift.Value(apiProblem.problemDescription),
+                problemStatus: drift.Value(
+                    apiProblem.problemStatus), // Use API status (should be 0)
+                problemSolvingDescription:
+                    drift.Value(apiProblem.problemSolvingDescription),
+                machineId: drift.Value(apiProblem.machineId),
+                machineName: drift.Value(apiProblem.machineName),
+                jobId: drift.Value(apiProblem.jobId),
+                documentId: drift.Value(
+                    apiProblem.documentId), // <<< Ensure this is passed
+                tagId: drift.Value(apiProblem.tagId),
+                tagName: drift.Value(apiProblem.tagName),
+                tagType: drift.Value(apiProblem.tagType),
+                description: drift.Value(apiProblem.description),
+                note: drift.Value(apiProblem.note),
+                specification: drift.Value(apiProblem.specification),
+                specMin: drift.Value(apiProblem.specMin),
+                specMax: drift.Value(apiProblem.specMax),
+                unit: drift.Value(apiProblem.unit),
+                value: drift.Value(apiProblem.value),
+                remark: drift.Value(apiProblem.remark),
+                unReadable: drift.Value(apiProblem.unReadable),
+                lastSync: drift.Value(
+                    DateTime.now().toIso8601String()), // Update last sync
+                problemSolvingBy: drift.Value(apiProblem.problemSolvingBy),
+                syncStatus:
+                    drift.Value(apiProblem.syncStatus), // Use API syncStatus
+              ),
+            );
+          } else {
+            print(
+                'DataSyncService: Skipping update for local problem UID ${existingLocalProblem.uid} (ProblemId: ${apiProblem.problemId}) because its status is ${existingLocalProblem.problemStatus} (not 0).'); // <<< Debugging
+          }
+        } else {
+          // If local problem does not exist, insert it as a new record
           print(
-              'DataSyncService: Updating local problem UID ${existingLocalProblem.uid} (Status 0) with API data for ProblemId: ${apiProblem.problemId}, DocumentId: ${apiProblem.documentId}'); // <<< Debuggingawait _problemDao.updateProblem(
-          await _problemDao.updateProblem(
+              'Inserting new local problem for ProblemId: ${apiProblem.problemId}');
+          await _problemDao.insertProblem(
             ProblemsCompanion(
-              uid: drift.Value(
-                  existingLocalProblem.uid), // Specify UID for update
+              uid: drift.Value.absent(), // Auto-increment
               problemId: drift.Value(apiProblem.problemId),
               problemName: drift.Value(apiProblem.problemName),
               problemDescription: drift.Value(apiProblem.problemDescription),
-              problemStatus: drift.Value(
-                  apiProblem.problemStatus), // Use API status (should be 0)
+              problemStatus:
+                  drift.Value(apiProblem.problemStatus), // Use API status
               problemSolvingDescription:
                   drift.Value(apiProblem.problemSolvingDescription),
+              documentId: drift.Value(
+                  apiProblem.documentId), // <<< Ensure this is passed
               machineId: drift.Value(apiProblem.machineId),
               machineName: drift.Value(apiProblem.machineName),
               jobId: drift.Value(apiProblem.jobId),
-              documentId: drift.Value(
-                  apiProblem.documentId), // <<< Ensure this is passed
               tagId: drift.Value(apiProblem.tagId),
               tagName: drift.Value(apiProblem.tagName),
               tagType: drift.Value(apiProblem.tagType),
@@ -318,61 +417,25 @@ class DataSyncService {
               remark: drift.Value(apiProblem.remark),
               unReadable: drift.Value(apiProblem.unReadable),
               lastSync: drift.Value(
-                  DateTime.now().toIso8601String()), // Update last sync
+                  DateTime.now().toIso8601String()), // Set last sync
               problemSolvingBy: drift.Value(apiProblem.problemSolvingBy),
               syncStatus:
                   drift.Value(apiProblem.syncStatus), // Use API syncStatus
             ),
           );
-        } else {
-          print(
-              'DataSyncService: Skipping update for local problem UID ${existingLocalProblem.uid} (ProblemId: ${apiProblem.problemId}) because its status is ${existingLocalProblem.problemStatus} (not 0).'); // <<< Debugging
         }
-      } else {
-        // If local problem does not exist, insert it as a new record
-        print(
-            'Inserting new local problem for ProblemId: ${apiProblem.problemId}');
-        await _problemDao.insertProblem(
-          ProblemsCompanion(
-            uid: drift.Value.absent(), // Auto-increment
-            problemId: drift.Value(apiProblem.problemId),
-            problemName: drift.Value(apiProblem.problemName),
-            problemDescription: drift.Value(apiProblem.problemDescription),
-            problemStatus:
-                drift.Value(apiProblem.problemStatus), // Use API status
-            problemSolvingDescription:
-                drift.Value(apiProblem.problemSolvingDescription),
-            documentId:
-                drift.Value(apiProblem.documentId), // <<< Ensure this is passed
-            machineId: drift.Value(apiProblem.machineId),
-            machineName: drift.Value(apiProblem.machineName),
-            jobId: drift.Value(apiProblem.jobId),
-            tagId: drift.Value(apiProblem.tagId),
-            tagName: drift.Value(apiProblem.tagName),
-            tagType: drift.Value(apiProblem.tagType),
-            description: drift.Value(apiProblem.description),
-            note: drift.Value(apiProblem.note),
-            specification: drift.Value(apiProblem.specification),
-            specMin: drift.Value(apiProblem.specMin),
-            specMax: drift.Value(apiProblem.specMax),
-            unit: drift.Value(apiProblem.unit),
-            value: drift.Value(apiProblem.value),
-            remark: drift.Value(apiProblem.remark),
-            unReadable: drift.Value(apiProblem.unReadable),
-            lastSync:
-                drift.Value(DateTime.now().toIso8601String()), // Set last sync
-            problemSolvingBy: drift.Value(apiProblem.problemSolvingBy),
-            syncStatus:
-                drift.Value(apiProblem.syncStatus), // Use API syncStatus
-          ),
-        );
       }
+      print(
+          'Problem sync complete. Processed ${problemsFromApi.length} problems from API.');
+      return const SyncSuccess(message: 'ซิงค์ข้อมูล Problems สำเร็จ!');
+    } on Exception catch (e) {
+      print('Error syncing problems on data sync: $e');
+      return SyncError(
+          exception: e, message: 'ข้อผิดพลาดในการซิงค์ Problems: $e');
     }
-    print(
-        'Problem sync complete. Processed ${problemsFromApi.length} problems from API.');
   }
 
- /// NEW: Checks sync metadata from API and retrieves actions/commands.
+  /// NEW: Checks sync metadata from API and retrieves actions/commands.
   Future<List<SyncMetadataResponse>> checkSyncMetadata({
     required String username,
     required String deviceId,
@@ -390,7 +453,7 @@ class DataSyncService {
       wifiStrength: wifiStrength,
     );
   }
-  
+
 /*
   Future<void> _syncMetadataData() async {
     final syncs = await _syncMetadataApiService.checkSyncStatus();
@@ -408,22 +471,29 @@ class DataSyncService {
   }
 */
   // NEW: Public method for Document sync (removed underscore)
-  Future<void> syncDocumentsData() async {
-    // <<< เปลี่ยนชื่อเมธอด (ลบ _ ออก)
-    final documents = await _documentApiService.syncDocuments();
-    await _documentDao.deleteAllDocuments();
-    final documentsToInsert = documents.map((doc) {
-      return DocumentsCompanion(
-        documentId: drift.Value(doc.documentId),
-        jobId: drift.Value(doc.jobId),
-        documentName: drift.Value(doc.documentName),
-        userId: drift.Value(doc.userId),
-        createDate: drift.Value(doc.createDate),
-        status: drift.Value(doc.status),
-        lastSync: drift.Value(DateTime.now().toIso8601String()),
-      );
-    }).toList();
-    await _documentDao.insertAllDocuments(documentsToInsert);
+  Future<SyncStatus> syncDocumentsData() async {
+    try {
+      // <<< เปลี่ยนชื่อเมธอด (ลบ _ ออก)
+      final documents = await _documentApiService.syncDocuments();
+      await _documentDao.deleteAllDocuments();
+      final documentsToInsert = documents.map((doc) {
+        return DocumentsCompanion(
+          documentId: drift.Value(doc.documentId),
+          jobId: drift.Value(doc.jobId),
+          documentName: drift.Value(doc.documentName),
+          userId: drift.Value(doc.userId),
+          createDate: drift.Value(doc.createDate),
+          status: drift.Value(doc.status),
+          lastSync: drift.Value(DateTime.now().toIso8601String()),
+        );
+      }).toList();
+      await _documentDao.insertAllDocuments(documentsToInsert);
+      return const SyncSuccess(message: 'ซิงค์ข้อมูล Documents สำเร็จ!');
+    } on Exception catch (e) {
+      print('Error syncing documents: $e');
+      return SyncError(
+          exception: e, message: 'ข้อผิดพลาดในการซิงค์ Documents: $e');
+    }
   }
 
   /// Updates status to 3 and syncStatus to 1 upon successful API response.
@@ -521,8 +591,11 @@ class DataSyncService {
         bool canUploadImage = false;
         if (image.problemId != null && image.problemId!.isNotEmpty) {
           // Image is tied to a Problem
-          final DbProblem? problem = await _problemRepositoryInstance.getProblemByProblemId(image.problemId!); // <<< CRUCIAL FIX: Use _problemRepositoryInstance
-          if (problem != null && (problem.problemStatus == 2 || problem.problemStatus == 3)) {
+          final DbProblem? problem =
+              await _problemRepositoryInstance.getProblemByProblemId(image
+                  .problemId!); // <<< CRUCIAL FIX: Use _problemRepositoryInstance
+          if (problem != null &&
+              (problem.problemStatus == 2 || problem.problemStatus == 3)) {
             canUploadImage = true;
           }
         } else if (image.documentId != null && image.documentId!.isNotEmpty) {
@@ -530,7 +603,9 @@ class DataSyncService {
           // This requires a method to get DbDocumentRecord by its documentId, machineId, jobId, tagId.
           // For simplicity, let's assume we can get it or just check status of ALL records for that document.
           // A more robust check might be needed here to find the *specific* record it belongs to.
-          final List<DbDocumentRecord> docRecords = await _documentRecordDao.getRecordsByDocumentId(image.documentId!); // Assuming getRecordsByDocumentId exists
+          final List<DbDocumentRecord> docRecords =
+              await _documentRecordDao.getRecordsByDocumentId(
+                  image.documentId!); // Assuming getRecordsByDocumentId exists
           // Check if any of its associated document records are status 2 or 3
           if (docRecords.any((dr) => dr.status == 2 || dr.status == 3)) {
             canUploadImage = true;
@@ -539,25 +614,33 @@ class DataSyncService {
 
         if (canUploadImage) {
           // Read image file bytes
-          final Uint8List? imageBytes = await _imageRepository.getImageBytesFromPath(image.filepath);
+          final Uint8List? imageBytes =
+              await _imageRepository.getImageBytesFromPath(image.filepath);
           if (imageBytes == null || imageBytes.isEmpty) {
-            print('Image UID ${image.uid} file not found or empty. Skipping upload.');
+            print(
+                'Image UID ${image.uid} file not found or empty. Skipping upload.');
             allImageUploadsSuccessful = false;
             continue;
           }
 
           // Upload image to API
-          final ImageUploadResult apiResult = await _imageRepository.uploadImageToServer(image, imageBytes);
+          final ImageUploadResult apiResult =
+              await _imageRepository.uploadImageToServer(image, imageBytes);
 
-          if (apiResult.result == 3) { // Assuming 3 is success
-            await _imageRepository.updateImageSyncStatusByGuid(apiResult.guid, 1); // Update syncStatus to 1
-            print('Image UID ${image.uid} (GUID: ${apiResult.guid}) uploaded successfully.');
+          if (apiResult.result == 3) {
+            // Assuming 3 is success
+            await _imageRepository.updateImageSyncStatusByGuid(
+                apiResult.guid, 1); // Update syncStatus to 1
+            print(
+                'Image UID ${image.uid} (GUID: ${apiResult.guid}) uploaded successfully.');
           } else {
             allImageUploadsSuccessful = false;
-            print('Image UID ${image.uid} (GUID: ${apiResult.guid}) failed to upload. API result: ${apiResult.result}, Message: ${apiResult.message}');
+            print(
+                'Image UID ${image.uid} (GUID: ${apiResult.guid}) failed to upload. API result: ${apiResult.result}, Message: ${apiResult.message}');
           }
         } else {
-          print('Image UID ${image.uid} not eligible for upload (related record/problem not status 2 or 3).');
+          print(
+              'Image UID ${image.uid} not eligible for upload (related record/problem not status 2 or 3).');
           // Optionally, you might want to update its syncStatus to indicate it's not ready yet.
         }
       }
