@@ -18,6 +18,13 @@ class JobDao extends DatabaseAccessor<AppDatabase> with _$JobDaoMixin {
   // Deletes a specific job record.
   Future<int> deleteJob(DbJob entry) => delete(jobs).delete(entry);
 
+  /// NEW: Gets the latest lastSync timestamp from the jobs table.
+  Future<String?> getLastSync() async {
+    final result =
+        await customSelect('SELECT MAX(lastSync) FROM jobs').getSingleOrNull();
+    return result?.data.values.first?.toString();
+  }
+
   // NEW: Watches a stream of all job records.
   Stream<List<DbJob>> watchAllJobs() {
     return select(jobs).watch();
@@ -25,7 +32,8 @@ class JobDao extends DatabaseAccessor<AppDatabase> with _$JobDaoMixin {
 
   // NEW: Gets a single job record by its jobId.
   Future<DbJob?> getJobById(String jobId) {
-    return (select(jobs)..where((tbl) => tbl.jobId.equals(jobId))).getSingleOrNull();
+    return (select(jobs)..where((tbl) => tbl.jobId.equals(jobId)))
+        .getSingleOrNull();
   }
 
   // NEW: Deletes all job records.

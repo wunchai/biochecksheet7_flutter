@@ -13,6 +13,7 @@ import 'package:biochecksheet7_flutter/ui/documentrecord/document_record_screen.
 import 'package:biochecksheet7_flutter/ui/imagerecord/image_record_screen.dart';
 import 'package:biochecksheet7_flutter/ui/problem/problem_screen.dart';
 import 'package:biochecksheet7_flutter/ui/deviceinfo/device_info_screen.dart';
+import 'package:biochecksheet7_flutter/ui/datasummary/data_summary_screen.dart'; // <<< NEW: Import Screen
 
 // Define all application routes
 Map<String, WidgetBuilder> appRoutes() {
@@ -21,10 +22,11 @@ Map<String, WidgetBuilder> appRoutes() {
     '/main_wrapper': (context) => const MainWrapperScreen(),
     '/home': (context) => const HomeScreen(title: 'Home Screen'),
     '/dashboard': (context) => const DashboardScreen(title: 'Dashboard Screen'),
-    '/notifications': (context) => const NotificationsScreen(title: 'Notifications Screen'),
+    //'/notifications': (context) => const NotificationsScreen(title: 'Notifications Screen'),
     '/document': (context) => const DocumentScreen(title: 'Document Screen'),
     '/document_machine': (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       return DocumentMachineScreen(
         title: args?['title'] ?? 'Machines',
         jobId: args?['jobId'] ?? '',
@@ -32,7 +34,8 @@ Map<String, WidgetBuilder> appRoutes() {
       );
     },
     '/document_record': (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       return DocumentRecordScreen(
         title: args?['title'] ?? 'Document Record',
         documentId: args?['documentId'] ?? '',
@@ -41,7 +44,8 @@ Map<String, WidgetBuilder> appRoutes() {
       );
     },
     '/image_record': (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       return ImageRecordScreen(
         title: args?['title'] ?? 'Image Records',
         documentId: args?['documentId'] ?? '',
@@ -54,5 +58,9 @@ Map<String, WidgetBuilder> appRoutes() {
     },
     '/problem': (context) => const ProblemScreen(title: 'Problem List'),
     '/device_info': (context) => const DeviceInfoScreen(title: 'ข้อมูลอุปกรณ์'),
+    '/notifications': (context) => const DataSummaryScreen(
+        title: 'สรุปข้อมูล'), // <<< CHANGED: Notifications to DataSummary
+    '/data_summary': (context) => const DataSummaryScreen(
+        title: 'สรุปข้อมูล'), // <<< NEW: Add explicit route
   };
 }

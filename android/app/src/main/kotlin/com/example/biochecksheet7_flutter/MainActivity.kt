@@ -1,4 +1,4 @@
-package com.example.biochecksheet7_flutter
+package com.biolab.checksheet
 
 import io.flutter.embedding.android.FlutterActivity
 

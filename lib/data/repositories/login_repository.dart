@@ -6,6 +6,7 @@ import 'package:biochecksheet7_flutter/data/models/login_result.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/user_dao.dart';
 import 'package:biochecksheet7_flutter/data/network/sync_status.dart';
 import 'package:drift/drift.dart';
+import 'package:collection/collection.dart'; // <<< CRUCIAL FIX: Import collection for firstWhereOrNull
 
 class LoginRepository {
   final UserApiService _userApiService;
@@ -28,10 +29,10 @@ class LoginRepository {
 
   factory LoginRepository() {
     if (_instance == null) {
-      throw Exception("LoginRepository must be initialized after AppDatabase is ready.");
-      
+      throw Exception(
+          "LoginRepository must be initialized after AppDatabase is ready.");
     }
-        return _instance!;
+    return _instance!;
   }
 
   static Future<void> initialize(AppDatabase appDatabase) async {
@@ -43,13 +44,49 @@ class LoginRepository {
     await _instance!.getLoggedInUserFromLocal();
   }
 
+  /// Logs out the current user by clearing the in-memory user object
+  /// and setting their local session status to inactive in the database.
   Future<void> logout() async {
-    _user = null;
- // REMOVED: await _userDao.deleteAllUsers(); // <<< REMOVE THIS LINE
-    print('LoginRepository: User logged out. Local user data retained for offline use.'); // Debugging
- 
+    // CRUCIAL FIX: Capture userId BEFORE clearing _user
+    final String? currentUserId =
+        _user?.userId; // Get userId of the user currently logged in
+
+    _user = null; // Clear the in-memory user session
+
+    // Update the local user's session status to inactive in the database
+    if (currentUserId != null) {
+      // Only proceed if we had a userId
+      final DbUser? dbUser = await _userDao
+          .getUserByUserId(currentUserId); // Use the captured userId
+      if (dbUser != null) {
+        final bool updateSuccess = await _userDao.updateUser(
+          // Check update success
+          UsersCompanion(
+            uid: Value(dbUser.uid),
+            isLocalSessionActive: Value(false), // Set to false on logout
+          ),
+        );
+        if (updateSuccess) {
+          print(
+              'LoginRepository: User $currentUserId local session set to inactive in DB.');
+        } else {
+          print(
+              'LoginRepository: Failed to set user $currentUserId local session to inactive in DB.');
+        }
+      } else {
+        print(
+            'LoginRepository: User $currentUserId not found in DB for session update.');
+      }
+    } else {
+      print(
+          'LoginRepository: No user was active in memory to update local session status.');
+    }
+    print(
+        'LoginRepository: User logged out. Local user data retained for offline use.');
   }
 
+  /// Performs user login.
+  /// On successful login, updates user's local session status to active in the database.
   Future<LoginResult> login(String username, String password) async {
     try {
       final localUser = await _userDao.getLogin(username, password);
@@ -63,55 +100,93 @@ class LoginRepository {
           position: localUser.position,
           status: localUser.status,
         );
+        // NEW: Update the local user's session status to active
+        await _userDao.updateUser(
+          UsersCompanion(
+            uid: Value(localUser.uid),
+            isLocalSessionActive:
+                Value(true), // Set to true on successful login
+          ),
+        );
+        print(
+            'LoginRepository: User ${localUser.userId} local session set to active.');
         return LoginSuccess(_user!);
       } else {
-        return const LoginFailed("Invalid username or password. Please sync user data first.");
+        return const LoginFailed(
+            "Invalid username or password. Please sync user data first.");
       }
     } catch (e) {
       return LoginError(Exception("Login repository error: $e"));
     }
   }
 
+  /// Syncs user data from API to local database.
+  /// After syncing, ensures the newly synced user's session is inactive by default,
+  /// unless they explicitly log in.
   Future<SyncStatus> syncUsers() async {
     try {
       final List<LoggedInUser> syncedUsers = await _userApiService.syncUsers();
 
-      await _userDao.deleteAllUsers();
-      
+      // Before deleting all users, get current active session (if any)
+      final DbUser? currentDbUser =
+          _user != null ? await _userDao.getUserByUserId(_user!.userId) : null;
+      final bool wasActive = currentDbUser?.isLocalSessionActive ?? false;
+
+      await _userDao
+          .deleteAllUsers(); // This is where all local users are cleared during a sync.
+
       final List<UsersCompanion> usersToInsert = syncedUsers.map((user) {
+        // If this user was the active session before sync, keep them active.
+        // Otherwise, new users or users not previously active are inactive by default.
+        final bool isActiveAfterSync =
+            (user.userId == currentDbUser?.userId && wasActive);
+
         return UsersCompanion(
+          uid: Value.absent(),
           userId: Value(user.userId),
-          userCode: Value(user.userCode),
           password: Value(user.password),
+          userCode: Value(user.userCode),
+          status: Value(user.status!),
           userName: Value(user.displayName),
           position: Value(user.position),
-          status: Value(user.status!),
           lastSync: Value(DateTime.now().toIso8601String()),
+          isLocalSessionActive:
+              Value(isActiveAfterSync), // Set session active status
         );
       }).toList();
 
       await _userDao.insertAllUsers(usersToInsert);
-     return const SyncSuccess(message: 'ซิงค์ข้อมูลผู้ใช้สำเร็จ!'); // <<< CRUCIAL FIX: Use named parameter
-     
+      return const SyncSuccess(message: 'ซิงค์ข้อมูลผู้ใช้สำเร็จ!');
     } on Exception catch (e) {
-        return SyncError(exception: 'ข้อผิดพลาดในการซิงค์ผู้ใช้: $e'); // <<< CRUCIAL FIX: Use named parameter
+      print('Error syncing users: $e');
+      return SyncError(exception: e, message: 'ข้อผิดพลาดในการซิงค์ผู้ใช้: $e');
     }
   }
 
+  /// Gets the logged-in user from local database if their session is active.
   Future<LoggedInUser?> getLoggedInUserFromLocal() async {
     final users = await _userDao.getAllUsers();
     if (users.isNotEmpty) {
-      final dbUser = users.first;
-      _user = LoggedInUser(
-        userId: dbUser.userId ?? '',
-        displayName: dbUser.userName ?? '',
-        userCode: dbUser.userCode ?? '',
-        password: dbUser.password ?? '',
-        position: dbUser.position,
-        status: dbUser.status,
-      );
-      return _user;
+      // NEW: Only consider user logged in if isLocalSessionActive is true
+      final activeLocalUser = users.firstWhereOrNull(
+          (dbUser) => dbUser.isLocalSessionActive); // Assume first active user
+
+      if (activeLocalUser != null) {
+        _user = LoggedInUser(
+          userId: activeLocalUser.userId ?? '',
+          displayName: activeLocalUser.userName ?? '',
+          userCode: activeLocalUser.userCode ?? '',
+          password: activeLocalUser.password ?? '',
+          position: activeLocalUser.position,
+          status: activeLocalUser.status,
+        );
+        print(
+            'LoginRepository: Found active local session for user: ${activeLocalUser.userId}');
+        return _user;
+      }
     }
+    print('LoginRepository: No active local session found.');
+    _user = null; // Ensure in-memory user is null if no active local session
     return null;
   }
 }

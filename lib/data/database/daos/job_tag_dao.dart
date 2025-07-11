@@ -10,13 +10,21 @@ class JobTagDao extends DatabaseAccessor<AppDatabase> with _$JobTagDaoMixin {
   JobTagDao(AppDatabase db) : super(db);
 
   // Equivalent to suspend fun insertJobTag(jobTag: DbJobTag) in DaoJobTag.kt
-  Future<int> insertJobTag(JobTagsCompanion entry) => into(jobTags).insert(entry);
+  Future<int> insertJobTag(JobTagsCompanion entry) =>
+      into(jobTags).insert(entry);
 
   // Equivalent to suspend fun insertAll(jobTags: List<DbJobTag>)
   Future<void> insertAllJobTags(List<JobTagsCompanion> entries) async {
     await batch((batch) {
       batch.insertAll(jobTags, entries);
     });
+  }
+
+  /// NEW: Gets the latest lastSync timestamp from the job_tags table.
+  Future<String?> getLastSync() async {
+    final result = await customSelect('SELECT MAX(lastSync) FROM job_tags')
+        .getSingleOrNull();
+    return result?.data.values.first?.toString();
   }
 
   // Equivalent to suspend fun getJobTag(tagId: String, jobId: String): DbJobTag?
@@ -27,11 +35,15 @@ class JobTagDao extends DatabaseAccessor<AppDatabase> with _$JobTagDaoMixin {
   }
 
   // NEW: Method to get JobTags filtered by JobId and MachineId
-   Future<List<DbJobTag>> getJobTagsByJobAndMachine(String jobId, String machineId) {
-    print('JobTagDao: getJobTagsByJobAndMachine called with JobID=$jobId, MachineID=$machineId'); // <<< Debugging
+  Future<List<DbJobTag>> getJobTagsByJobAndMachine(
+      String jobId, String machineId) {
+    print(
+        'JobTagDao: getJobTagsByJobAndMachine called with JobID=$jobId, MachineID=$machineId'); // <<< Debugging
     final query = (select(jobTags)
-          ..where((tbl) => tbl.jobId.equals(jobId) & tbl.machineId.equals(machineId)));
-    print('JobTagDao: Generated SQL for getJobTagsByJobAndMachine: ${query.toString()}'); // <<< Debugging
+      ..where(
+          (tbl) => tbl.jobId.equals(jobId) & tbl.machineId.equals(machineId)));
+    print(
+        'JobTagDao: Generated SQL for getJobTagsByJobAndMachine: ${query.toString()}'); // <<< Debugging
     return query.get();
   }
 

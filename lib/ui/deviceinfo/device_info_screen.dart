@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/ui/deviceinfo/device_info_viewmodel.dart';
+import 'package:biochecksheet7_flutter/ui/widgets/error_dialog.dart'; // <<< NEW: Import ErrorDialog
 
 /// หน้าจอสำหรับแสดงข้อมูลอุปกรณ์ (Device Info).
 class DeviceInfoScreen extends StatefulWidget {
@@ -13,6 +14,9 @@ class DeviceInfoScreen extends StatefulWidget {
 }
 
 class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
+  bool _isShowingDialog =
+      false; // <<< NEW: Flag to prevent multiple dialogs/snackbars
+
   // No need to call fetchDeviceInfo in initState anymore.
   // It will be called in the Consumer's builder.
   @override
@@ -50,13 +54,55 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
       ),
       body: Consumer<DeviceInfoViewModel>(
         builder: (context, viewModel, child) {
-          // CRUCIAL FIX: Call fetchDeviceInfo here, after the ViewModel is available in context.
-          // This ensures it's called only once after the first build, or when data needs refresh.
-          // Use a flag to ensure it's only fetched once initially.
-          if (!viewModel.isLoading && viewModel.deviceId == 'กำลังโหลด...' && viewModel.errorMessage == null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) { // Ensure widget is still mounted
-                viewModel.fetchDeviceInfo();
+          // NEW: Show ErrorDialog/SnackBar for sync messages
+          if (viewModel.syncMessage != null && !_isShowingDialog) {
+            // <<< Check _isShowingDialog
+            // Capture the message before async operation
+            final String currentSyncMessage = viewModel.syncMessage!;
+            print(
+                'DeviceInfoScreen: 1.currentSyncMessage (outside callback) is $currentSyncMessage'); // Debugging
+            _isShowingDialog = true; // Set flag to true
+
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              // Make callback async
+              if (mounted) {
+                print(
+                    'DeviceInfoScreen: 2.currentSyncMessage (inside callback) is $currentSyncMessage'); // Debugging
+
+                bool isError = currentSyncMessage
+                        .toLowerCase()
+                        .contains('ล้มเหลว') ||
+                    currentSyncMessage.toLowerCase().contains('ข้อผิดพลาด') ||
+                    currentSyncMessage.toLowerCase().contains('failed') ||
+                    currentSyncMessage.toLowerCase().contains('error') ||
+                    currentSyncMessage.toLowerCase().contains('exception') ||
+                    currentSyncMessage.toLowerCase().contains('timed out') ||
+                    currentSyncMessage
+                        .toLowerCase()
+                        .contains('ไม่สามารถเชื่อมต่อ');
+
+                if (isError) {
+                  await showDialog(
+                    // Await the dialog to close
+                    context: context,
+                    builder: (BuildContext dialogContext) {
+                      return ErrorDialog(
+                        title: 'ข้อผิดพลาดในการซิงค์ข้อมูลอุปกรณ์',
+                        message: currentSyncMessage, // Use captured message
+                      );
+                    },
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content:
+                            Text(currentSyncMessage)), // Use captured message
+                  );
+                }
+                // CRUCIAL FIX: Clear the message AFTER the dialog/snackbar has been shown and potentially closed.
+                // Reset flag after operation
+                viewModel.syncMessage = null;
+                _isShowingDialog = false; // Reset flag
               }
             });
           }
@@ -78,7 +124,9 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
                   _buildDetailRow('Wi-Fi Strength', viewModel.wifiStrength),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: viewModel.isLoading ? null : () => viewModel.fetchDeviceInfo(),
+                    onPressed: viewModel.isLoading
+                        ? null
+                        : () => viewModel.fetchDeviceInfo(),
                     child: const Text('Refresh Data'),
                   ),
                 ],
@@ -91,11 +139,11 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
       floatingActionButton: FloatingActionButton(
         heroTag: "manualSyncFab", // Unique tag for multiple FABs
         onPressed: () {
-          Provider.of<DeviceInfoViewModel>(context, listen: false).performManualMetadataSync();
+          Provider.of<DeviceInfoViewModel>(context, listen: false)
+              .performManualMetadataSync();
         },
         child: const Icon(Icons.sync), // Sync icon
       ),
     );
-    
   }
 }

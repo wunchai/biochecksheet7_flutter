@@ -15,10 +15,11 @@ import 'package:biochecksheet7_flutter/data/services/device_info_service.dart'; 
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import API Response Models (for SyncMetadataResponse)
 
 class HomeViewModel extends ChangeNotifier {
-    final JobRepository _jobRepository;
+  final JobRepository _jobRepository;
   final LoginRepository _loginRepository;
   final DataSyncService _dataSyncService;
-  final DeviceInfoService _deviceInfoService; // <<< NEW: Add DeviceInfoService dependency
+  final DeviceInfoService
+      _deviceInfoService; // <<< NEW: Add DeviceInfoService dependency
 
   String? _searchQuery; // <<< NEW: Search Query property
   String? get searchQuery => _searchQuery; // Getter for search query
@@ -35,7 +36,6 @@ class HomeViewModel extends ChangeNotifier {
   String _statusMessage = "กำลังโหลดข้อมูล..."; // Default initial message
   String get statusMessage => _statusMessage;
 
-
   set syncMessage(String? value) {
     // Added setter to clear message
     _syncMessage = value;
@@ -47,14 +47,19 @@ class HomeViewModel extends ChangeNotifier {
 
   // Constructor now takes resolved AppDatabase instance
   HomeViewModel(
-      {required AppDatabase appDatabase,required LoginRepository loginRepository, DataSyncService? dataSyncService})
-      :  _jobRepository = JobRepository(appDatabase: appDatabase),
+      {required AppDatabase appDatabase,
+      required LoginRepository loginRepository,
+      DataSyncService? dataSyncService})
+      : _jobRepository = JobRepository(appDatabase: appDatabase),
         _loginRepository = loginRepository, // <<< Initialize from parameter
-        _dataSyncService = dataSyncService ?? DataSyncService(appDatabase: appDatabase),
-        _deviceInfoService = DeviceInfoService() // <<< NEW: Initialize DeviceInfoService
-         {loadJobs();}
-  
-  
+        _dataSyncService =
+            dataSyncService ?? DataSyncService(appDatabase: appDatabase),
+        _deviceInfoService =
+            DeviceInfoService() // <<< NEW: Initialize DeviceInfoService
+  {
+    loadJobs();
+  }
+
   /// Performs manual metadata sync and processes server actions.
   Future<void> performManualMetadataSync() async {
     _isLoading = true;
@@ -69,10 +74,12 @@ class HomeViewModel extends ChangeNotifier {
       final String appVersion = await _deviceInfoService.getAppVersion();
       final String ipAddress = await _deviceInfoService.getIpAddress();
       final String wifiStrength = await _deviceInfoService.getWifiStrength();
-      final String username = _loginRepository.loggedInUser?.userId ?? 'unknown_user';
+      final String username =
+          _loginRepository.loggedInUser?.userId ?? 'unknown_user';
 
       // 2. Call checkSyncMetadata API
-      final List<SyncMetadataResponse> syncMetadataResults = await _dataSyncService.checkSyncMetadata(
+      final List<SyncMetadataResponse> syncMetadataResults =
+          await _dataSyncService.checkSyncMetadata(
         username: username,
         deviceId: deviceId,
         serialNo: serialNo,
@@ -84,20 +91,27 @@ class HomeViewModel extends ChangeNotifier {
       // 3. Process actions from server response
       bool allActionsSuccessful = true;
       for (final action in syncMetadataResults) {
-        print("HomeViewModel: Processing action: ${action.actionType} (ID: ${action.actionId})");
+        print(
+            "HomeViewModel: Processing action: ${action.actionType} (ID: ${action.actionId})");
         switch (action.actionType) {
           case "transferDB":
-            final result = await _dataSyncService.databaseMaintenanceService.backupAndUploadDb(userId: username, deviceId: deviceId); // <<< CRUCIAL FIX: Use getter
+            final result = await _dataSyncService.databaseMaintenanceService
+                .backupAndUploadDb(
+                    userId: username,
+                    deviceId: deviceId); // <<< CRUCIAL FIX: Use getter
             if (result is SyncError) allActionsSuccessful = false;
             break;
           case "update":
             if (action.actionSql != null && action.actionSql!.isNotEmpty) {
-              final result = await _dataSyncService.databaseMaintenanceService.executeRawSqlQuery(action.actionSql!); // <<< CRUCIAL FIX: Use getter
+              final result = await _dataSyncService.databaseMaintenanceService
+                  .executeRawSqlQuery(
+                      action.actionSql!); // <<< CRUCIAL FIX: Use getter
               if (result is SyncError) allActionsSuccessful = false;
             }
             break;
           case "cleanEndData":
-            final result = await _dataSyncService.dataCleanupService.cleanEndData(); // <<< CRUCIAL FIX: Use getter
+            final result = await _dataSyncService.dataCleanupService
+                .cleanEndData(); // <<< CRUCIAL FIX: Use getter
             if (result is SyncError) allActionsSuccessful = false;
             break;
           default:
@@ -124,9 +138,7 @@ class HomeViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
- 
 
-  
   Future<void> performFullSync() async {
     _isLoading = true;
     _syncMessage = "Syncing all data...";
@@ -137,7 +149,7 @@ class HomeViewModel extends ChangeNotifier {
 
       if (result is SyncSuccess) {
         _syncMessage = "All data synced successfully!";
-       // _applyJobFilters(); // Re-apply filters to show new data
+        // _applyJobFilters(); // Re-apply filters to show new data
       } else if (result is SyncFailed) {
         _syncMessage = "Sync failed: ${result.errorMessage}";
       } else if (result is SyncError) {
@@ -151,7 +163,6 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-
   // Method to load jobs from the repository (now includes search filter)
   Future<void> loadJobs() async {
     _isLoading = true;
@@ -161,7 +172,8 @@ class HomeViewModel extends ChangeNotifier {
     try {
       // Pass searchQuery to the repository method (if your jobDao supports it)
       // For now, let's assume watchAllJobs can be filtered by a property in the future.
-      _jobsStream = _jobRepository.watchAllJobs(); // TODO: Modify watchAllJobs to accept search query
+      _jobsStream = _jobRepository
+          .watchAllJobs(); // TODO: Modify watchAllJobs to accept search query
       _statusMessage = "Jobs โหลดแล้ว.";
     } catch (e) {
       _statusMessage = "ไม่สามารถโหลด Jobs ได้: $e";
@@ -173,23 +185,33 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   // Method to refresh jobs (e.g., after a sync)
-  Future<void> refreshJobs() async {
+  Future<SyncStatus> refreshJobs() async {
     _isLoading = true;
-    _syncMessage = "กำลัง Refresh Jobs...";
+    _syncMessage = null;
     _statusMessage = "กำลัง Refresh Jobs...";
     notifyListeners();
+    SyncStatus resultStatus = const SyncSuccess(message: "เริ่มต้นการ Refresh");
 
     try {
-      final syncResult = await _dataSyncService.performFullSync(); // Perform a full sync
+      final syncResult =
+          await _dataSyncService.performFullSync(); // Perform a full sync
       if (syncResult is SyncSuccess) {
         _syncMessage = syncResult.message;
-         _statusMessage = "Refresh Jobs สำเร็จ."; // Update status message on success
+        _statusMessage =
+            "Refresh Jobs สำเร็จ."; // Update status message on success
+        resultStatus = syncResult;
       } else if (syncResult is SyncError) {
         _syncMessage = syncResult.exception.toString();
-        _statusMessage = "Refresh Jobs ล้มเหลว."; // Update status message on error
+        _statusMessage =
+            "Refresh Jobs ล้มเหลว."; // Update status message on error
+        resultStatus = syncResult;
       }
-      await loadJobs(); // Reload jobs from local DB after sync    
+      notifyListeners();
+      await loadJobs(); // Reload jobs from local DB after sync
     } catch (e) {
+      resultStatus = SyncError(
+          exception: e,
+          message: "ข้อผิดพลาดที่ไม่คาดคิดในการ Refresh Jobs: $e");
       _syncMessage = "ข้อผิดพลาดในการ Refresh Jobs: $e";
       _statusMessage = "ข้อผิดพลาดในการ Refresh Jobs.";
       print("Error refreshing jobs: $e");
@@ -197,9 +219,10 @@ class HomeViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+    return resultStatus;
   }
 
- /// NEW: Sets the search query and reloads jobs based on the new query.
+  /// NEW: Sets the search query and reloads jobs based on the new query.
   void setSearchQuery(String query) {
     // Only update if the query has actually changed to avoid unnecessary rebuilds.
     if (_searchQuery != query) {
@@ -209,28 +232,29 @@ class HomeViewModel extends ChangeNotifier {
       loadJobs(); // Reload jobs with the new filter (loadJobs needs to be updated to use _searchQuery)
     }
   }
-  
 
-
-   /// อัปโหลด DocumentRecords ทั้งหมดที่มี status 2 และ syncStatus 0 ขึ้น Server.
-  Future<void> uploadAllDocumentRecords() async {
+  /// อัปโหลด DocumentRecords ทั้งหมดที่มี status 2 และ syncStatus 0 ขึ้น Server.
+  Future<SyncStatus> uploadAllDocumentRecords() async {
+    // <<< CRUCIAL FIX: Change return type to Future<SyncStatus>
     _isLoading = true;
     _syncMessage = null;
-       _statusMessage = "กำลังอัปโหลด DocumentRecords และรูปภาพ...";
+    _statusMessage = "กำลังอัปโหลด DocumentRecords และรูปภาพ...";
     notifyListeners();
+    SyncStatus finalResultStatus;
 
     try {
-         // 1. Upload DocumentRecords
-      final docSyncResult = await _dataSyncService.performDocumentRecordUploadSync();
+      // 1. Upload DocumentRecords
+      final docSyncResult =
+          await _dataSyncService.performDocumentRecordUploadSync();
 
+      // 2. Upload associated Images
+      final imageSyncResult = await _dataSyncService
+          .performImageUploadSync(); // <<< NEW: Call image upload
 
-        // 2. Upload associated Images
-      final imageSyncResult = await _dataSyncService.performImageUploadSync(); // <<< NEW: Call image upload
-
-     bool allSuccessful = true;
+      bool allSuccessful = true;
       String finalMessage = "";
 
-        if (docSyncResult is SyncSuccess) {
+      if (docSyncResult is SyncSuccess) {
         finalMessage += "อัปโหลดบันทึก: ${docSyncResult.message}\n";
       } else if (docSyncResult is SyncError) {
         finalMessage += "อัปโหลดบันทึกล้มเหลว: ${docSyncResult.exception}\n";
@@ -244,12 +268,22 @@ class HomeViewModel extends ChangeNotifier {
         allSuccessful = false;
       }
 
-      _syncMessage = finalMessage.trim();
-      _statusMessage = allSuccessful ? "อัปโหลดทั้งหมดสำเร็จ." : "อัปโหลดบางส่วนล้มเหลว.";
+      // CRUCIAL FIX: Access message property safely based on actual type
+      if (allSuccessful) {
+        finalResultStatus = SyncSuccess(message: finalMessage.trim());
+      } else {
+        finalResultStatus = SyncError(message: finalMessage.trim());
+      }
 
-
+      _syncMessage =
+          finalMessage.trim(); // <<< CRUCIAL FIX: Access message safely
+      _statusMessage =
+          allSuccessful ? "อัปโหลดทั้งหมดสำเร็จ." : "อัปโหลดบางส่วนล้มเหลว.";
     } catch (e) {
-      _syncMessage = "ข้อผิดพลาดในการอัปโหลด DocumentRecords: $e";
+      finalResultStatus = SyncError(
+          exception: e,
+          message: "ข้อผิดพลาดในการอัปโหลด DocumentRecords และรูปภาพ: $e");
+      _syncMessage = "อัปโหลด DocumentRecords ล้มเหลว: $e";
       _statusMessage = "อัปโหลด DocumentRecords ล้มเหลว: $e";
       print("Error uploading all document records: $e");
     } finally {
@@ -258,9 +292,11 @@ class HomeViewModel extends ChangeNotifier {
       // อาจจะต้อง refresh jobs ด้วย ถ้าการอัปโหลดมีผลต่อการแสดงผลของ Job
       // หรือเพียงแค่ notifyListeners() เพื่ออัปเดตสถานะ
     }
+    return finalResultStatus;
   }
+
   // Calls LoginViewModel's logout method.
- /// Calls LoginViewModel's logout method.
+  /// Calls LoginViewModel's logout method.
   /// This is the correct way to trigger logout from HomeViewModel.
   Future<void> logout(BuildContext context) async {
     _isLoading = true;
@@ -269,8 +305,10 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final loginViewModel = Provider.of<LoginViewModel>(context, listen: false);
-      await loginViewModel.logout(context); // <<< CRUCIAL FIX: Pass context here
+      final loginViewModel =
+          Provider.of<LoginViewModel>(context, listen: false);
+      await loginViewModel
+          .logout(context); // <<< CRUCIAL FIX: Pass context here
 
       _syncMessage = "ออกจากระบบสำเร็จ!";
       _statusMessage = "ออกจากระบบแล้ว.";

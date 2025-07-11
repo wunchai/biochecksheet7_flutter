@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.biochecksheet7_flutter"
+    namespace = "com.biolab.checksheet"
     compileSdk = 36 // หรือเวอร์ชันที่สูงกว่าที่คุณใช้
     ndkVersion = "28.1.13356709" // <<< เพิ่มบรรทัดนี้ (ถ้าจำเป็น)
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.biochecksheet7_flutter"
+        applicationId = "com.biolab.checksheet"
         minSdk = 21 // Workmanager requires minSdkVersion 21 or higher
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

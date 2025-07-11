@@ -6,6 +6,7 @@ import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart';
 import 'package:biochecksheet7_flutter/ui/main_wrapper/main_wrapper_screen.dart';
 import 'package:biochecksheet7_flutter/ui/widgets/error_dialog.dart';
 import 'package:biochecksheet7_flutter/data/models/login_result.dart'; // <<< NEW: Import LoginResult
+import 'package:biochecksheet7_flutter/ui/login/widgets/register_dialog.dart'; // <<< NEW: Import RegisterDialog
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,6 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.removeListener(_onLoginDataChanged);
     _usernameController.dispose();
     _passwordController.dispose();
+
     super.dispose();
   }
 
@@ -43,14 +45,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _onLoginPressed() async {
     final viewModel = Provider.of<LoginViewModel>(context, listen: false);
-    
+
     // CRUCIAL FIX: Get LoginResult directly from viewModel.login()
-    final LoginResult loginResult = await viewModel.login( // <<< Get the result
+    final LoginResult loginResult = await viewModel.login(
+      // <<< Get the result
       _usernameController.text,
       _passwordController.text,
     );
 
-    if (mounted) { // Ensure widget is still mounted before navigating or showing dialog
+    if (mounted) {
+      // Ensure widget is still mounted before navigating or showing dialog
       if (loginResult is LoginSuccess) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const MainWrapperScreen()),
@@ -62,7 +66,8 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (BuildContext dialogContext) {
             return ErrorDialog(
               title: 'เข้าสู่ระบบล้มเหลว',
-              message: loginResult.errorMessage, // LoginFailed has 'error' property
+              message:
+                  loginResult.errorMessage, // LoginFailed has 'error' property
             );
           },
         );
@@ -72,7 +77,8 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (BuildContext dialogContext) {
             return ErrorDialog(
               title: 'ข้อผิดพลาด',
-              message: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ: ${loginResult.exception}', // LoginError has 'exception'
+              message:
+                  'เกิดข้อผิดพลาดในการเข้าสู่ระบบ: ${loginResult.exception}', // LoginError has 'exception'
             );
           },
         );
@@ -81,16 +87,19 @@ class _LoginScreenState extends State<LoginScreen> {
     // No need to clear loginMessage here, as it's not used for error display anymore.
   }
 
-  void _onSyncUsersPressed() async { // Make this async to await sync result
+  void _onSyncUsersPressed() async {
+    // Make this async to await sync result
     final viewModel = Provider.of<LoginViewModel>(context, listen: false);
     await viewModel.syncUsers(); // Await the sync operation
 
-    if (mounted) { // Ensure widget is still mounted
+    if (mounted) {
+      // Ensure widget is still mounted
       // Handle sync message/error after sync completes
       if (viewModel.syncMessage != null) {
-        bool isError = viewModel.syncMessage!.toLowerCase().contains('failed') ||
-                       viewModel.syncMessage!.toLowerCase().contains('error');
-        
+        bool isError =
+            viewModel.syncMessage!.toLowerCase().contains('failed') ||
+                viewModel.syncMessage!.toLowerCase().contains('error');
+
         if (isError) {
           showDialog(
             context: context,
@@ -170,7 +179,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24.0),
                   ElevatedButton(
-                    onPressed: viewModel.loginFormState.isDataValid && !viewModel.loginFormState.isLoading
+                    onPressed: viewModel.loginFormState.isDataValid &&
+                            !viewModel.loginFormState.isLoading
                         ? _onLoginPressed
                         : null,
                     style: ElevatedButton.styleFrom(
@@ -194,9 +204,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         : const Text('Sync User Data'),
                   ),
                   const SizedBox(height: 16.0),
+                  // NEW: Register Button (opens dialog)
                   TextButton(
                     onPressed: () {
-                      print('Register button pressed');
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext dialogContext) {
+                          return RegisterDialog(
+                            // Pass new controllers for the dialog
+                            usernameController: TextEditingController(),
+                            passwordController: TextEditingController(),
+                          );
+                        },
+                      );
                     },
                     child: const Text('Don\'t have an account? Register'),
                   ),

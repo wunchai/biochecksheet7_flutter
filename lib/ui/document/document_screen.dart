@@ -10,7 +10,8 @@ import 'package:biochecksheet7_flutter/ui/documentmachine/document_machine_scree
 /// เทียบเท่ากับ DocumentActivity.kt ในโปรเจกต์ Kotlin เดิม
 class DocumentScreen extends StatefulWidget {
   final String title; // ชื่อหน้าจอที่จะแสดงใน AppBar
-  final String? jobId; // ตัวเลือก: jobId เพื่อกรองเอกสารที่เกี่ยวข้องกับ Job เฉพาะ
+  final String?
+      jobId; // ตัวเลือก: jobId เพื่อกรองเอกสารที่เกี่ยวข้องกับ Job เฉพาะ
 
   const DocumentScreen({super.key, required this.title, this.jobId});
 
@@ -19,7 +20,8 @@ class DocumentScreen extends StatefulWidget {
 }
 
 class _DocumentScreenState extends State<DocumentScreen> {
-  final TextEditingController _searchController = TextEditingController(); // Controller สำหรับ TextField ค้นหา
+  final TextEditingController _searchController =
+      TextEditingController(); // Controller สำหรับ TextField ค้นหา
   bool _isSearching = false; // สถานะควบคุมการแสดงผลของ Search Bar
 
   @override
@@ -28,7 +30,8 @@ class _DocumentScreenState extends State<DocumentScreen> {
     // เรียกโหลดเอกสารเมื่อหน้าจอเริ่มต้น โดยส่ง jobId หากมี
     // listen: false เพราะเราเรียกใช้ method เท่านั้น ไม่ได้ฟังการ rebuild
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<DocumentViewModel>(context, listen: false).loadDocuments(widget.jobId);
+      Provider.of<DocumentViewModel>(context, listen: false)
+          .loadDocuments(widget.jobId);
     });
 
     // ฟังการเปลี่ยนแปลงของ search controller เพื่อ trigger การค้นหาใน ViewModel
@@ -44,11 +47,13 @@ class _DocumentScreenState extends State<DocumentScreen> {
 
   // Method จัดการเมื่อข้อความค้นหาเปลี่ยน
   void _onSearchChanged() {
-    Provider.of<DocumentViewModel>(context, listen: false).setSearchQuery(_searchController.text);
+    Provider.of<DocumentViewModel>(context, listen: false)
+        .setSearchQuery(_searchController.text);
   }
 
   // แสดง Dialog สำหรับสร้างเอกสารใหม่
-  Future<void> _showCreateNewDocumentDialog(BuildContext context, DocumentViewModel viewModel) async {
+  Future<void> _showCreateNewDocumentDialog(
+      BuildContext context, DocumentViewModel viewModel) async {
     String? newDocumentName;
     await showDialog<String>(
       context: context,
@@ -57,7 +62,8 @@ class _DocumentScreenState extends State<DocumentScreen> {
           title: const Text('สร้างเอกสารใหม่'), // Title ของ Dialog
           content: TextField(
             autofocus: true, // โฟกัสอัตโนมัติเมื่อ Dialog เปิด
-            decoration: const InputDecoration(hintText: 'ชื่อเอกสาร'), // Placeholder Text
+            decoration: const InputDecoration(
+                hintText: 'ชื่อเอกสาร'), // Placeholder Text
             onChanged: (value) {
               newDocumentName = value; // เก็บชื่อเอกสารที่ผู้ใช้ป้อน
             },
@@ -73,7 +79,8 @@ class _DocumentScreenState extends State<DocumentScreen> {
               child: const Text('สร้าง'),
               onPressed: () async {
                 if (newDocumentName != null && newDocumentName!.isNotEmpty) {
-                  final success = await viewModel.createNewDocument(newDocumentName!);
+                  final success =
+                      await viewModel.createNewDocument(newDocumentName!);
                   if (success) {
                     Navigator.of(context).pop(); // ปิด Dialog หากสร้างสำเร็จ
                   } else {
@@ -89,13 +96,15 @@ class _DocumentScreenState extends State<DocumentScreen> {
   }
 
   // แสดง Dialog สำหรับคัดลอกเอกสาร
-  Future<void> _showCopyDocumentDialog(BuildContext context, DocumentViewModel viewModel) async {
+  Future<void> _showCopyDocumentDialog(
+      BuildContext context, DocumentViewModel viewModel) async {
     String? newDocumentName;
     await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('คัดลอกเอกสาร: ${viewModel.selectedDocument?.documentName ?? ''}'), // Title แสดงชื่อเอกสารเดิม
+          title: Text(
+              'คัดลอกเอกสาร: ${viewModel.selectedDocument?.documentName ?? ''}'), // Title แสดงชื่อเอกสารเดิม
           content: TextField(
             autofocus: true,
             decoration: const InputDecoration(hintText: 'ชื่อเอกสารใหม่'),
@@ -114,7 +123,8 @@ class _DocumentScreenState extends State<DocumentScreen> {
               child: const Text('คัดลอก'),
               onPressed: () async {
                 if (newDocumentName != null && newDocumentName!.isNotEmpty) {
-                  final success = await viewModel.copySelectedDocument(newDocumentName!);
+                  final success =
+                      await viewModel.copySelectedDocument(newDocumentName!);
                   if (success) {
                     Navigator.of(context).pop();
                   } else {
@@ -140,10 +150,13 @@ class _DocumentScreenState extends State<DocumentScreen> {
                 decoration: const InputDecoration(
                   hintText: 'ค้นหาเอกสาร...', // Placeholder text
                   border: InputBorder.none, // ไม่มีเส้นขอบเพื่อความสะอาด
-                  hintStyle: TextStyle(color: Colors.white70), // สไตล์ของ placeholder
+                  hintStyle:
+                      TextStyle(color: Colors.white70), // สไตล์ของ placeholder
                 ),
-                style: const TextStyle(color: Colors.white, fontSize: 18.0), // สไตล์ข้อความที่ป้อน
-                onChanged: (value) {}, // การเปลี่ยนแปลงข้อความถูกจัดการโดย addListener
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 18.0), // สไตล์ข้อความที่ป้อน
+                onChanged:
+                    (value) {}, // การเปลี่ยนแปลงข้อความถูกจัดการโดย addListener
                 autofocus: true, // โฟกัสอัตโนมัติเมื่อ Search Bar ปรากฏ
               )
             : Text(widget.title), // Title เดิมของหน้าจอ
@@ -151,13 +164,17 @@ class _DocumentScreenState extends State<DocumentScreen> {
         actions: [
           // Search icon
           IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search), // เปลี่ยนไอคอนตามสถานะการค้นหา
+            icon: Icon(_isSearching
+                ? Icons.close
+                : Icons.search), // เปลี่ยนไอคอนตามสถานะการค้นหา
             onPressed: () {
               setState(() {
                 _isSearching = !_isSearching; // สลับสถานะการแสดงผล Search Bar
                 if (!_isSearching) {
-                  _searchController.clear(); // ล้างข้อความค้นหาเมื่อปิด Search Bar
-                  Provider.of<DocumentViewModel>(context, listen: false).setSearchQuery(''); // ล้างการค้นหาใน ViewModel
+                  _searchController
+                      .clear(); // ล้างข้อความค้นหาเมื่อปิด Search Bar
+                  Provider.of<DocumentViewModel>(context, listen: false)
+                      .setSearchQuery(''); // ล้างการค้นหาใน ViewModel
                 }
               });
             },
@@ -166,17 +183,20 @@ class _DocumentScreenState extends State<DocumentScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              Provider.of<DocumentViewModel>(context, listen: false).refreshDocuments(); // เรียก refresh ใน ViewModel
+              Provider.of<DocumentViewModel>(context, listen: false)
+                  .refreshDocuments(); // เรียก refresh ใน ViewModel
             },
           ),
-          Consumer<DocumentViewModel>( // Consumer สำหรับฟังการเปลี่ยนแปลง selectedDocument
+          Consumer<DocumentViewModel>(
+            // Consumer สำหรับฟังการเปลี่ยนแปลง selectedDocument
             builder: (context, viewModel, child) {
               // แสดง Popup Menu Button เฉพาะเมื่อมีเอกสารถูกเลือก
               if (viewModel.selectedDocument != null) {
                 return PopupMenuButton<String>(
                   onSelected: (value) async {
                     if (value == 'copy') {
-                      await _showCopyDocumentDialog(context, viewModel); // แสดง Dialog คัดลอก
+                      await _showCopyDocumentDialog(
+                          context, viewModel); // แสดง Dialog คัดลอก
                     } else if (value == 'delete') {
                       // แสดง Dialog ยืนยันการลบ
                       final confirmDelete = await showDialog<bool>(
@@ -184,7 +204,8 @@ class _DocumentScreenState extends State<DocumentScreen> {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             title: const Text('ยืนยันการลบ'),
-                            content: Text('คุณแน่ใจหรือไม่ว่าต้องการลบเอกสาร "${viewModel.selectedDocument!.documentName}"?'),
+                            content: Text(
+                                'คุณแน่ใจหรือไม่ว่าต้องการลบเอกสาร "${viewModel.selectedDocument!.documentName}"?'),
                             actions: <Widget>[
                               TextButton(
                                 child: const Text('ยกเลิก'),
@@ -203,12 +224,14 @@ class _DocumentScreenState extends State<DocumentScreen> {
                         },
                       );
                       if (confirmDelete == true) {
-                        await viewModel.deleteSelectedDocument(); // ลบเอกสารหากยืนยัน
+                        await viewModel
+                            .deleteSelectedDocument(); // ลบเอกสารหากยืนยัน
                       }
                     }
                     viewModel.clearSelection(); // ล้างการเลือกหลังจากดำเนินการ
                   },
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  itemBuilder: (BuildContext context) =>
+                      <PopupMenuEntry<String>>[
                     const PopupMenuItem<String>(
                       value: 'copy',
                       child: Text('คัดลอกเอกสาร'),
@@ -235,7 +258,8 @@ class _DocumentScreenState extends State<DocumentScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(viewModel.syncMessage!)),
               );
-              viewModel.syncMessage = null; // ล้างข้อความหลังจากแสดงเพื่อป้องกันการแสดงซ้ำ
+              viewModel.syncMessage =
+                  null; // ล้างข้อความหลังจากแสดงเพื่อป้องกันการแสดงซ้ำ
             });
           }
 
@@ -246,11 +270,14 @@ class _DocumentScreenState extends State<DocumentScreen> {
                 // Column หลักสำหรับจัดเรียง UI ในแนวตั้ง
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(16.0), // Padding รอบข้อความสถานะ
+                    padding:
+                        const EdgeInsets.all(8.0), // <<< Changed padding to 8.0
                     child: Text(
-                      viewModel.statusMessage, // แสดงข้อความสถานะจาก ViewModel
-                      style: Theme.of(context).textTheme.headlineSmall, // ใช้สไตล์หัวข้อ
-                      textAlign: TextAlign.center, // จัดข้อความให้อยู่กึ่งกลาง
+                      viewModel.statusMessage,
+                      style: const TextStyle(
+                          fontSize: 12.0,
+                          color: Colors.black), // <<< Changed text style
+                      textAlign: TextAlign.center,
                     ),
                   ),
                   Expanded(
@@ -261,11 +288,14 @@ class _DocumentScreenState extends State<DocumentScreen> {
                       builder: (context, snapshot) {
                         if (viewModel.isLoading && !snapshot.hasData) {
                           // แสดง CircularProgressIndicator ถ้ากำลังโหลดข้อมูลเริ่มต้น
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                              child: CircularProgressIndicator());
                         } else if (snapshot.hasError) {
                           // แสดงข้อผิดพลาดถ้า stream มีปัญหา
-                          return Center(child: Text('ข้อผิดพลาด: ${snapshot.error}'));
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(
+                              child: Text('ข้อผิดพลาด: ${snapshot.error}'));
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
                           // แสดงข้อความถ้าไม่พบเอกสาร
                           return const Center(child: Text('ไม่พบเอกสาร.'));
                         } else {
@@ -273,38 +303,55 @@ class _DocumentScreenState extends State<DocumentScreen> {
                           final documents = snapshot.data!;
                           return ListView.builder(
                             itemCount: documents.length, // จำนวนเอกสารในรายการ
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0), // Padding สำหรับทั้งรายการ
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0), // Padding สำหรับทั้งรายการ
                             itemBuilder: (context, index) {
-                              final document = documents[index]; // ได้รับรายการเอกสารปัจจุบัน
+                              final document = documents[
+                                  index]; // ได้รับรายการเอกสารปัจจุบัน
                               // แสดงแต่ละเอกสารเป็น Card คล้ายกับ document_fragment_item.xml
                               return Card(
                                 // ไฮไลต์เอกสารที่ถูกเลือก
                                 color: viewModel.selectedDocument == document
-                                    ? Theme.of(context).colorScheme.secondary.withOpacity(0.2) // สีไฮไลต์
+                                    ? Theme.of(context)
+                                        .colorScheme
+                                        .secondary
+                                        .withOpacity(0.2) // สีไฮไลต์
                                     : null, // ไม่มีไฮไลต์
-                                margin: const EdgeInsets.symmetric(vertical: 8.0), // ระยะห่างแนวตั้งระหว่าง Card
+                                margin: const EdgeInsets.symmetric(
+                                    vertical:
+                                        8.0), // ระยะห่างแนวตั้งระหว่าง Card
                                 elevation: 4.0, // เพิ่มเงาให้กับ Card
                                 child: InkWell(
                                   // InkWell ให้ผลตอบรับด้วยภาพเมื่อแตะ Card
                                   onTap: () {
                                     // เมื่อแตะ, เลือกเอกสาร (ถ้ายังไม่ได้เลือก) หรือไปยังรายละเอียด
-                                    if (viewModel.selectedDocument == document) {
+                                    if (viewModel.selectedDocument ==
+                                        document) {
                                       // ถ้าถูกเลือกอยู่แล้ว, นำทางไปยังหน้ารายละเอียด (DocumentRecordScreen)
-                                      print('นำทางไปยังรายละเอียดของ: ${document.documentName}');
-                                      viewModel.clearSelection(); // ล้างการเลือกหลังจากการนำทาง
-                                      
+                                      print(
+                                          'นำทางไปยังรายละเอียดของ: ${document.documentName}');
+                                      viewModel
+                                          .clearSelection(); // ล้างการเลือกหลังจากการนำทาง
+
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => DocumentMachineScreen( // นำทางไป DocumentMachineScreen
-                                            title: 'เครื่องจักรสำหรับ ${document.documentName ?? 'N/A'}',
-                                            jobId: document.jobId ?? '', // ส่ง jobId
-                                            documentId: document.documentId ?? '', // ส่ง documentId
+                                          builder: (context) =>
+                                              DocumentMachineScreen(
+                                            // นำทางไป DocumentMachineScreen
+                                            title:
+                                                'เครื่องจักรสำหรับ ${document.documentName ?? 'N/A'}',
+                                            jobId: document.jobId ??
+                                                '', // ส่ง jobId
+                                            documentId: document.documentId ??
+                                                '', // ส่ง documentId
                                           ),
                                         ),
                                       );
                                     } else {
-                                      viewModel.selectDocument(document); // เลือกเอกสาร
+                                      viewModel.selectDocument(
+                                          document); // เลือกเอกสาร
                                     }
                                   },
                                   onLongPress: () {
@@ -312,20 +359,50 @@ class _DocumentScreenState extends State<DocumentScreen> {
                                     viewModel.selectDocument(document);
                                   },
                                   child: Padding(
-                                    padding: const EdgeInsets.all(16.0), // Padding ภายในเนื้อหา Card
+                                    padding: const EdgeInsets.all(
+                                        16.0), // Padding ภายในเนื้อหา Card
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start, // จัดข้อความชิดซ้าย
+                                      crossAxisAlignment: CrossAxisAlignment
+                                          .start, // จัดข้อความชิดซ้าย
                                       children: [
                                         Text(
-                                          document.documentName ?? 'N/A', // แสดงชื่อเอกสาร
-                                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold), // ชื่อตัวหนา
+                                          document.documentName ??
+                                              'N/A', // แสดงชื่อเอกสาร
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                  fontWeight: FontWeight
+                                                      .bold), // ชื่อตัวหนา
                                         ),
-                                        const SizedBox(height: 4.0), // ช่องว่างแนวตั้งเล็กน้อย
-                                        Text('รหัสเอกสาร: ${document.documentId ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall), // แสดงรหัสเอกสาร
-                                        Text('รหัส Job: ${document.jobId ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall), // แสดงรหัส Job ที่เกี่ยวข้อง
-                                        Text('รหัสผู้ใช้: ${document.userId ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall), // แสดงรหัสผู้ใช้
-                                        Text('วันที่สร้าง: ${document.createDate ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall), // แสดงวันที่สร้าง
-                                        Text('สถานะ: ${document.status ?? 'N/A'}', style: Theme.of(context).textTheme.bodySmall), // แสดงสถานะเอกสาร
+                                        const SizedBox(
+                                            height:
+                                                4.0), // ช่องว่างแนวตั้งเล็กน้อย
+                                        Text(
+                                            'รหัสเอกสาร: ${document.documentId ?? 'N/A'}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall), // แสดงรหัสเอกสาร
+                                        Text(
+                                            'รหัส Job: ${document.jobId ?? 'N/A'}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall), // แสดงรหัส Job ที่เกี่ยวข้อง
+                                        Text(
+                                            'รหัสผู้ใช้: ${document.userId ?? 'N/A'}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall), // แสดงรหัสผู้ใช้
+                                        Text(
+                                            'วันที่สร้าง: ${document.createDate ?? 'N/A'}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall), // แสดงวันที่สร้าง
+                                        Text(
+                                            'สถานะ: ${document.status ?? 'N/A'}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall), // แสดงสถานะเอกสาร
                                       ],
                                     ),
                                   ),
@@ -343,7 +420,8 @@ class _DocumentScreenState extends State<DocumentScreen> {
               if (viewModel.isLoading)
                 Container(
                   color: Colors.black.withOpacity(0.5), // พื้นหลังสีดำโปร่งแสง
-                  alignment: Alignment.center, // จัดวาง CircularProgressIndicator ตรงกลาง
+                  alignment: Alignment
+                      .center, // จัดวาง CircularProgressIndicator ตรงกลาง
                   child: const CircularProgressIndicator(), // Loading spinner
                 ),
             ],
@@ -356,7 +434,8 @@ class _DocumentScreenState extends State<DocumentScreen> {
           return FloatingActionButton(
             onPressed: viewModel.isLoading
                 ? null // ปิดการใช้งานปุ่มถ้ากำลังโหลด
-                : () => _showCreateNewDocumentDialog(context, viewModel), // แสดง Dialog สร้างเอกสารใหม่
+                : () => _showCreateNewDocumentDialog(
+                    context, viewModel), // แสดง Dialog สร้างเอกสารใหม่
             child: const Icon(Icons.add), // ไอคอนเพิ่ม
           );
         },

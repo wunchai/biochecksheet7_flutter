@@ -24,14 +24,13 @@ import 'package:workmanager/workmanager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
-
 Future<void> main() async {
   runZonedGuarded<Future<void>>(() async {
     WidgetsFlutterBinding.ensureInitialized();
 
- 
     // CRUCIAL FIX: Only initialize Workmanager and related tasks on Android/iOS.
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) { // <<< CRUCIAL FIX: Add Platform.isAndroid || Platform.isIOS
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      // <<< CRUCIAL FIX: Add Platform.isAndroid || Platform.isIOS
       try {
         final dbFolder = await getApplicationDocumentsDirectory();
         final dbPath = File('${dbFolder.path}/db.sqlite');
@@ -74,27 +73,30 @@ Future<void> main() async {
         tag: "raw_sql_tag",
       );
 */
+      /*
       await Workmanager().registerPeriodicTask(
         "syncAllTask",
         "syncAllTask",
         frequency: const Duration(minutes: 15),
         initialDelay: const Duration(seconds: 30),
-        constraints:  Constraints(
+        constraints: Constraints(
           networkType: NetworkType.connected,
         ),
       );
+        */
     }
 
     // Initialize AppDatabase (singleton)
-    final appDatabase = await AppDatabase.instance(); 
+    final appDatabase = await AppDatabase.instance();
 
     // Initialize LoginRepository (singleton) after AppDatabase is ready
     await LoginRepository.initialize(appDatabase);
     final loginRepository = LoginRepository();
-    await loginRepository.getLoggedInUserFromLocal(); 
+    await loginRepository.getLoggedInUserFromLocal();
 
     // Get the list of providers
-    final providers = await appProviders(appDatabase); // Pass appDatabase to appProviders
+    final providers =
+        await appProviders(appDatabase); // Pass appDatabase to appProviders
 
     runApp(
       MultiProvider(
@@ -114,12 +116,12 @@ Future<void> main() async {
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     if (kDebugMode) {
-      print('Flutter error caught by FlutterError.onError: ${details.exception}');
+      print(
+          'Flutter error caught by FlutterError.onError: ${details.exception}');
       print('Stack trace: ${details.stack}');
     }
   };
 }
-
 
 class MyApp extends StatelessWidget {
   final String initialRoute;
@@ -129,10 +131,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'BioCheckSheet7',
+      title: 'BioCheckSheet',
       theme: appTheme(), // Use the appTheme() function
       initialRoute: initialRoute,
-      routes: appRoutes(), // Use the appRoutes() function
+      routes: appRoutes(),
+      debugShowCheckedModeBanner:
+          false, // <<< CRUCIAL FIX: Add this line to remove the debug banner// Use the appRoutes() function
     );
   }
 }
@@ -147,7 +151,8 @@ class PlaceholderScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Center(
-        child: Text('Welcome to $title!', style: Theme.of(context).textTheme.headlineMedium),
+        child: Text('Welcome to $title!',
+            style: Theme.of(context).textTheme.headlineMedium),
       ),
     );
   }

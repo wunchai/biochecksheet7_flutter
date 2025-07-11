@@ -38,6 +38,10 @@ import 'package:biochecksheet7_flutter/ui/imagerecord/image_processor.dart'; // 
 import 'package:biochecksheet7_flutter/ui/deviceinfo/device_info_viewmodel.dart'; // <<< Import ViewModel
 import 'package:biochecksheet7_flutter/ui/deviceinfo/device_info_screen.dart'; // <<< Import Screen
 
+// Import DataSummary components
+import 'package:biochecksheet7_flutter/ui/datasummary/data_summary_viewmodel.dart'; // <<< NEW: Import ViewModel
+import 'package:biochecksheet7_flutter/ui/datasummary/data_summary_screen.dart'; // <<< NEW: Import Screen
+
 // Define the list of all providers for the application
 Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
   // Initialize singletons that need to be ready before providers are created
@@ -57,8 +61,9 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
         ImageProcessorNative(); // Now ImageProcessorNative is defined
   }
   // Create DeviceInfoService instance
-  final DeviceInfoService deviceInfoService = DeviceInfoService(); 
-  final DataSyncService dataSyncService = DataSyncService(appDatabase: appDatabase); // Create instance once
+  final DeviceInfoService deviceInfoService = DeviceInfoService();
+  final DataSyncService dataSyncService =
+      DataSyncService(appDatabase: appDatabase); // Create instance once
 
   return [
     // Repositories (provided as value as they are singletons)
@@ -89,14 +94,18 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
         create: (context) => DeviceInfoService()), // <<< Change to (context)
     ChangeNotifierProvider(
         create: (context) => DeviceInfoViewModel(
-            deviceInfoService: Provider.of<DeviceInfoService>(context,
-                listen:
-                    false), dataSyncService: dataSyncService)),
+            deviceInfoService:
+                Provider.of<DeviceInfoService>(context, listen: false),
+            dataSyncService: dataSyncService)),
     Provider<DataSyncService>(
         create: (_) => DataSyncService(appDatabase: appDatabase)),
     Provider<DatabaseMaintenanceService>(
         create: (_) => DatabaseMaintenanceService(appDatabase: appDatabase)),
     Provider<DataCleanupService>(
         create: (_) => DataCleanupService(appDatabase: appDatabase)),
+    // NEW: DataSummaryViewModel
+    ChangeNotifierProvider(
+        create: (_) => DataSummaryViewModel(
+            appDatabase: appDatabase)), // <<< NEW: Provide DataSummaryViewModel
   ];
 }

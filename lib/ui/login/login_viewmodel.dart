@@ -7,15 +7,27 @@ import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart';
 import 'package:biochecksheet7_flutter/ui/login/login_form_state.dart';
 import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // <<< เพิ่มบรรทัดนี้
 import 'package:biochecksheet7_flutter/ui/login/login_screen.dart';
+import 'package:biochecksheet7_flutter/data/network/user_api_service.dart'; // <<< NEW: Import UserApiService (for register)
 
 class LoginViewModel extends ChangeNotifier {
   final LoginRepository _loginRepository;
+  final UserApiService
+      _userApiService; // <<< NEW: Add UserApiService dependency
 
   LoginFormState _loginFormState = LoginFormState.initial;
   LoginFormState get loginFormState => _loginFormState;
 
+/*
   LoginViewModel({LoginRepository? loginRepository})
       : _loginRepository = loginRepository ?? LoginRepository();
+    */
+
+  LoginViewModel({required LoginRepository loginRepository})
+      : _loginRepository = loginRepository,
+        _userApiService = UserApiService() {
+    // <<< NEW: Initialize UserApiService
+    _loggedInUser = _loginRepository.loggedInUser;
+  }
 
   LoggedInUser? _loggedInUser;
   LoggedInUser? get loggedInUser => _loggedInUser;
@@ -23,17 +35,27 @@ class LoginViewModel extends ChangeNotifier {
   String? _loginError;
   String? get loginError => _loginError;
 
- String? _syncMessage;
+  String? _syncMessage;
   String? get syncMessage => _syncMessage;
   // CRUCIAL FIX: Add setter for syncMessage
-  set syncMessage(String? value) { // <<< NEW: Setter
+  set syncMessage(String? value) {
+    // <<< NEW: Setter
     _syncMessage = value;
     notifyListeners();
   }
+
   String? _loginMessage;
   String? get loginMessage => _loginMessage;
   set loginMessage(String? value) {
     _loginMessage = value;
+    notifyListeners();
+  }
+
+  // NEW: State for registration messages
+  String? _registerMessage;
+  String? get registerMessage => _registerMessage;
+  set registerMessage(String? value) {
+    _registerMessage = value;
     notifyListeners();
   }
 
@@ -106,35 +128,41 @@ class LoginViewModel extends ChangeNotifier {
     );
   }
 
-  Future<LoginResult> login(String username, String password) async { // <<< CRUCIAL FIX: Change return type to Future<LoginResult>
+  Future<LoginResult> login(String username, String password) async {
+    // <<< CRUCIAL FIX: Change return type to Future<LoginResult>
     _loginFormState = _loginFormState.copyWith(isLoading: true);
     _loginMessage = null;
     notifyListeners();
 
     try {
-      final LoginResult result = await _loginRepository.login(username, password); // Get LoginResult from repository
+      final LoginResult result = await _loginRepository.login(
+          username, password); // Get LoginResult from repository
 
       if (result is LoginSuccess) {
-        _loggedInUser = result.loggedInUser; // Set loggedInUser from LoginSuccess
+        _loggedInUser =
+            result.loggedInUser; // Set loggedInUser from LoginSuccess
         _loginMessage = 'Login successful!';
         _loginFormState = _loginFormState.copyWith(isLoading: false);
       } else if (result is LoginFailed) {
-        _loginMessage = result.errorMessage; // Set error message from LoginFailed
+        _loginMessage =
+            result.errorMessage; // Set error message from LoginFailed
         _loginFormState = _loginFormState.copyWith(isLoading: false);
       } else if (result is LoginError) {
-        _loginMessage = 'Login failed: ${result.exception}'; // Set error message from LoginError
+        _loginMessage =
+            'Login failed: ${result.exception}'; // Set error message from LoginError
         _loginFormState = _loginFormState.copyWith(isLoading: false);
       }
       return result; // <<< Return the LoginResult
     } catch (e) {
       _loginMessage = 'Login failed: $e';
       _loginFormState = _loginFormState.copyWith(isLoading: false);
-      return LoginError(Exception('Unexpected error during login: $e')); // Return LoginError for unexpected exceptions
+      return LoginError(Exception(
+          'Unexpected error during login: $e')); // Return LoginError for unexpected exceptions
     } finally {
       notifyListeners();
     }
-    
   }
+
   Future<void> loginold(String username, String password) async {
     _loginFormState = _loginFormState.copyWith(isLoading: true);
     notifyListeners();
@@ -223,6 +251,31 @@ class LoginViewModel extends ChangeNotifier {
       }
     } catch (e) {
       _loginMessage = 'Logout failed: $e';
+    } finally {
+      _loginFormState = _loginFormState.copyWith(isLoading: false);
+      notifyListeners();
+    }
+  }
+
+  /// NEW: Registers a new user.
+  /// Sets _registerMessage for UI feedback.
+  Future<void> register(String userId, String password) async {
+    _loginFormState = _loginFormState.copyWith(
+        isLoading: true); // Use loginFormState's isLoading for general loading
+    _registerMessage = null; // Clear previous message
+    notifyListeners();
+
+    try {
+      final bool success = await _userApiService.registerUser(
+          userId: userId, password: password);
+      if (success) {
+        _registerMessage = 'ลงทะเบียนสำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว.';
+      } else {
+        _registerMessage = 'ลงทะเบียนไม่สำเร็จ: ไม่ทราบสาเหตุ.';
+      }
+    } catch (e) {
+      _registerMessage = 'ลงทะเบียนล้มเหลว: $e';
+      print('Error during user registration: $e');
     } finally {
       _loginFormState = _loginFormState.copyWith(isLoading: false);
       notifyListeners();

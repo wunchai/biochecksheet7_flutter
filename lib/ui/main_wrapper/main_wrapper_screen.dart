@@ -4,6 +4,7 @@ import 'package:biochecksheet7_flutter/ui/home/home_screen.dart';
 //import 'package:biochecksheet7_flutter/ui/dashboard/dashboard_screen.dart';
 import 'package:biochecksheet7_flutter/ui/notifications/notifications_screen.dart';
 import 'package:biochecksheet7_flutter/ui/problem/problem_screen.dart'; // <<< NEW: Import ProblemScreen
+import 'package:biochecksheet7_flutter/ui/datasummary/data_summary_screen.dart'; // <<< NEW: Import DataSummaryScreen
 
 /// This screen acts as a wrapper for the main content screens
 /// and provides the Bottom Navigation Bar, similar to how
@@ -22,11 +23,13 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
   // List of screens to display in the Bottom Navigation Bar.
   final List<Widget> _screens = [
     const HomeScreen(title: 'Home'),
-     const ProblemScreen(title: 'Problem List'), // <<< CHANGED: Dashboard to Problem
-    const NotificationsScreen(title: 'Notifications'),
+    const ProblemScreen(
+        title: 'Problem List'), // <<< CHANGED: Dashboard to Problem
+    const DataSummaryScreen(
+        title: 'สรุปข้อมูล'), // <<< CHANGED: Notifications to DataSummaryScreen
   ];
 
-   @override
+  @override
   void initState() {
     super.initState();
     print('MainWrapperScreen: initState called.'); // Debugging
@@ -35,11 +38,12 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
     // CRUCIAL FIX: Ensure page jump happens AFTER the first frame is rendered.
     // This prevents trying to control a PageView that isn't fully mounted yet.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('MainWrapperScreen: addPostFrameCallback - jumping to initial page.'); // Debugging
+      print(
+          'MainWrapperScreen: addPostFrameCallback - jumping to initial page.'); // Debugging
       _pageController.jumpToPage(_selectedIndex);
     });
   }
-  
+
   @override
   void dispose() {
     print('MainWrapperScreen: dispose called.'); // Debugging
@@ -48,7 +52,7 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
   }
 
   // Method to handle tab selection.
- // Method to handle tab selection.
+  // Method to handle tab selection.
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -59,12 +63,14 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
       duration: const Duration(milliseconds: 300), // Smooth animation
       curve: Curves.ease, // Animation curve
     );
-    print('MainWrapperScreen: Tab tapped, index: $index - Animating to page.'); // Debugging
+    print(
+        'MainWrapperScreen: Tab tapped, index: $index - Animating to page.'); // Debugging
   }
 
-   @override
+  @override
   Widget build(BuildContext context) {
-    print('MainWrapperScreen: build called. Selected index: $_selectedIndex'); // Debugging
+    print(
+        'MainWrapperScreen: build called. Selected index: $_selectedIndex'); // Debugging
     return Scaffold(
       body: PageView(
         key: const ValueKey('mainPageView'), // Add a key for stability
@@ -89,8 +95,9 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
             label: 'Problem',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
+            icon: Icon(Icons
+                .summarize), // <<< CHANGED: Notifications to Summarize icon
+            label: 'Summary', // <<< CHANGED: Notifications to Summary
           ),
         ],
         currentIndex: _selectedIndex, // Highlight the currently selected tab.

@@ -74,7 +74,7 @@ class AppDatabase extends _$AppDatabase {
   ImageDao get imageDao => ImageDao(this); // <<< NEW: Add ImageDao getter
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   // Define the migration strategy.
   @override
@@ -107,6 +107,13 @@ class AppDatabase extends _$AppDatabase {
             // Re-create all triggers to include AFTER INSERT
             await _createAllUpdatedAtTriggers(m);
           }
+          if (from < 5) {
+            // <<< NEW: If upgrading from version 4 to 5
+            // Add the new 'isLocalSessionActive' column to Users table
+            await m.addColumn(users, users.isLocalSessionActive);
+            // Optionally, set a default value for existing rows if needed (e.g., all existing users are active)
+            // await m.customStatement('UPDATE users SET isLocalSessionActive = 1;');
+          }
         },
       );
 
@@ -127,18 +134,16 @@ class AppDatabase extends _$AppDatabase {
       ''');
     print('SQL Trigger "$triggerName" created/ensured.');
 
-      // NEW: Trigger for AFTER INSERT
+    // NEW: Trigger for AFTER INSERT
     final insertTriggerName = 'update_${tableName}_${columnName}_on_insert';
-    await m.database.customStatement(
-      '''
+    await m.database.customStatement('''
       CREATE TRIGGER IF NOT EXISTS $insertTriggerName
       AFTER INSERT ON $tableName
       FOR EACH ROW
       BEGIN
         UPDATE $tableName SET $columnName = STRFTIME('%Y-%m-%dT%H:%M:%f', 'now') WHERE uid = NEW.uid;
       END;
-      '''
-    );
+      ''');
     print('SQL Trigger "$insertTriggerName" created/ensured.');
   }
 

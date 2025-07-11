@@ -7,7 +7,8 @@ import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // <<< NE
 
 class DeviceInfoViewModel extends ChangeNotifier {
   final DeviceInfoService _deviceInfoService;
-  final DataSyncService _dataSyncService; // <<< NEW: Add DataSyncService dependency
+  final DataSyncService
+      _dataSyncService; // <<< NEW: Add DataSyncService dependency
 
   String _deviceId = 'กำลังโหลด...';
   String get deviceId => _deviceId;
@@ -32,23 +33,27 @@ class DeviceInfoViewModel extends ChangeNotifier {
 
   String _statusMessage = "กำลังโหลดข้อมูล..."; // Default initial message
   String get statusMessage => _statusMessage;
-  
-   String? _syncMessage; // For displaying sync messages
+
+  String? _syncMessage; // For displaying sync messages
   String? get syncMessage => _syncMessage;
   set syncMessage(String? value) {
     _syncMessage = value;
     notifyListeners();
   }
 
- 
-  DeviceInfoViewModel({required DeviceInfoService deviceInfoService, required DataSyncService dataSyncService}) // <<< NEW: Receive DataSyncService
+  DeviceInfoViewModel(
+      {required DeviceInfoService deviceInfoService,
+      required DataSyncService
+          dataSyncService}) // <<< NEW: Receive DataSyncService
       : _deviceInfoService = deviceInfoService,
-        _dataSyncService = dataSyncService; // <<< NEW: Initialize DataSyncService
-       
+        _dataSyncService =
+            dataSyncService; // <<< NEW: Initialize DataSyncService
+
   /// Fetches all device information.
   Future<void> fetchDeviceInfo() async {
     _isLoading = true;
     _errorMessage = null;
+    _syncMessage = null; // Clear any previous sync message
     notifyListeners();
 
     try {
@@ -57,8 +62,15 @@ class DeviceInfoViewModel extends ChangeNotifier {
       _appVersion = await _deviceInfoService.getAppVersion();
       _ipAddress = await _deviceInfoService.getIpAddress();
       _wifiStrength = await _deviceInfoService.getWifiStrength();
+      _statusMessage = "ข้อมูลอุปกรณ์โหลดแล้ว."; // Set status message
+      _syncMessage = "โหลดข้อมูลอุปกรณ์สำเร็จ!"; // Set success message for UI
     } catch (e) {
-      _errorMessage = 'ข้อผิดพลาดในการโหลดข้อมูลอุปกรณ์: $e';
+      _errorMessage =
+          'ข้อผิดพลาดในการโหลดข้อมูลอุปกรณ์: $e'; // Set error message
+      _statusMessage = "ไม่สามารถโหลดข้อมูลอุปกรณ์ได้: $e";
+      _syncMessage =
+          "ไม่สามารถโหลดข้อมูลอุปกรณ์ได้: $e"; // Set error message for UI
+
       print('Error fetching device info: $e');
     } finally {
       _isLoading = false;
@@ -66,7 +78,7 @@ class DeviceInfoViewModel extends ChangeNotifier {
     }
   }
 
-   /// NEW: Performs manual metadata sync and processes server actions.
+  /// NEW: Performs manual metadata sync and processes server actions.
   Future<void> performManualMetadataSync() async {
     _isLoading = true;
     _syncMessage = null;
@@ -78,7 +90,8 @@ class DeviceInfoViewModel extends ChangeNotifier {
       await fetchDeviceInfo(); // Refresh device info before sending
 
       // 2. Call checkSyncMetadata API
-      final List<SyncMetadataResponse> syncMetadataResults = await _dataSyncService.checkSyncMetadata(
+      final List<SyncMetadataResponse> syncMetadataResults =
+          await _dataSyncService.checkSyncMetadata(
         username: 'admin', // TODO: Replace with actual logged-in username
         deviceId: _deviceId,
         serialNo: _serialNo,
@@ -86,36 +99,41 @@ class DeviceInfoViewModel extends ChangeNotifier {
         ipAddress: _ipAddress,
         wifiStrength: _wifiStrength,
       );
-        
-   
+
       // 3. Process actions from server response
       bool allActionsSuccessful = true;
       for (final action in syncMetadataResults) {
-      
-        print("DeviceInfoViewModel: Processing action: ${action.actionType} (ID: ${action.actionId})");
+        print(
+            "DeviceInfoViewModel: Processing action: ${action.actionType} (ID: ${action.actionId})");
         switch (action.actionType) {
           case "transferDB":
-            final result = await _dataSyncService.databaseMaintenanceService.backupAndUploadDb(userId: 'admin', deviceId: _deviceId); // TODO: Replace userId
+            final result = await _dataSyncService.databaseMaintenanceService
+                .backupAndUploadDb(
+                    userId: 'admin',
+                    deviceId: _deviceId); // TODO: Replace userId
             if (result is SyncError) allActionsSuccessful = false;
             break;
           case "update":
             if (action.actionSql != null && action.actionSql!.isNotEmpty) {
-              final result = await _dataSyncService.databaseMaintenanceService.executeRawSqlQuery(action.actionSql!);
+              final result = await _dataSyncService.databaseMaintenanceService
+                  .executeRawSqlQuery(action.actionSql!);
               if (result is SyncError) allActionsSuccessful = false;
             }
             break;
           case "cleanEndData":
-            final result = await _dataSyncService.dataCleanupService.cleanEndData();
+            final result =
+                await _dataSyncService.dataCleanupService.cleanEndData();
             if (result is SyncError) allActionsSuccessful = false;
             break;
           default:
-            print("DeviceInfoViewModel: Unknown actionType: ${action.actionType}");
-            allActionsSuccessful = false;
+            print(
+                "DeviceInfoViewModel: Unknown actionType: ${action.actionType}");
+            // allActionsSuccessful = false;
             break;
         }
       }
       // After processing actions, perform regular data syncs (download new master data)
-     // await _dataSyncService.performFullSync(); // Or specific syncs
+      // await _dataSyncService.performFullSync(); // Or specific syncs
 
       if (allActionsSuccessful) {
         _syncMessage = "ซิงค์ Metadata และดำเนินการสำเร็จ!";
