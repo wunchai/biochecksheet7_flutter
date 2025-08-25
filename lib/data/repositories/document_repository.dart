@@ -1,27 +1,26 @@
 // lib/data/repositories/document_repository.dart
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // For DbDocument
+//import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // For DbDocument
 import 'package:drift/drift.dart' as drift;
 
 // NEW: Import for DocumentRecordDao and DocumentRecordTable
 import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart';
-
+//import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart';
 
 /// Repository for managing document data.
 /// This class abstracts data operations from UI/ViewModels.
 class DocumentRepository {
   final DocumentDao _documentDao;
-  final DocumentRecordDao _documentRecordDao; 
+  final DocumentRecordDao _documentRecordDao;
   // TODO: หากมี DocumentApiService ก็เพิ่มที่นี่
   // final DocumentApiService _documentApiService;
 
   DocumentRepository({required AppDatabase appDatabase})
       : _documentDao = appDatabase.documentDao,
         _documentRecordDao = appDatabase.documentRecordDao;
-        // _documentApiService = documentApiService ?? DocumentApiService(); // หากมี API
-      // _documentApiService = documentApiService ?? DocumentApiService(); // หากมี API
+  // _documentApiService = documentApiService ?? DocumentApiService(); // หากมี API
+  // _documentApiService = documentApiService ?? DocumentApiService(); // หากมี API
 
   /// Equivalent to DbDocumentCode.initNewDocument
   Future<void> newDocument({
@@ -31,7 +30,8 @@ class DocumentRepository {
     // TODO: เพิ่ม parameters อื่นๆ ที่จำเป็นสำหรับการสร้างเอกสารใหม่
   }) async {
     try {
-      final newDocId = _generateUniqueDocumentId(jobId); // สร้าง Document ID ใหม่ (ตัวอย่าง)
+      final newDocId =
+          _generateUniqueDocumentId(jobId); // สร้าง Document ID ใหม่ (ตัวอย่าง)
 
       final newDocumentEntry = DocumentsCompanion(
         documentId: drift.Value(newDocId),
@@ -55,7 +55,7 @@ class DocumentRepository {
   }
 
   /// Equivalent to DbDocumentCode.initCopyDocument
-    /// Equivalent to DbDocumentCode.initCopyDocument
+  /// Equivalent to DbDocumentCode.initCopyDocument
   Future<void> copyDocument({
     required String originalDocumentId,
     required String newDocumentName,
@@ -69,7 +69,8 @@ class DocumentRepository {
         throw Exception('Original document not found: $originalDocumentId');
       }
 
-      final newDocId = _generateUniqueDocumentId(newJobId); // สร้าง Document ID ใหม่
+      final newDocId =
+          _generateUniqueDocumentId(newJobId); // สร้าง Document ID ใหม่
 
       final copiedDocumentEntry = DocumentsCompanion(
         documentId: drift.Value(newDocId),
@@ -84,9 +85,11 @@ class DocumentRepository {
       await _documentDao.insertDocument(copiedDocumentEntry);
 
       // CRUCIAL ADDITION: Copy associated document records
-      final originalRecords = await _documentRecordDao.getRecordsByDocumentId(originalDocumentId);
+      final originalRecords =
+          await _documentRecordDao.getRecordsByDocumentId(originalDocumentId);
       if (originalRecords.isNotEmpty) {
-        final List<DocumentRecordsCompanion> copiedRecords = originalRecords.map((record) {
+        final List<DocumentRecordsCompanion> copiedRecords =
+            originalRecords.map((record) {
           return DocumentRecordsCompanion(
             // Copy all fields from original record, but update documentId, jobId, userId, and timestamp
             documentId: drift.Value(newDocId), // New document ID
@@ -109,7 +112,8 @@ class DocumentRepository {
             remark: drift.Value(record.remark), // Copy existing remark
             status: drift.Value(record.status),
             unReadable: drift.Value(record.unReadable),
-            lastSync: drift.Value(DateTime.now().toIso8601String()), // New sync timestamp
+            lastSync: drift.Value(
+                DateTime.now().toIso8601String()), // New sync timestamp
           );
         }).toList();
         await _documentRecordDao.insertAllDocumentRecords(copiedRecords);
@@ -119,7 +123,8 @@ class DocumentRepository {
       // TODO: หากมี API สำหรับ Sync เอกสารที่คัดลอกขึ้น Server, ให้เรียกใช้ที่นี่
       // await _documentApiService.uploadCopiedDocument(copiedDocumentEntry);
 
-      print('Document $originalDocumentId copied to $newDocumentName (ID: $newDocId)');
+      print(
+          'Document $originalDocumentId copied to $newDocumentName (ID: $newDocId)');
     } catch (e) {
       print('Error copying document: $e');
       throw Exception('Failed to copy document: $e');
@@ -129,7 +134,8 @@ class DocumentRepository {
   /// Equivalent to DbDocumentCode.deleteDocument
   Future<void> deleteDocument({
     required int uid, // Use local uid for deletion
-    required String documentId, // Use documentId for server sync and record deletion
+    required String
+        documentId, // Use documentId for server sync and record deletion
     // TODO: job ID อาจจำเป็นสำหรับการอัปเดต UI หรือ server
   }) async {
     try {
@@ -143,7 +149,6 @@ class DocumentRepository {
       // CRUCIAL ADDITION: Delete associated document records
       await _documentRecordDao.deleteAllRecordsByDocumentId(documentId);
       print('Deleted all associated records for document $documentId.');
-
 
       // TODO: หากมี API สำหรับ Sync การลบเอกสารขึ้น Server, ให้เรียกใช้ที่นี่
       // await _documentApiService.deleteDocumentOnServer(documentId);

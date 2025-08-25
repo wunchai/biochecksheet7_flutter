@@ -1,7 +1,7 @@
 // lib/data/repositories/job_repository.dart
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/job_dao.dart'; // For JobDao
-import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart'; // For DbJob
+//import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart'; // For DbJob
 
 // TODO: Import JobApiService for sync in future phase
 // import 'package:biochecksheet7_flutter/data/network/job_api_service.dart';
@@ -15,7 +15,7 @@ class JobRepository {
 
   JobRepository({required AppDatabase appDatabase})
       : _jobDao = appDatabase.jobDao;
-      // _jobApiService = jobApiService ?? JobApiService();
+  // _jobApiService = jobApiService ?? JobApiService();
 
   /// Watches a stream of all job records from the local database.
   Stream<List<DbJob>> watchAllJobs() {

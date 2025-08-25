@@ -2,13 +2,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart'; // สำหรับ DbDocumentRecord
+//import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart'; // สำหรับ DbDocumentRecord
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart';
 // TODO: อาจจะต้องสร้าง Data Model สำหรับ Historical Record ถ้ามี Field ที่แตกต่างจาก DbDocumentRecord
 // import 'package:biochecksheet7_flutter/data/models/historical_record_data.dart';
 
 const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
-
 
 /*
 // NEW: Define a data class for API upload response (if API returns specific format)
@@ -84,17 +83,20 @@ class DocumentRecordApiService {
   }
 
   /// NEW: Uploads a list of DbDocumentRecord to the API.
-   /// Uploads a list of DbDocumentRecord to the API.
+  /// Uploads a list of DbDocumentRecord to the API.
   /// Converts DbDocumentRecord to server-expected JSON format (e.g., PascalCase keys).
- Future<List<UploadRecordResult>> uploadRecords( // <<< CRUCIAL FIX: Change return type from Future<bool> to Future<List<UploadRecordResult>>
-    List<DbDocumentRecord> recordsToUpload,
-    {String? documentCreateDate, String? documentUserId}
-  ) async {
-    final uri = Uri.parse("$_baseUrl/CHECKSHEET_DOCUMENTRECORD_SYNC"); // Assumed API Endpoint
+  Future<List<UploadRecordResult>> uploadRecords(
+      // <<< CRUCIAL FIX: Change return type from Future<bool> to Future<List<UploadRecordResult>>
+      List<DbDocumentRecord> recordsToUpload,
+      {String? documentCreateDate,
+      String? documentUserId}) async {
+    final uri = Uri.parse(
+        "$_baseUrl/CHECKSHEET_DOCUMENTRECORD_SYNC"); // Assumed API Endpoint
     print("Uploading records to API: $uri");
     final headers = {"Content-Type": "application/json"};
-    
-    final List<Map<String, dynamic>> jsonRecords = recordsToUpload.map((record) {
+
+    final List<Map<String, dynamic>> jsonRecords =
+        recordsToUpload.map((record) {
       return {
         "createDate": documentCreateDate,
         "userId": documentUserId,
@@ -104,7 +106,7 @@ class DocumentRecordApiService {
         "jobId": record.jobId,
         "tagId": record.tagId,
         "tagName": record.tagName,
-        "tagType": record.tagType,     
+        "tagType": record.tagType,
         "tagSelectionValue": record.tagSelectionValue,
         "queryStr": record.queryStr,
         "description": record.description,
@@ -120,9 +122,10 @@ class DocumentRecordApiService {
       };
     }).toList();
 
-    final Map<String, dynamic> parameterObject = {      
+    final Map<String, dynamic> parameterObject = {
       "record": jsonEncode(jsonRecords),
-      "username": "000000" // Assuming username parameter is still required for auth/context
+      "username":
+          "000000" // Assuming username parameter is still required for auth/context
       // ถ้ามี Password ก็เพิ่ม Passw
       //ord: "your_password"
     };
@@ -142,12 +145,16 @@ class DocumentRecordApiService {
         final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
         if (responseJson['Table1'] != null && responseJson['Table1'] is List) {
           final List<dynamic> resultsList = responseJson['Table1'];
-          return resultsList.map((item) => UploadRecordResult.fromJson(item)).toList();
+          return resultsList
+              .map((item) => UploadRecordResult.fromJson(item))
+              .toList();
         } else {
-          throw Exception("Record Upload API response format invalid (missing 'Table' key or not a list).");
+          throw Exception(
+              "Record Upload API response format invalid (missing 'Table' key or not a list).");
         }
       } else {
-        throw Exception("Record Upload API failed: Status code ${response.statusCode}");
+        throw Exception(
+            "Record Upload API failed: Status code ${response.statusCode}");
       }
     } on http.ClientException catch (e) {
       print("Network error uploading records: ${e.message}");
@@ -157,17 +164,21 @@ class DocumentRecordApiService {
       throw Exception("An unexpected error occurred uploading records: $e");
     }
   }
+
   /// Uploads a list of DbDocumentRecord to the API.
   /// Returns a list of UploadRecordResult indicating success/failure for each record.
   Future<List<UploadRecordResult>> uploadDocumentRecords(
-    List<DbDocumentRecord> recordsToUpload,
-    {String? documentCreateDate, String? documentUserId} // <<< CRUCIAL FIX: Add these parameters
-  ) async {
-    final uri = Uri.parse("$_baseUrl/CHECKSHEET_DOCUMENTRECORD_SYNC"); // Assumed API Endpoint
+      List<DbDocumentRecord> recordsToUpload,
+      {String? documentCreateDate,
+      String? documentUserId} // <<< CRUCIAL FIX: Add these parameters
+      ) async {
+    final uri = Uri.parse(
+        "$_baseUrl/CHECKSHEET_DOCUMENTRECORD_SYNC"); // Assumed API Endpoint
     print("Uploading document records to API: $uri");
     final headers = {"Content-Type": "application/json"};
 
-    final List<Map<String, dynamic>> jsonRecords = recordsToUpload.map((record) {
+    final List<Map<String, dynamic>> jsonRecords =
+        recordsToUpload.map((record) {
       return {
         "createDate": documentCreateDate,
         "userId": documentUserId,
@@ -177,7 +188,7 @@ class DocumentRecordApiService {
         "jobId": record.jobId,
         "tagId": record.tagId,
         "tagName": record.tagName,
-        "tagType": record.tagType,     
+        "tagType": record.tagType,
         "tagSelectionValue": record.tagSelectionValue,
         "queryStr": record.queryStr,
         "description": record.description,
@@ -193,9 +204,10 @@ class DocumentRecordApiService {
       };
     }).toList();
 
-    final Map<String, dynamic> parameterObject = {      
+    final Map<String, dynamic> parameterObject = {
       "record": jsonEncode(jsonRecords),
-      "username": "000000" // Assuming username parameter is still required for auth/context
+      "username":
+          "000000" // Assuming username parameter is still required for auth/context
       // ถ้ามี Password ก็เพิ่ม Passw
       //ord: "your_password"
     };
@@ -209,26 +221,32 @@ class DocumentRecordApiService {
     try {
       final response = await http.post(uri, headers: headers, body: body);
       final String decodedBody = utf8.decode(response.bodyBytes);
-      print("Document Record Upload API Response status: ${response.statusCode}");
+      print(
+          "Document Record Upload API Response status: ${response.statusCode}");
       print("Document Record Upload API Response body: $decodedBody");
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
         if (responseJson['Table1'] != null && responseJson['Table1'] is List) {
           final List<dynamic> resultsList = responseJson['Table1'];
-          return resultsList.map((item) => UploadRecordResult.fromJson(item)).toList();
+          return resultsList
+              .map((item) => UploadRecordResult.fromJson(item))
+              .toList();
         } else {
-          throw Exception("Document Record Upload API response format invalid (missing 'Table' key or not a list).");
+          throw Exception(
+              "Document Record Upload API response format invalid (missing 'Table' key or not a list).");
         }
       } else {
-        throw Exception("Document Record Upload API failed: Status code ${response.statusCode}");
+        throw Exception(
+            "Document Record Upload API failed: Status code ${response.statusCode}");
       }
     } on http.ClientException catch (e) {
       print("Network error uploading document records: ${e.message}");
       throw Exception("Network error uploading document records: ${e.message}");
     } catch (e) {
       print("An unexpected error occurred uploading document records: $e");
-      throw Exception("An unexpected error occurred uploading document records: $e");
+      throw Exception(
+          "An unexpected error occurred uploading document records: $e");
     }
   }
 }

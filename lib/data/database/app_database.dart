@@ -74,7 +74,7 @@ class AppDatabase extends _$AppDatabase {
   ImageDao get imageDao => ImageDao(this); // <<< NEW: Add ImageDao getter
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   // Define the migration strategy.
   @override
@@ -113,6 +113,11 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(users, users.isLocalSessionActive);
             // Optionally, set a default value for existing rows if needed (e.g., all existing users are active)
             // await m.customStatement('UPDATE users SET isLocalSessionActive = 1;');
+          }
+          // --- 2. เพิ่ม Logic การ Migration สำหรับเวอร์ชัน 6 ---
+          if (from < 6) {
+            // เพิ่มคอลัมน์ uiType เข้าไปในตาราง documentMachines
+            await m.addColumn(documentMachines, documentMachines.uiType);
           }
         },
       );

@@ -1092,6 +1092,13 @@ class $DocumentMachinesTable extends DocumentMachines
   late final GeneratedColumn<String> lastSync = GeneratedColumn<String>(
       'lastSync', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _uiTypeMeta = const VerificationMeta('uiType');
+  @override
+  late final GeneratedColumn<int> uiType = GeneratedColumn<int>(
+      'ui_type', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -1127,6 +1134,7 @@ class $DocumentMachinesTable extends DocumentMachines
         specification,
         status,
         lastSync,
+        uiType,
         id,
         createDate,
         createBy,
@@ -1192,6 +1200,10 @@ class $DocumentMachinesTable extends DocumentMachines
       context.handle(_lastSyncMeta,
           lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
     }
+    if (data.containsKey('ui_type')) {
+      context.handle(_uiTypeMeta,
+          uiType.isAcceptableOrUnknown(data['ui_type']!, _uiTypeMeta));
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -1240,6 +1252,8 @@ class $DocumentMachinesTable extends DocumentMachines
           .read(DriftSqlType.int, data['${effectivePrefix}Status'])!,
       lastSync: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
+      uiType: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}ui_type'])!,
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       createDate: attachedDatabase.typeMapping
@@ -1269,6 +1283,7 @@ class DbDocumentMachine extends DataClass
   final String? specification;
   final int status;
   final String? lastSync;
+  final int uiType;
   final int id;
   final String? createDate;
   final String? createBy;
@@ -1284,6 +1299,7 @@ class DbDocumentMachine extends DataClass
       this.specification,
       required this.status,
       this.lastSync,
+      required this.uiType,
       required this.id,
       this.createDate,
       this.createBy,
@@ -1317,6 +1333,7 @@ class DbDocumentMachine extends DataClass
     if (!nullToAbsent || lastSync != null) {
       map['lastSync'] = Variable<String>(lastSync);
     }
+    map['ui_type'] = Variable<int>(uiType);
     map['id'] = Variable<int>(id);
     if (!nullToAbsent || createDate != null) {
       map['CreateDate'] = Variable<String>(createDate);
@@ -1357,6 +1374,7 @@ class DbDocumentMachine extends DataClass
       lastSync: lastSync == null && nullToAbsent
           ? const Value.absent()
           : Value(lastSync),
+      uiType: Value(uiType),
       id: Value(id),
       createDate: createDate == null && nullToAbsent
           ? const Value.absent()
@@ -1384,6 +1402,7 @@ class DbDocumentMachine extends DataClass
       specification: serializer.fromJson<String?>(json['specification']),
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
+      uiType: serializer.fromJson<int>(json['uiType']),
       id: serializer.fromJson<int>(json['id']),
       createDate: serializer.fromJson<String?>(json['createDate']),
       createBy: serializer.fromJson<String?>(json['createBy']),
@@ -1404,6 +1423,7 @@ class DbDocumentMachine extends DataClass
       'specification': serializer.toJson<String?>(specification),
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
+      'uiType': serializer.toJson<int>(uiType),
       'id': serializer.toJson<int>(id),
       'createDate': serializer.toJson<String?>(createDate),
       'createBy': serializer.toJson<String?>(createBy),
@@ -1422,6 +1442,7 @@ class DbDocumentMachine extends DataClass
           Value<String?> specification = const Value.absent(),
           int? status,
           Value<String?> lastSync = const Value.absent(),
+          int? uiType,
           int? id,
           Value<String?> createDate = const Value.absent(),
           Value<String?> createBy = const Value.absent(),
@@ -1438,6 +1459,7 @@ class DbDocumentMachine extends DataClass
             specification.present ? specification.value : this.specification,
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        uiType: uiType ?? this.uiType,
         id: id ?? this.id,
         createDate: createDate.present ? createDate.value : this.createDate,
         createBy: createBy.present ? createBy.value : this.createBy,
@@ -1461,6 +1483,7 @@ class DbDocumentMachine extends DataClass
           : this.specification,
       status: data.status.present ? data.status.value : this.status,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      uiType: data.uiType.present ? data.uiType.value : this.uiType,
       id: data.id.present ? data.id.value : this.id,
       createDate:
           data.createDate.present ? data.createDate.value : this.createDate,
@@ -1482,6 +1505,7 @@ class DbDocumentMachine extends DataClass
           ..write('specification: $specification, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
+          ..write('uiType: $uiType, ')
           ..write('id: $id, ')
           ..write('createDate: $createDate, ')
           ..write('createBy: $createBy, ')
@@ -1502,6 +1526,7 @@ class DbDocumentMachine extends DataClass
       specification,
       status,
       lastSync,
+      uiType,
       id,
       createDate,
       createBy,
@@ -1520,6 +1545,7 @@ class DbDocumentMachine extends DataClass
           other.specification == this.specification &&
           other.status == this.status &&
           other.lastSync == this.lastSync &&
+          other.uiType == this.uiType &&
           other.id == this.id &&
           other.createDate == this.createDate &&
           other.createBy == this.createBy &&
@@ -1537,6 +1563,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
   final Value<String?> specification;
   final Value<int> status;
   final Value<String?> lastSync;
+  final Value<int> uiType;
   final Value<int> id;
   final Value<String?> createDate;
   final Value<String?> createBy;
@@ -1552,6 +1579,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     this.specification = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.uiType = const Value.absent(),
     this.id = const Value.absent(),
     this.createDate = const Value.absent(),
     this.createBy = const Value.absent(),
@@ -1568,6 +1596,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     this.specification = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
+    this.uiType = const Value.absent(),
     required int id,
     this.createDate = const Value.absent(),
     this.createBy = const Value.absent(),
@@ -1584,6 +1613,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     Expression<String>? specification,
     Expression<int>? status,
     Expression<String>? lastSync,
+    Expression<int>? uiType,
     Expression<int>? id,
     Expression<String>? createDate,
     Expression<String>? createBy,
@@ -1600,6 +1630,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
       if (specification != null) 'Specification': specification,
       if (status != null) 'Status': status,
       if (lastSync != null) 'lastSync': lastSync,
+      if (uiType != null) 'ui_type': uiType,
       if (id != null) 'id': id,
       if (createDate != null) 'CreateDate': createDate,
       if (createBy != null) 'CreateBy': createBy,
@@ -1618,6 +1649,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
       Value<String?>? specification,
       Value<int>? status,
       Value<String?>? lastSync,
+      Value<int>? uiType,
       Value<int>? id,
       Value<String?>? createDate,
       Value<String?>? createBy,
@@ -1633,6 +1665,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
       specification: specification ?? this.specification,
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
+      uiType: uiType ?? this.uiType,
       id: id ?? this.id,
       createDate: createDate ?? this.createDate,
       createBy: createBy ?? this.createBy,
@@ -1673,6 +1706,9 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     if (lastSync.present) {
       map['lastSync'] = Variable<String>(lastSync.value);
     }
+    if (uiType.present) {
+      map['ui_type'] = Variable<int>(uiType.value);
+    }
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
@@ -1701,6 +1737,7 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
           ..write('specification: $specification, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
+          ..write('uiType: $uiType, ')
           ..write('id: $id, ')
           ..write('createDate: $createDate, ')
           ..write('createBy: $createBy, ')
@@ -7914,6 +7951,7 @@ typedef $$DocumentMachinesTableCreateCompanionBuilder
   Value<String?> specification,
   Value<int> status,
   Value<String?> lastSync,
+  Value<int> uiType,
   required int id,
   Value<String?> createDate,
   Value<String?> createBy,
@@ -7931,6 +7969,7 @@ typedef $$DocumentMachinesTableUpdateCompanionBuilder
   Value<String?> specification,
   Value<int> status,
   Value<String?> lastSync,
+  Value<int> uiType,
   Value<int> id,
   Value<String?> createDate,
   Value<String?> createBy,
@@ -7975,6 +8014,9 @@ class $$DocumentMachinesTableFilterComposer
 
   ColumnFilters<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get uiType => $composableBuilder(
+      column: $table.uiType, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
@@ -8029,6 +8071,9 @@ class $$DocumentMachinesTableOrderingComposer
   ColumnOrderings<String> get lastSync => $composableBuilder(
       column: $table.lastSync, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get uiType => $composableBuilder(
+      column: $table.uiType, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
@@ -8081,6 +8126,9 @@ class $$DocumentMachinesTableAnnotationComposer
   GeneratedColumn<String> get lastSync =>
       $composableBuilder(column: $table.lastSync, builder: (column) => column);
 
+  GeneratedColumn<int> get uiType =>
+      $composableBuilder(column: $table.uiType, builder: (column) => column);
+
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -8131,6 +8179,7 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             Value<String?> specification = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<int> uiType = const Value.absent(),
             Value<int> id = const Value.absent(),
             Value<String?> createDate = const Value.absent(),
             Value<String?> createBy = const Value.absent(),
@@ -8147,6 +8196,7 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             specification: specification,
             status: status,
             lastSync: lastSync,
+            uiType: uiType,
             id: id,
             createDate: createDate,
             createBy: createBy,
@@ -8163,6 +8213,7 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             Value<String?> specification = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
+            Value<int> uiType = const Value.absent(),
             required int id,
             Value<String?> createDate = const Value.absent(),
             Value<String?> createBy = const Value.absent(),
@@ -8179,6 +8230,7 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             specification: specification,
             status: status,
             lastSync: lastSync,
+            uiType: uiType,
             id: id,
             createDate: createDate,
             createBy: createBy,

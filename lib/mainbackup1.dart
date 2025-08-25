@@ -9,65 +9,62 @@ import 'dart:io'; // For File class, if needed for direct file operations
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
 import 'package:biochecksheet7_flutter/data/services/data_sync_service.dart'; // Import DataSyncService
-import 'package:biochecksheet7_flutter/ui/login/login_viewmodel.dart';
-import 'package:biochecksheet7_flutter/ui/login/login_screen.dart';
-import 'package:biochecksheet7_flutter/ui/home/home_viewmodel.dart';
-import 'package:biochecksheet7_flutter/ui/home/home_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/login/login_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/login/login_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/home/home_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/home/home_screen.dart';
 
 // TODO: You will need to create these screens later
-import 'package:biochecksheet7_flutter/ui/dashboard/dashboard_viewmodel.dart'; // <<< Import ViewModel
-import 'package:biochecksheet7_flutter/ui/dashboard/dashboard_screen.dart'; // <<< Import Screen
+import 'package:biochecksheet7_flutter/presentation/screens/dashboard/dashboard_viewmodel.dart'; // <<< Import ViewModel
+//import 'package:biochecksheet7_flutter/ui/dashboard/dashboard_screen.dart'; // <<< Import Screen
 
 // Import Notifications components
-import 'package:biochecksheet7_flutter/ui/notifications/notifications_viewmodel.dart'; // <<< Import ViewModel
-import 'package:biochecksheet7_flutter/ui/notifications/notifications_screen.dart'; // <<< Import Screen
+import 'package:biochecksheet7_flutter/presentation/screens/notifications/notifications_viewmodel.dart'; // <<< Import ViewModel
+//import 'package:biochecksheet7_flutter/ui/notifications/notifications_screen.dart'; // <<< Import Screen
 
 // Import Document components
-import 'package:biochecksheet7_flutter/ui/document/document_viewmodel.dart'; // <<< Import ViewModel
-import 'package:biochecksheet7_flutter/ui/document/document_screen.dart'; // <<< Import Screen
+import 'package:biochecksheet7_flutter/presentation/screens/document/document_viewmodel.dart'; // <<< Import ViewModel
+import 'package:biochecksheet7_flutter/presentation/screens/document/document_screen.dart'; // <<< Import Screen
 
 // Import DocumentMachine components
-import 'package:biochecksheet7_flutter/ui/documentmachine/document_machine_viewmodel.dart'; // <<< Import ViewModel
-import 'package:biochecksheet7_flutter/ui/documentmachine/document_machine_screen.dart'; // <<< Import Screen
+import 'package:biochecksheet7_flutter/presentation/screens/documentmachine/document_machine_viewmodel.dart'; // <<< Import ViewModel
+import 'package:biochecksheet7_flutter/presentation/screens/documentmachine/document_machine_screen.dart'; // <<< Import Screen
 
 // Import DocumentRecord components
-import 'package:biochecksheet7_flutter/ui/documentrecord/document_record_viewmodel.dart'; // <<< Import ViewModel
-import 'package:biochecksheet7_flutter/ui/documentrecord/document_record_screen.dart'; // Already imported, just for context
+import 'package:biochecksheet7_flutter/presentation/screens/documentrecord/document_record_viewmodel.dart'; // <<< Import ViewModel
+import 'package:biochecksheet7_flutter/presentation/screens/documentrecord/document_record_screen.dart'; // Already imported, just for context
 
 // CRUCIAL FIX: Conditional Import for ImageProcessor
-import 'package:biochecksheet7_flutter/ui/imagerecord/image_processor.dart';
-import 'package:biochecksheet7_flutter/ui/imagerecord/image_processor_native.dart'; // For Native platforms
-import 'package:biochecksheet7_flutter/ui/imagerecord/image_processor_web.dart'; // For Web platform
+import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor_native.dart'; // For Native platforms
+import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor_web.dart'; // For Web platform
 
-import 'package:biochecksheet7_flutter/ui/imagerecord/image_viewmodel.dart';
-import 'package:biochecksheet7_flutter/ui/imagerecord/image_record_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_record_screen.dart';
 
 // NEW: Import Problem components
-import 'package:biochecksheet7_flutter/ui/problem/problem_viewmodel.dart'; // <<< Import ViewModel
-import 'package:biochecksheet7_flutter/ui/problem/problem_screen.dart'; // <<< Import Screen
+import 'package:biochecksheet7_flutter/presentation/screens/problem/problem_viewmodel.dart'; // <<< Import ViewModel
+import 'package:biochecksheet7_flutter/presentation/screens/problem/problem_screen.dart'; // <<< Import Screen
 
 // Import MainWrapperScreen
-import 'package:biochecksheet7_flutter/ui/main_wrapper/main_wrapper_screen.dart'; // <<< Import MainWrapperScreen
+import 'package:biochecksheet7_flutter/presentation/screens/main_wrapper/main_wrapper_screen.dart'; // <<< Import MainWrapperScreen
 import 'package:biochecksheet7_flutter/data/services/database_maintenance_service.dart';
-import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; 
+import 'package:biochecksheet7_flutter/data/network/sync_status.dart';
 
 // Platform-specific image processor imports
-import 'package:biochecksheet7_flutter/ui/imagerecord/image_processor_native.dart'
+import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor_native.dart'
     if (dart.library.html) 'package:biochecksheet7_flutter/ui/imagerecord/image_processor_web.dart';
 
-
 // lib/main.dart
-  // CRUCIAL FIX: Add imports needed by the background isolate here
-
+// CRUCIAL FIX: Add imports needed by the background isolate here
 
 import 'package:biochecksheet7_flutter/data/services/device_info_service.dart'; // <<< NEW: Import DeviceInfoService
 import 'package:biochecksheet7_flutter/data/services/data_cleanup_service.dart'; // <<< NEW: Import DataCleanupService
 import 'package:workmanager/workmanager.dart';
 
 // NEW: Import DeviceInfo components
-import 'package:biochecksheet7_flutter/ui/deviceinfo/device_info_viewmodel.dart'; // <<< Import ViewModel
-import 'package:biochecksheet7_flutter/ui/deviceinfo/device_info_screen.dart'; // <<< Import Screen
-
+import 'package:biochecksheet7_flutter/presentation/screens/deviceinfo/device_info_viewmodel.dart'; // <<< Import ViewModel
+import 'package:biochecksheet7_flutter/presentation/screens/deviceinfo/device_info_screen.dart'; // <<< Import Screen
 
 import 'dart:async';
 import 'package:workmanager/workmanager.dart';
@@ -77,9 +74,6 @@ import 'package:workmanager/workmanager.dart';
 // Workmanager will call this function in a separate isolate.
 @pragma('vm:entry-point') // Mandatory for workmanager
 void callbackDispatcher() {
-
-
-
   Workmanager().executeTask((taskName, inputData) async {
     print("Background task '$taskName' started."); // Debugging
 
@@ -90,44 +84,56 @@ void callbackDispatcher() {
       // Initialize DataSyncService for the background task.
       // It needs access to DAOs and Repositories via appDatabase.
       final dataSyncService = DataSyncService(appDatabase: db);
-      
-      // NEW: Initialize DatabaseMaintenanceService for background task
-      final databaseMaintenanceService = DatabaseMaintenanceService(appDatabase: db);
-      final dataCleanupService = DataCleanupService(appDatabase: db); // <<< NEW: Initialize DataCleanupService
-      final deviceInfoService = DeviceInfoService(); // <<< NEW: Initialize DeviceInfoService
 
-     
+      // NEW: Initialize DatabaseMaintenanceService for background task
+      final databaseMaintenanceService =
+          DatabaseMaintenanceService(appDatabase: db);
+      final dataCleanupService = DataCleanupService(
+          appDatabase: db); // <<< NEW: Initialize DataCleanupService
+      final deviceInfoService =
+          DeviceInfoService(); // <<< NEW: Initialize DeviceInfoService
+
       // Get device info for sync metadata
       // Use inputData if passed, otherwise get from device
-      String deviceId = inputData?['deviceId'] ?? await deviceInfoService.getDeviceId();
-      String serialNo = inputData?['serialNo'] ?? await deviceInfoService.getSerialNo();
-      String appVersion = inputData?['appVersion'] ?? await deviceInfoService.getAppVersion();
-      String ipAddress = inputData?['ipAddress'] ?? await deviceInfoService.getIpAddress();
-      String wifiStrength = inputData?['wifiStrength'] ?? await deviceInfoService.getWifiStrength();
-      String username = inputData?['username'] ?? 'unknown_user'; // Username should ideally come from inputData or persisted login state
-
+      String deviceId =
+          inputData?['deviceId'] ?? await deviceInfoService.getDeviceId();
+      String serialNo =
+          inputData?['serialNo'] ?? await deviceInfoService.getSerialNo();
+      String appVersion =
+          inputData?['appVersion'] ?? await deviceInfoService.getAppVersion();
+      String ipAddress =
+          inputData?['ipAddress'] ?? await deviceInfoService.getIpAddress();
+      String wifiStrength = inputData?['wifiStrength'] ??
+          await deviceInfoService.getWifiStrength();
+      String username = inputData?['username'] ??
+          'unknown_user'; // Username should ideally come from inputData or persisted login state
 
       // Perform the specific sync/maintenance operation based on taskName.
       switch (taskName) {
-
-         case "syncAllTask":
-          final syncResult = await dataSyncService.performDocumentRecordUploadSync();
+        case "syncAllTask":
+          final syncResult =
+              await dataSyncService.performDocumentRecordUploadSync();
           if (syncResult is SyncSuccess) {
-            print("Background: DocumentRecord upload sync SUCCESS: ${syncResult.message}");
+            print(
+                "Background: DocumentRecord upload sync SUCCESS: ${syncResult.message}");
             return Future.value(true); // Task successful
           } else if (syncResult is SyncError) {
-            print("Background: DocumentRecord upload sync FAILED: ${syncResult.exception}");
+            print(
+                "Background: DocumentRecord upload sync FAILED: ${syncResult.exception}");
             return Future.value(false); // Task failed
           }
           break; // Don't fall through
 
         case "documentRecordUploadSyncTask":
-          final syncResult = await dataSyncService.performDocumentRecordUploadSync();
+          final syncResult =
+              await dataSyncService.performDocumentRecordUploadSync();
           if (syncResult is SyncSuccess) {
-            print("Background: DocumentRecord upload sync SUCCESS: ${syncResult.message}");
+            print(
+                "Background: DocumentRecord upload sync SUCCESS: ${syncResult.message}");
             return Future.value(true); // Task successful
           } else if (syncResult is SyncError) {
-            print("Background: DocumentRecord upload sync FAILED: ${syncResult.exception}");
+            print(
+                "Background: DocumentRecord upload sync FAILED: ${syncResult.exception}");
             return Future.value(false); // Task failed
           }
           break; // Don't fall through
@@ -141,10 +147,12 @@ void callbackDispatcher() {
             deviceId: deviceId,
           );
           if (syncResult is SyncSuccess) {
-            print("Background: Database backup and upload SUCCESS: ${syncResult.message}");
+            print(
+                "Background: Database backup and upload SUCCESS: ${syncResult.message}");
             return Future.value(true);
           } else if (syncResult is SyncError) {
-            print("Background: Database backup and upload FAILED: ${syncResult.exception}");
+            print(
+                "Background: Database backup and upload FAILED: ${syncResult.exception}");
             return Future.value(false);
           }
           break;
@@ -152,20 +160,24 @@ void callbackDispatcher() {
         case "executeRawSqlQueryTask":
           final String? rawQuery = inputData?['rawQuery'];
           if (rawQuery != null && rawQuery.isNotEmpty) {
-            final syncResult = await databaseMaintenanceService.executeRawSqlQuery(rawQuery);
+            final syncResult =
+                await databaseMaintenanceService.executeRawSqlQuery(rawQuery);
             if (syncResult is SyncSuccess) {
-              print("Background: Raw SQL query execution SUCCESS: ${syncResult.message}");
+              print(
+                  "Background: Raw SQL query execution SUCCESS: ${syncResult.message}");
               return Future.value(true);
             } else if (syncResult is SyncError) {
-              print("Background: Raw SQL query execution FAILED: ${syncResult.exception}");
+              print(
+                  "Background: Raw SQL query execution FAILED: ${syncResult.exception}");
               return Future.value(false);
             }
           } else {
-            print("Background: Raw SQL query task failed: No rawQuery provided.");
+            print(
+                "Background: Raw SQL query task failed: No rawQuery provided.");
             return Future.value(false);
           }
           break;
-         case "syncAllTask": // <<< NEW: Case for syncAllTask
+        case "syncAllTask": // <<< NEW: Case for syncAllTask
           print("Background: Running syncAllTask...");
           // 1. Check SyncMetadata (get actions from server)
           final syncMetadataResults = await dataSyncService.checkSyncMetadata(
@@ -179,15 +191,18 @@ void callbackDispatcher() {
 
           bool allActionsSuccessful = true;
           for (final action in syncMetadataResults) {
-            print("Background: Processing action: ${action.actionType} (ID: ${action.actionId})");
+            print(
+                "Background: Processing action: ${action.actionType} (ID: ${action.actionId})");
             switch (action.actionType) {
               case "transferDB":
-                final result = await databaseMaintenanceService.backupAndUploadDb(userId: username, deviceId: deviceId);
+                final result = await databaseMaintenanceService
+                    .backupAndUploadDb(userId: username, deviceId: deviceId);
                 if (result is SyncError) allActionsSuccessful = false;
                 break;
               case "update":
                 if (action.actionSql != null && action.actionSql!.isNotEmpty) {
-                  final result = await databaseMaintenanceService.executeRawSqlQuery(action.actionSql!);
+                  final result = await databaseMaintenanceService
+                      .executeRawSqlQuery(action.actionSql!);
                   if (result is SyncError) allActionsSuccessful = false;
                 }
                 break;
@@ -202,7 +217,8 @@ void callbackDispatcher() {
             }
           }
           // After processing actions, perform regular data syncs (download new master data)
-          await dataSyncService.performFullSync(); // Or specific syncs like _syncProblemsData, _syncUsersData etc.
+          await dataSyncService
+              .performFullSync(); // Or specific syncs like _syncProblemsData, _syncUsersData etc.
 
           if (allActionsSuccessful) {
             print("Background: syncAllTask finished successfully.");
@@ -217,14 +233,14 @@ void callbackDispatcher() {
           return Future.value(false); // Indicate failure for unknown task
       }
       print("Background task '$taskName' finished.");
-      return Future.value(true); // Default success if no explicit return in case
+      return Future.value(
+          true); // Default success if no explicit return in case
     } catch (e) {
       print("Background task '$taskName' caught unexpected error: $e");
       return Future.value(false); // Indicate failure
     }
   });
 }
-
 
 // NEW: Define custom MaterialColor function
 // This function creates a MaterialColor from a single base Color.
@@ -283,31 +299,31 @@ Future<void> main1() async {
   WidgetsFlutterBinding.ensureInitialized();
   // NEW: Print database path for debugging
   if (!kIsWeb) {
-      try {
-        final dbFolder = await getApplicationDocumentsDirectory();
-        final dbPath = File('${dbFolder.path}/db.sqlite'); // Assuming 'biochecksheet.sqlite'
-        print('Database path (db.sqlite): ${dbPath.path}');
-        print('Database directory: ${dbFolder.path}');
-      } catch (e) {
-        print('Error getting database path: $e');
-      }
+    try {
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final dbPath =
+          File('${dbFolder.path}/db.sqlite'); // Assuming 'biochecksheet.sqlite'
+      print('Database path (db.sqlite): ${dbPath.path}');
+      print('Database directory: ${dbFolder.path}');
+    } catch (e) {
+      print('Error getting database path: $e');
+    }
 
-      await Workmanager().initialize(
-        callbackDispatcher,
-        isInDebugMode: kDebugMode,
-      );
+    await Workmanager().initialize(
+      callbackDispatcher,
+      isInDebugMode: kDebugMode,
+    );
 
-       // NEW: Register syncAllTask
-      await Workmanager().registerPeriodicTask(
-        "syncAllTask", // Unique name
-        "syncAllTask", // Task name
-        frequency: const Duration(minutes: 1), // Every 5 minutes
-        initialDelay: const Duration(seconds: 30), // Start after 30 seconds
-        constraints:  Constraints(
-          networkType: NetworkType.connected,
-        ),
-      );
-
+    // NEW: Register syncAllTask
+    await Workmanager().registerPeriodicTask(
+      "syncAllTask", // Unique name
+      "syncAllTask", // Task name
+      frequency: const Duration(minutes: 1), // Every 5 minutes
+      initialDelay: const Duration(seconds: 30), // Start after 30 seconds
+      constraints: Constraints(
+        networkType: NetworkType.connected,
+      ),
+    );
 
 /*
       // Example 2: One-off task for database backup (you can trigger this from a UI button)
@@ -328,7 +344,7 @@ Future<void> main1() async {
         tag: "raw_sql_tag",
       );
       */
-    }
+  }
   // Initialize AppDatabase instance first, await it.
   final db = await AppDatabase.instance();
 
@@ -351,36 +367,55 @@ Future<void> main1() async {
         ImageProcessorNative(); // Now ImageProcessorNative is defined
   }
 
-
-    // Create DeviceInfoService here
- // CRUCIAL FIX: Create DeviceInfoService as a Provider
-    // This ensures it's available in the widget tree for DeviceInfoViewModel
-    // and also allows it to be passed to DataSyncService in the background.
-    final DeviceInfoService deviceInfoService = DeviceInfoService(); // Create instance once
-  final DataSyncService dataSyncService = DataSyncService(appDatabase: db); // Create instance once
-
+  // Create DeviceInfoService here
+  // CRUCIAL FIX: Create DeviceInfoService as a Provider
+  // This ensures it's available in the widget tree for DeviceInfoViewModel
+  // and also allows it to be passed to DataSyncService in the background.
+  final DeviceInfoService deviceInfoService =
+      DeviceInfoService(); // Create instance once
+  final DataSyncService dataSyncService =
+      DataSyncService(appDatabase: db); // Create instance once
 
   final DatabaseMaintenanceService databaseMaintenanceService =
       DatabaseMaintenanceService(appDatabase: db); // <<< NEW
   runApp(
     MultiProvider(
       providers: [
-          Provider<LoginRepository>.value(value: loginRepository),
-          ChangeNotifierProvider(create: (_) => LoginViewModel(loginRepository: loginRepository)),
-          ChangeNotifierProvider(create: (_) => HomeViewModel(appDatabase: db, loginRepository: loginRepository)),
-          ChangeNotifierProvider(create: (_) => DashboardViewModel()),
-          ChangeNotifierProvider(create: (_) => NotificationsViewModel()),
-          ChangeNotifierProvider(create: (_) => DocumentViewModel(appDatabase: db)),
-          ChangeNotifierProvider(create: (_) => DocumentMachineViewModel(appDatabase: db)),
-          ChangeNotifierProvider(create: (_) => DocumentRecordViewModel(appDatabase: db)),
-          ChangeNotifierProvider(create: (_) => ImageViewModel(appDatabase: db, imageProcessor: imageProcessor)),
-          ChangeNotifierProvider(create: (_) => ProblemViewModel(appDatabase: db)),
-               // CRUCIAL FIX: Provide DeviceInfoService as a regular Provider
-          Provider<DeviceInfoService>(create: (context) => DeviceInfoService()), // <<< Change to (context)
-          ChangeNotifierProvider(create: (context) => DeviceInfoViewModel(deviceInfoService: Provider.of<DeviceInfoService>(context, listen: false), dataSyncService: dataSyncService)), // <<< Change to (context) ChangeNotifierProvider(create: (_) => DeviceInfoViewModel(deviceInfoService: Provider.of<DeviceInfoService>(context, listen: false))), // <<< Get DeviceInfoService from Provider
-          Provider<DataSyncService>(create: (_) => DataSyncService(appDatabase: db)),
-          Provider<DatabaseMaintenanceService>(create: (_) => DatabaseMaintenanceService(appDatabase: db)),
-          Provider<DataCleanupService>(create: (_) => DataCleanupService(appDatabase: db)),
+        Provider<LoginRepository>.value(value: loginRepository),
+        ChangeNotifierProvider(
+            create: (_) => LoginViewModel(loginRepository: loginRepository)),
+        ChangeNotifierProvider(
+            create: (_) => HomeViewModel(
+                appDatabase: db, loginRepository: loginRepository)),
+        ChangeNotifierProvider(create: (_) => DashboardViewModel()),
+        ChangeNotifierProvider(create: (_) => NotificationsViewModel()),
+        ChangeNotifierProvider(
+            create: (_) => DocumentViewModel(appDatabase: db)),
+        ChangeNotifierProvider(
+            create: (_) => DocumentMachineViewModel(appDatabase: db)),
+        ChangeNotifierProvider(
+            create: (_) => DocumentRecordViewModel(appDatabase: db)),
+        ChangeNotifierProvider(
+            create: (_) => ImageViewModel(
+                appDatabase: db, imageProcessor: imageProcessor)),
+        ChangeNotifierProvider(
+            create: (_) => ProblemViewModel(appDatabase: db)),
+        // CRUCIAL FIX: Provide DeviceInfoService as a regular Provider
+        Provider<DeviceInfoService>(
+            create: (context) =>
+                DeviceInfoService()), // <<< Change to (context)
+        ChangeNotifierProvider(
+            create: (context) => DeviceInfoViewModel(
+                deviceInfoService:
+                    Provider.of<DeviceInfoService>(context, listen: false),
+                dataSyncService:
+                    dataSyncService)), // <<< Change to (context) ChangeNotifierProvider(create: (_) => DeviceInfoViewModel(deviceInfoService: Provider.of<DeviceInfoService>(context, listen: false))), // <<< Get DeviceInfoService from Provider
+        Provider<DataSyncService>(
+            create: (_) => DataSyncService(appDatabase: db)),
+        Provider<DatabaseMaintenanceService>(
+            create: (_) => DatabaseMaintenanceService(appDatabase: db)),
+        Provider<DataCleanupService>(
+            create: (_) => DataCleanupService(appDatabase: db)),
       ],
       child: MyApp(
         initialRoute: loginRepository.isLoggedIn
@@ -556,7 +591,8 @@ class MyApp extends StatelessWidget {
         },
         '/problem': (context) => const ProblemScreen(
             title: 'Problem List'), // <<< NEW: Add ProblemScreen Route
-        '/device_info': (context) => const DeviceInfoScreen(title: 'ข้อมูลอุปกรณ์'), // <<< NEW: Add DeviceInfoScreen Route
+        '/device_info': (context) => const DeviceInfoScreen(
+            title: 'ข้อมูลอุปกรณ์'), // <<< NEW: Add DeviceInfoScreen Route
       },
     );
   }

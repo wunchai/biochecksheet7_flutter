@@ -20,19 +20,19 @@ import 'package:biochecksheet7_flutter/data/database/daos/problem_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/sync_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
-import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart';
+//import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart';
 
 // Import table companions for insertion
-import 'package:biochecksheet7_flutter/data/database/tables/user_table.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/document_machine_table.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/sync_table.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // <<< เพิ่ม import นี้
+//import 'package:biochecksheet7_flutter/data/database/tables/user_table.dart';
+//import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart';
+//import 'package:biochecksheet7_flutter/data/database/tables/document_machine_table.dart';
+//import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart';
+//import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart';
+//import 'package:biochecksheet7_flutter/data/database/tables/sync_table.dart';
+//import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // <<< เพิ่ม import นี้
 import 'package:biochecksheet7_flutter/data/network/document_record_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import api_response_models.dart
-import 'package:biochecksheet7_flutter/data/network/api_request_models.dart'; // For SyncMetadataRequest
+//import 'package:biochecksheet7_flutter/data/network/api_request_models.dart'; // For SyncMetadataRequest
 import 'package:biochecksheet7_flutter/data/services/database_maintenance_service.dart';
 import 'package:biochecksheet7_flutter/data/services/data_cleanup_service.dart'; // Make sure this is imported
 
@@ -178,11 +178,12 @@ class DataSyncService {
     }
   }
 
-   /// Performs a synchronization of problem data only.
+  /// Performs a synchronization of problem data only.
   /// CRUCIAL FIX: Directly return the result from _syncProblemsData().
   Future<SyncStatus> performProblemsSync() async {
     try {
-      final result = await _syncProblemsData(); // _syncProblemsData already returns SyncStatus (Success or Error)
+      final result =
+          await _syncProblemsData(); // _syncProblemsData already returns SyncStatus (Success or Error)
       return result; // <<< CRUCIAL FIX: Directly return the result
     } on Exception catch (e) {
       // This catch block is for unexpected exceptions thrown by _syncProblemsData
@@ -255,6 +256,7 @@ class DataSyncService {
           description: drift.Value(machine.description),
           specification: drift.Value(machine.specification),
           status: drift.Value(machine.status),
+          uiType: drift.Value(machine.uiType),
           lastSync: drift.Value(DateTime.now().toIso8601String()),
           createDate: drift.Value(machine.createDate), // <<< Map 'createDate'
           createBy: drift.Value(machine.createBy), // <<< Map 'createBy'

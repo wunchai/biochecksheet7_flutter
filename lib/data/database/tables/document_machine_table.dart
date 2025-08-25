@@ -14,7 +14,8 @@ class DocumentMachines extends Table {
   TextColumn get documentId => text().named('documentId').nullable()();
 
   // @ColumnInfo(name = "MachineId") var machineId: String? = null
-  TextColumn get machineId => text().named('MachineId').nullable()(); // NEW: Will map int to String
+  TextColumn get machineId =>
+      text().named('MachineId').nullable()(); // NEW: Will map int to String
 
   // @ColumnInfo(name = "MachineName") var machineName: String? = null
   TextColumn get machineName => text().named('MachineName').nullable()();
@@ -29,14 +30,19 @@ class DocumentMachines extends Table {
   TextColumn get specification => text().named('Specification').nullable()();
 
   // @ColumnInfo(name = "Status") var status: Int = 0
-  IntColumn get status => integer().named('Status').withDefault(const Constant(0))();
+  IntColumn get status =>
+      integer().named('Status').withDefault(const Constant(0))();
 
   // @ColumnInfo(name = "lastSync") var lastSync: String? = null
   TextColumn get lastSync => text().named('lastSync').nullable()();
 
-   // NEW: Add fields from API response
+  IntColumn get uiType =>
+      integer().named('ui_type').withDefault(const Constant(0))();
+
+  // NEW: Add fields from API response
   IntColumn get id => integer().named('id')(); // API has 'id' as int
   TextColumn get createDate => text().named('CreateDate').nullable()();
   TextColumn get createBy => text().named('CreateBy').nullable()();
-  TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
+  TextColumn get updatedAt =>
+      text().named('updatedAt').nullable()(); // Stores ISO 8601 string
 }

@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // Import new modular files
-import 'package:biochecksheet7_flutter/app_config.dart'; // For colors
-import 'package:biochecksheet7_flutter/app_theme.dart'; // For appTheme()
-import 'package:biochecksheet7_flutter/app_routes.dart'; // For appRoutes()
-import 'package:biochecksheet7_flutter/app_providers.dart'; // For appProviders()
-import 'package:biochecksheet7_flutter/background_tasks.dart'; // For callbackDispatcher
+//import 'package:biochecksheet7_flutter/app_config.dart'; // For colors
+import 'package:biochecksheet7_flutter/core/app_theme.dart'; // For appTheme()
+import 'package:biochecksheet7_flutter/core/app_routes.dart'; // For appRoutes()
+import 'package:biochecksheet7_flutter/core/app_providers.dart'; // For appProviders()
+import 'package:biochecksheet7_flutter/data/services/background_tasks.dart'; // For callbackDispatcher
 
 // Import AppDatabase (still needed directly for initialization)
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';

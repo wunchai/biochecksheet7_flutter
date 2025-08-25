@@ -1,12 +1,12 @@
 // lib/data/repositories/document_record_repository.dart
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart';
+//import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart';
 import 'package:drift/drift.dart' as drift; // Alias drift
 
 // NEW: Import for JobTag and Problem
 import 'package:biochecksheet7_flutter/data/database/daos/job_tag_dao.dart'; // For JobTagDao
-import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart'; // For DbJobTag
+//import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart'; // For DbJobTag
 
 // NEW: Import for charts
 import 'package:fl_chart/fl_chart.dart';
@@ -15,7 +15,7 @@ import 'package:collection/collection.dart'; // For IterableExtension, if needed
 // NEW: Import DocumentRecordApiService
 import 'package:biochecksheet7_flutter/data/network/document_record_api_service.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart'; // <<< NEW: Import DocumentDao
-import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // <<< NEW: Import DbDocument
+//import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // <<< NEW: Import DbDocument
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< CRUCIAL FIX: Add this import for UploadRecordResult
 
 import 'dart:math'; // <<< NEW: Import for atan and pow
@@ -29,8 +29,6 @@ class DocumentRecordRepository {
       _documentRecordApiService; // <<< เพิ่ม Dependency นี้
   final AppDatabase _appDatabase; // NEW: Add AppDatabase to access raw queries
   final DocumentDao _documentDao; // <<< CRUCIAL FIX: Declare DocumentDao here
-  
-
 
   DocumentRecordRepository({required AppDatabase appDatabase})
       : _documentRecordDao = appDatabase.documentRecordDao,
@@ -38,7 +36,8 @@ class DocumentRecordRepository {
         _documentRecordApiService =
             DocumentRecordApiService(), // <<< สร้าง instance
         _appDatabase = appDatabase, // <<< Initialize AppDatabase
-        _documentDao = appDatabase.documentDao; // <<< Initialize DocumentDao here
+        _documentDao =
+            appDatabase.documentDao; // <<< Initialize DocumentDao here
   /// Loads document records for a specific document and machine,
   /// joined with their corresponding job tags and problems.
   /// This provides data for the DocumentRecordScreen.
@@ -401,28 +400,41 @@ class DocumentRecordRepository {
 
   /// Uploads records with Status 1 (Locally Validated) to the server.
   /// After successful upload, updates their status to 2 (Posted).
-  Future<bool> uploadRecordsToServer({required String documentId, required String machineId, required String jobId,  String? documentCreateDate, 
-    String? documentUserId     }) async {
+  Future<bool> uploadRecordsToServer(
+      {required String documentId,
+      required String machineId,
+      required String jobId,
+      String? documentCreateDate,
+      String? documentUserId}) async {
     try {
       // 1. Get records that are ready for upload (Status 1 or 2)
-      final allRecordsForDocMachine = await _documentRecordDao.getDocumentRecordsList(documentId, machineId).first;
-      final recordsToUpload = allRecordsForDocMachine.where((r) => r.documentRecord.status == 1 || r.documentRecord.status == 2).map((r) => r.documentRecord).toList();
-
+      final allRecordsForDocMachine = await _documentRecordDao
+          .getDocumentRecordsList(documentId, machineId)
+          .first;
+      final recordsToUpload = allRecordsForDocMachine
+          .where((r) =>
+              r.documentRecord.status == 1 || r.documentRecord.status == 2)
+          .map((r) => r.documentRecord)
+          .toList();
 
       if (recordsToUpload.isEmpty) {
-        print('No records found with Status 1 or 2 for DocID=$documentId, MachineID=$machineId to upload.');
+        print(
+            'No records found with Status 1 or 2 for DocID=$documentId, MachineID=$machineId to upload.');
         return true; // Nothing to upload, consider it successful
       }
 
       // 2. Get the main document details (createDate, userId)
-      final DbDocument? mainDocument = await _documentDao.getDocumentById(documentId);
+      final DbDocument? mainDocument =
+          await _documentDao.getDocumentById(documentId);
       if (mainDocument == null) {
-        throw Exception('Main document not found for documentId: $documentId. Cannot upload records.');
+        throw Exception(
+            'Main document not found for documentId: $documentId. Cannot upload records.');
       }
 
       // 3. Call API service to upload these records
       // CRUCIAL FIX: Expect List<UploadRecordResult> from API service
-      final List<UploadRecordResult> uploadResults = await _documentRecordApiService.uploadRecords(
+      final List<UploadRecordResult> uploadResults =
+          await _documentRecordApiService.uploadRecords(
         recordsToUpload,
         documentCreateDate: mainDocument.createDate,
         documentUserId: mainDocument.userId,
@@ -436,7 +448,8 @@ class DocumentRecordRepository {
 
         // Determine new syncStatus based on API result
         int newSyncStatus = 0; // Default to 0 (failed/not synced)
-        if (apiResultCode == 3) { // Assuming 3 means success from API
+        if (apiResultCode == 3) {
+          // Assuming 3 means success from API
           newSyncStatus = 1; // Set to 1 (Synced)
         }
 
@@ -444,29 +457,34 @@ class DocumentRecordRepository {
         final success = await _documentRecordDao.updateDocumentRecord(
           DocumentRecordsCompanion(
             uid: drift.Value(recordUid),
-            status: const drift.Value(2), // Always set to 2 (Posted) after attempting upload
-            syncStatus: drift.Value(newSyncStatus), // Update syncStatus based on API result
-            lastSync: drift.Value(DateTime.now().toIso8601String()), // Update last sync timestamp
+            status: const drift.Value(
+                2), // Always set to 2 (Posted) after attempting upload
+            syncStatus: drift.Value(
+                newSyncStatus), // Update syncStatus based on API result
+            lastSync: drift.Value(
+                DateTime.now().toIso8601String()), // Update last sync timestamp
           ),
         );
         if (!success) {
-          overallUploadSuccess = false; // If any local DB update fails, mark overall as failed
+          overallUploadSuccess =
+              false; // If any local DB update fails, mark overall as failed
           print('Failed to update local syncStatus for UID $recordUid');
         }
       }
 
-      print('Processed ${uploadResults.length} upload results. Overall success: $overallUploadSuccess');
+      print(
+          'Processed ${uploadResults.length} upload results. Overall success: $overallUploadSuccess');
       return overallUploadSuccess;
     } catch (e) {
       print('Error during records upload to server: $e');
       throw Exception('Records upload failed: $e');
     }
   }
-   /// NEW: Gets DocumentRecords that are ready for upload (status = 2 and syncStatus = 0).
+
+  /// NEW: Gets DocumentRecords that are ready for upload (status = 2 and syncStatus = 0).
   Future<List<DbDocumentRecord>> getRecordsForUpload() async {
     return _documentRecordDao.watchRecordsForUpload().first;
   }
-
 
   /// NEW: Updates the status and syncStatus of a DocumentRecord by UID.
   Future<bool> updateRecordStatusAndSyncStatus(
@@ -475,17 +493,17 @@ class DocumentRecordRepository {
         uid, newStatus, newSyncStatus);
   }
 
- /// NEW: Uploads a list of DbDocumentRecord to the API.
+  /// NEW: Uploads a list of DbDocumentRecord to the API.
   /// Returns a list of UploadRecordResult indicating success/failure for each record.
   Future<List<UploadRecordResult>> uploadDocumentRecordsToServer(
-    List<DbDocumentRecord> recordsToUpload,
-    {String? documentCreateDate, String? documentUserId} // <<< CRUCIAL FIX: Add these parameters
-  ) async {
+      List<DbDocumentRecord> recordsToUpload,
+      {String? documentCreateDate,
+      String? documentUserId} // <<< CRUCIAL FIX: Add these parameters
+      ) async {
     return _documentRecordApiService.uploadDocumentRecords(
       recordsToUpload,
       documentCreateDate: documentCreateDate,
       documentUserId: documentUserId,
     );
   }
-
 }

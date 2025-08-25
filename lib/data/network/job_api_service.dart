@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart'; // สำหรับ DbJob
+//import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart'; // สำหรับ DbJob
 
 const String _baseUrl =
     "http://10.1.200.26/ServiceJson/Service4.svc"; // URL เดียวกันกับ UserApiService
@@ -25,10 +25,12 @@ class JobApiService {
     print("Request Body: $body"); // Debugging log
     try {
       final response = await http.post(uri, headers: headers, body: body);
-     
-      final String decodedBody = utf8.decode(response.bodyBytes); // <<< แก้ไขตรงนี้
-      print("Job Sync API Response: $decodedBody"); // Debugging log with decoded body
-    
+
+      final String decodedBody =
+          utf8.decode(response.bodyBytes); // <<< แก้ไขตรงนี้
+      print(
+          "Job Sync API Response 1: $decodedBody"); // Debugging log with decoded body
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
         if (responseJson['Table'] != null && responseJson['Table'] is List) {
@@ -46,7 +48,7 @@ class JobApiService {
               lastSync: DateTime.now().toIso8601String(),
               // NEW: Add CreateDate and CreateBy mappings
               createDate: jobData['CreateDate'] ?? '', // <<< เพิ่มตรงนี้
-              createBy: jobData['CreateBy'] ?? '',     // <<< เพิ่มตรงนี้
+              createBy: jobData['CreateBy'] ?? '', // <<< เพิ่มตรงนี้
             );
           }).toList();
           return syncedJobs;

@@ -1,6 +1,6 @@
 // test/login_viewmodel_test.dart
 import 'package:flutter_test/flutter_test.dart'; // สำหรับ flutter_test framework
-import 'package:biochecksheet7_flutter/ui/login/login_viewmodel.dart'; // Import ViewModel ที่จะทดสอบ
+import 'package:biochecksheet7_flutter/presentation/screens/login/login_viewmodel.dart'; // Import ViewModel ที่จะทดสอบ
 import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart'; // Import Repository ที่จะ Mock
 import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // Import AppDatabase (สำหรับ Mock)
 import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart'; // Import LoggedInUser (สำหรับ Mock)

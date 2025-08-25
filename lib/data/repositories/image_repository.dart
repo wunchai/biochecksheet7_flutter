@@ -1,7 +1,7 @@
 // lib/data/repositories/image_repository.dart
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/image_table.dart';
+//import 'package:biochecksheet7_flutter/data/database/tables/image_table.dart';
 import 'package:biochecksheet7_flutter/data/network/image_api_service.dart'; // Import ImageApiService
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // For ImageUploadResult
 import 'dart:typed_data'; // For Uint8List
@@ -24,23 +24,27 @@ class ImageRepository {
   /// NEW: Uploads a single image to the server API.
   /// Takes the DbImage object and its raw bytes as Uint8List.
   /// Converts bytes to Base64 and calls ImageApiService.
-  Future<ImageUploadResult> uploadImageToServer(DbImage image, Uint8List imageBytes) async {
+  Future<ImageUploadResult> uploadImageToServer(
+      DbImage image, Uint8List imageBytes) async {
     final String base64ImageData = base64Encode(imageBytes);
-    return _imageApiService.uploadImage(image, base64ImageData: base64ImageData);
+    return _imageApiService.uploadImage(image,
+        base64ImageData: base64ImageData);
   }
 
-  
   /// NEW: Gets images with syncStatus 0 (pending upload).
   /// This method now fetches ALL images with syncStatus 0, regardless of other IDs.
-  Future<List<DbImage>> getImagesForUpload() async { // <<< CRUCIAL FIX: Removed filtering parameters
+  Future<List<DbImage>> getImagesForUpload() async {
+    // <<< CRUCIAL FIX: Removed filtering parameters
     // Query for images that have syncStatus = 0 using the new DAO method
-    return await _imageDao.getImagesBySyncStatus(0); // <<< Call the new DAO method
+    return await _imageDao
+        .getImagesBySyncStatus(0); // <<< Call the new DAO method
   }
 
-
   /// NEW: Updates syncStatus of a DbImage record by its GUID.
-  Future<bool> updateImageSyncStatusByGuid(String guid, int newSyncStatus) async {
-    final existingImage = await _imageDao.getImageByGuid(guid); // Assume DAO has getImageByGuid
+  Future<bool> updateImageSyncStatusByGuid(
+      String guid, int newSyncStatus) async {
+    final existingImage =
+        await _imageDao.getImageByGuid(guid); // Assume DAO has getImageByGuid
     if (existingImage == null) {
       print('Image with GUID $guid not found for sync status update.');
       return false;
