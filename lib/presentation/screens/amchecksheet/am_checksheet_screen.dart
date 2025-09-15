@@ -1,4 +1,5 @@
 // lib/ui/amchecksheet/am_checksheet_screen.dart
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -14,6 +15,8 @@ import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/inputs/
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/inputs/am_record_number_input.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/inputs/am_record_combobox_input.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/inputs/am_record_problem_input.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/widgets/am_record_detail_dialog.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/widgets/am_remark_input_dialog.dart';
 
 class AMChecksheetScreen extends StatefulWidget {
   final String title;
@@ -63,6 +66,51 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
           TextPosition(offset: controller.text.length));
     }
     return controller;
+  }
+
+  void _showRecordDetailsDialog(
+      BuildContext context, DocumentRecordWithTagAndProblem recordWithTag) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AmRecordDetailDialog(recordWithTag: recordWithTag);
+      },
+    );
+  }
+
+  Future<void> _showRemarkInputDialog(BuildContext context,
+      DbDocumentRecord record, AMChecksheetViewModel viewModel) async {
+    final TextEditingController remarkController =
+        TextEditingController(text: record.remark);
+
+    final String? resultRemark = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('เพิ่ม/แก้ไขหมายเหตุ'),
+          content: AmRemarkInputDialogContent(controller: remarkController),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('ยกเลิก'),
+              onPressed: () => Navigator.of(context).pop(null),
+            ),
+            TextButton(
+              child: const Text('บันทึก'),
+              onPressed: () => Navigator.of(context).pop(remarkController.text),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (resultRemark != null) {
+      await viewModel.updateRecordValue(
+        record.uid,
+        record.value,
+        resultRemark,
+        newStatus: 0,
+      );
+    }
   }
 
   void _showFullScreenImage(BuildContext context, String? imageUrl) {
@@ -230,65 +278,114 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
     final DbJobTag? jobTag = recordWithTag.jobTag;
     final bool isRecordReadOnly = record.status == 2;
 
-    // TODO: ดึง URL รูปภาพจริง
-    final String? imageUrl =
-        "https://placehold.co/600x400/EEE/31343C?text=Inspection\\nPoint";
-
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onTap: () => _showFullScreenImage(context, imageUrl),
-            child: Container(
-              height: 220,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                  color: Colors.black12,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade400)),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(11),
-                child: Image.network(
-                  imageUrl!,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, progress) {
-                    return progress == null
-                        ? child
-                        : const Center(child: CircularProgressIndicator());
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Center(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                          Icon(Icons.image_not_supported,
-                              size: 60, color: Colors.grey[600]),
-                          const SizedBox(height: 8),
-                          Text('ไม่สามารถโหลดรูปภาพได้',
-                              style: TextStyle(color: Colors.grey[700])),
-                        ]));
-                  },
-                ),
-              ),
-            ),
+          // --- 1. ส่วนแสดงรูปภาพประกอบ (Master Image) ---
+          FutureBuilder<DbCheckSheetMasterImage?>(
+            future: jobTag != null
+                ? viewModel.findMasterImageForTag(jobTag)
+                : Future.value(null),
+            builder: (context, snapshot) {
+              Widget imageWidget;
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                imageWidget = const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasData && snapshot.data?.path != null) {
+                final imagePath = snapshot.data!.path!;
+                imageWidget = GestureDetector(
+                  onTap: () => _showFullScreenImage(context, imagePath),
+                  child: Image.file(
+                    File(imagePath),
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                          child: Icon(Icons.broken_image,
+                              size: 60, color: Colors.grey));
+                    },
+                  ),
+                );
+              } else {
+                imageWidget = Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.image_not_supported,
+                          size: 60, color: Colors.grey[600]),
+                      const SizedBox(height: 8),
+                      Text('ไม่มีรูปภาพประกอบ',
+                          style: TextStyle(color: Colors.grey[700])),
+                    ],
+                  ),
+                );
+              }
+              return Container(
+                height: 220,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                    color: Colors.black12,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade400)),
+                child: imageWidget,
+              );
+            },
           ),
           const SizedBox(height: 20),
-          Text(
-            jobTag?.tagName ?? 'N/A',
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'หน่วย: ${jobTag?.unit ?? '-'} | มาตรฐาน: ${jobTag?.unit ?? '-'}',
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: Colors.grey[600]),
+
+          // --- ส่วนหัวข้อ + ปุ่มดูรายละเอียดและรูปภาพ ---
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      jobTag?.tagName ?? 'N/A',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'หน่วย: ${jobTag?.unit ?? '-'} | มาตรฐาน: ${jobTag?.unit ?? '-'}',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+              // --- เพิ่ม IconButton กลับมา ---
+              IconButton(
+                icon: const Icon(Icons.image_search),
+                tooltip: 'ดูรูปภาพที่บันทึก',
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/image_record',
+                    arguments: {
+                      'title': 'รูปภาพ: ${jobTag?.tagName ?? 'N/A'}',
+                      'documentId': widget.documentId,
+                      'machineId': widget.machineId,
+                      'jobId': widget.jobId,
+                      'tagId': record.tagId,
+                      'isReadOnly': isRecordReadOnly,
+                    },
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.info_outline),
+                tooltip: 'ดูรายละเอียด',
+                onPressed: () =>
+                    _showRecordDetailsDialog(context, recordWithTag),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           const Divider(),
@@ -302,6 +399,35 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
             isRecordReadOnly: isRecordReadOnly,
           ),
           const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton.icon(
+                icon: const Icon(Icons.edit_note, size: 20),
+                label: Text(record.remark != null && record.remark!.isNotEmpty
+                    ? 'แก้ไขหมายเหตุ'
+                    : 'เพิ่มหมายเหตุ'),
+                onPressed: isRecordReadOnly
+                    ? null
+                    : () => _showRemarkInputDialog(context, record, viewModel),
+              ),
+              Text(
+                'สถานะ: ${record.status}',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Colors.grey[700]),
+              ),
+            ],
+          ),
+          if (record.remark != null && record.remark!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0, bottom: 16.0),
+              child: Text(
+                "หมายเหตุ: ${record.remark}",
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
         ],
       ),
     );

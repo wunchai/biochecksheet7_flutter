@@ -10,6 +10,7 @@ import 'package:biochecksheet7_flutter/data/network/job_tag_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/problem_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/sync_metadata_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/document_api_service.dart';
+import 'package:biochecksheet7_flutter/data/network/checksheet_image_api_service.dart';
 
 // Import all DAOs
 import 'package:biochecksheet7_flutter/data/database/daos/user_dao.dart';
@@ -41,6 +42,8 @@ import 'package:biochecksheet7_flutter/data/repositories/document_record_reposit
 import 'package:biochecksheet7_flutter/data/repositories/problem_repository.dart'; // <<< NEW: Import DocumentRecordRepository
 import 'package:biochecksheet7_flutter/data/repositories/image_repository.dart'; // <<< NEW: Import ImageRepository
 
+import 'package:biochecksheet7_flutter/data/repositories/checksheet_image_repository.dart';
+
 import 'package:drift/drift.dart' as drift;
 import 'dart:typed_data'; // <<< CRUCIAL FIX: Import for Uint8List
 
@@ -55,6 +58,8 @@ class DataSyncService {
   final DocumentApiService _documentApiService; // <<< เพิ่ม Dependency
   final DocumentRecordApiService
       _documentRecordApiService; // <<< เพิ่ม Dependency นี้
+
+  final ChecksheetImageApiService _checksheetImageApiService;
   // DAOs (now direct instances)
   final UserDao _userDao;
   final JobDao _jobDao;
@@ -79,6 +84,7 @@ class DataSyncService {
 
   final ImageRepository _imageRepository; // <<< NEW: Declare here
   final ProblemRepository _problemRepositoryInstance; // Now correctly named
+  final ChecksheetImageRepository _checksheetImageRepository;
   // Constructor now takes a resolved AppDatabase instance
   DataSyncService({
     required AppDatabase appDatabase, // <<< Change to AppDatabase
@@ -96,6 +102,8 @@ class DataSyncService {
     DataCleanupService? dataCleanupService, // <<< Add to constructor
     ImageRepository? imageRepository,
     ProblemRepository? problemRepository, // <<< Add to constructor
+    ChecksheetImageApiService? checksheetImageApiService,
+    ChecksheetImageRepository? checksheetImageRepository,
   })  : _userApiService = userApiService ?? UserApiService(),
         _jobApiService = jobApiService ?? JobApiService(),
         _jobMachineApiService = jobMachineApiService ?? JobMachineApiService(),
@@ -128,10 +136,17 @@ class DataSyncService {
             DataCleanupService(appDatabase: appDatabase), // <<< Initialize here
         _imageRepository =
             imageRepository ?? ImageRepository(appDatabase: appDatabase),
-        _problemRepositoryInstance = problemRepository ??
-            ProblemRepository(
-                appDatabase:
-                    appDatabase); // <<< Initialize here // <<< Initialize here
+        _problemRepositoryInstance =
+            problemRepository ?? ProblemRepository(appDatabase: appDatabase),
+        _checksheetImageApiService =
+            checksheetImageApiService ?? ChecksheetImageApiService(),
+        _checksheetImageRepository = checksheetImageRepository ??
+            ChecksheetImageRepository(
+                appDatabase: appDatabase,
+                apiService:
+                    checksheetImageApiService ?? ChecksheetImageApiService());
+
+  // <<< Initialize here // <<< Initialize here
   // Removed old unused imports for tables as they are handled by DAO imports now
   // Removed unused methods (`_syncJobMachinesData`, `_syncJobTagsData`, `_syncProblemsData`, `_syncMetadataData`)
   // As they are called directly in performFullSync
@@ -168,6 +183,9 @@ class DataSyncService {
       result = await _syncProblemsData();
       if (result is SyncError) return result;
 
+      result = await _syncMasterImages();
+      if (result is SyncError) return result;
+
       //result = await _syncMetadataData();
       //if (result is SyncError) return result;
 
@@ -175,6 +193,18 @@ class DataSyncService {
     } on Exception catch (e) {
       return SyncError(
           exception: e, message: 'ข้อผิดพลาดในการทำ Full Sync: $e');
+    }
+  }
+
+  Future<SyncStatus> _syncMasterImages() async {
+    try {
+      await _checksheetImageRepository.syncImageMetadata();
+      await _checksheetImageRepository.downloadMissingImages();
+      return const SyncSuccess(message: 'ซิงค์ข้อมูลรูปภาพ Master สำเร็จ!');
+    } on Exception catch (e) {
+      print('Error syncing master images: $e');
+      return SyncError(
+          exception: e, message: 'ข้อผิดพลาดในการซิงค์รูปภาพ Master: $e');
     }
   }
 

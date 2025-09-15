@@ -18,6 +18,7 @@ import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/sync_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/user_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/image_table.dart'; // <<< NEW: Import Image table
+import 'package:biochecksheet7_flutter/data/database/tables/checksheet_master_image_table.dart';
 
 // Import DAO definitions
 import 'package:biochecksheet7_flutter/data/database/daos/job_dao.dart';
@@ -30,6 +31,7 @@ import 'package:biochecksheet7_flutter/data/database/daos/problem_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/sync_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/user_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart'; // <<< NEW: Import ImageDao
+import 'package:biochecksheet7_flutter/data/database/daos/checksheet_master_image_dao.dart'; // <<< NEW: Import ImageDao
 
 // This line tells drift to generate a file named app_database.g.dart
 part 'app_database.g.dart';
@@ -46,6 +48,7 @@ part 'app_database.g.dart';
     Syncs,
     Users,
     Images, // <<< NEW: Add Images table
+    CheckSheetMasterImages,
   ],
   daos: [
     JobDao,
@@ -57,7 +60,8 @@ part 'app_database.g.dart';
     ProblemDao,
     SyncDao,
     UserDao,
-    ImageDao, // <<< NEW: Add ImageDao
+    ImageDao,
+    ChecksheetMasterImageDao, // <<< NEW: Add ImageDao
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -74,7 +78,7 @@ class AppDatabase extends _$AppDatabase {
   ImageDao get imageDao => ImageDao(this); // <<< NEW: Add ImageDao getter
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   // Define the migration strategy.
   @override
@@ -118,6 +122,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 6) {
             // เพิ่มคอลัมน์ uiType เข้าไปในตาราง documentMachines
             await m.addColumn(documentMachines, documentMachines.uiType);
+          }
+          if (from < 7) {
+            await m.createTable(
+                checkSheetMasterImages); // ใช้ m.createTable สำหรับตารางใหม่
           }
         },
       );
@@ -164,5 +172,6 @@ class AppDatabase extends _$AppDatabase {
     await _createUpdatedAtTrigger(m, 'syncs', 'updatedAt');
     await _createUpdatedAtTrigger(m, 'users', 'updatedAt');
     await _createUpdatedAtTrigger(m, 'images', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'checksheet_master_image', 'updatedAt');
   }
 }

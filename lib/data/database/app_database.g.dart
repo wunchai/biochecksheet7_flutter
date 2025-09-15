@@ -7427,6 +7427,548 @@ class ImagesCompanion extends UpdateCompanion<DbImage> {
   }
 }
 
+class $CheckSheetMasterImagesTable extends CheckSheetMasterImages
+    with TableInfo<$CheckSheetMasterImagesTable, DbCheckSheetMasterImage> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CheckSheetMasterImagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _machineIdMeta =
+      const VerificationMeta('machineId');
+  @override
+  late final GeneratedColumn<int> machineId = GeneratedColumn<int>(
+      'machineId', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _jobIdMeta = const VerificationMeta('jobId');
+  @override
+  late final GeneratedColumn<int> jobId = GeneratedColumn<int>(
+      'jobId', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
+  @override
+  late final GeneratedColumn<int> tagId = GeneratedColumn<int>(
+      'tagId', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _pathMeta = const VerificationMeta('path');
+  @override
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+      'path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+      'status', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _createDateMeta =
+      const VerificationMeta('createDate');
+  @override
+  late final GeneratedColumn<DateTime> createDate = GeneratedColumn<DateTime>(
+      'createDate', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _createByMeta =
+      const VerificationMeta('createBy');
+  @override
+  late final GeneratedColumn<String> createBy = GeneratedColumn<String>(
+      'createBy', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastSyncMeta =
+      const VerificationMeta('lastSync');
+  @override
+  late final GeneratedColumn<DateTime> lastSync = GeneratedColumn<DateTime>(
+      'lastSync', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _syncStatusMeta =
+      const VerificationMeta('syncStatus');
+  @override
+  late final GeneratedColumn<int> syncStatus = GeneratedColumn<int>(
+      'syncStatus', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        machineId,
+        jobId,
+        tagId,
+        path,
+        status,
+        createDate,
+        createBy,
+        lastSync,
+        syncStatus,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'checksheet_master_images';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<DbCheckSheetMasterImage> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('machineId')) {
+      context.handle(_machineIdMeta,
+          machineId.isAcceptableOrUnknown(data['machineId']!, _machineIdMeta));
+    }
+    if (data.containsKey('jobId')) {
+      context.handle(
+          _jobIdMeta, jobId.isAcceptableOrUnknown(data['jobId']!, _jobIdMeta));
+    }
+    if (data.containsKey('tagId')) {
+      context.handle(
+          _tagIdMeta, tagId.isAcceptableOrUnknown(data['tagId']!, _tagIdMeta));
+    }
+    if (data.containsKey('path')) {
+      context.handle(
+          _pathMeta, path.isAcceptableOrUnknown(data['path']!, _pathMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('createDate')) {
+      context.handle(
+          _createDateMeta,
+          createDate.isAcceptableOrUnknown(
+              data['createDate']!, _createDateMeta));
+    }
+    if (data.containsKey('createBy')) {
+      context.handle(_createByMeta,
+          createBy.isAcceptableOrUnknown(data['createBy']!, _createByMeta));
+    }
+    if (data.containsKey('lastSync')) {
+      context.handle(_lastSyncMeta,
+          lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
+    }
+    if (data.containsKey('syncStatus')) {
+      context.handle(
+          _syncStatusMeta,
+          syncStatus.isAcceptableOrUnknown(
+              data['syncStatus']!, _syncStatusMeta));
+    }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DbCheckSheetMasterImage map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DbCheckSheetMasterImage(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      machineId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}machineId']),
+      jobId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}jobId']),
+      tagId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}tagId']),
+      path: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}path']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}status']),
+      createDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}createDate']),
+      createBy: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}createBy']),
+      lastSync: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}lastSync']),
+      syncStatus: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}syncStatus']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
+    );
+  }
+
+  @override
+  $CheckSheetMasterImagesTable createAlias(String alias) {
+    return $CheckSheetMasterImagesTable(attachedDatabase, alias);
+  }
+}
+
+class DbCheckSheetMasterImage extends DataClass
+    implements Insertable<DbCheckSheetMasterImage> {
+  final int id;
+  final int? machineId;
+  final int? jobId;
+  final int? tagId;
+  final String? path;
+  final int? status;
+  final DateTime? createDate;
+  final String? createBy;
+  final DateTime? lastSync;
+  final int? syncStatus;
+  final String? updatedAt;
+  const DbCheckSheetMasterImage(
+      {required this.id,
+      this.machineId,
+      this.jobId,
+      this.tagId,
+      this.path,
+      this.status,
+      this.createDate,
+      this.createBy,
+      this.lastSync,
+      this.syncStatus,
+      this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || machineId != null) {
+      map['machineId'] = Variable<int>(machineId);
+    }
+    if (!nullToAbsent || jobId != null) {
+      map['jobId'] = Variable<int>(jobId);
+    }
+    if (!nullToAbsent || tagId != null) {
+      map['tagId'] = Variable<int>(tagId);
+    }
+    if (!nullToAbsent || path != null) {
+      map['path'] = Variable<String>(path);
+    }
+    if (!nullToAbsent || status != null) {
+      map['status'] = Variable<int>(status);
+    }
+    if (!nullToAbsent || createDate != null) {
+      map['createDate'] = Variable<DateTime>(createDate);
+    }
+    if (!nullToAbsent || createBy != null) {
+      map['createBy'] = Variable<String>(createBy);
+    }
+    if (!nullToAbsent || lastSync != null) {
+      map['lastSync'] = Variable<DateTime>(lastSync);
+    }
+    if (!nullToAbsent || syncStatus != null) {
+      map['syncStatus'] = Variable<int>(syncStatus);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
+    }
+    return map;
+  }
+
+  CheckSheetMasterImagesCompanion toCompanion(bool nullToAbsent) {
+    return CheckSheetMasterImagesCompanion(
+      id: Value(id),
+      machineId: machineId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(machineId),
+      jobId:
+          jobId == null && nullToAbsent ? const Value.absent() : Value(jobId),
+      tagId:
+          tagId == null && nullToAbsent ? const Value.absent() : Value(tagId),
+      path: path == null && nullToAbsent ? const Value.absent() : Value(path),
+      status:
+          status == null && nullToAbsent ? const Value.absent() : Value(status),
+      createDate: createDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createDate),
+      createBy: createBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createBy),
+      lastSync: lastSync == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSync),
+      syncStatus: syncStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncStatus),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory DbCheckSheetMasterImage.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DbCheckSheetMasterImage(
+      id: serializer.fromJson<int>(json['id']),
+      machineId: serializer.fromJson<int?>(json['machineId']),
+      jobId: serializer.fromJson<int?>(json['jobId']),
+      tagId: serializer.fromJson<int?>(json['tagId']),
+      path: serializer.fromJson<String?>(json['path']),
+      status: serializer.fromJson<int?>(json['status']),
+      createDate: serializer.fromJson<DateTime?>(json['createDate']),
+      createBy: serializer.fromJson<String?>(json['createBy']),
+      lastSync: serializer.fromJson<DateTime?>(json['lastSync']),
+      syncStatus: serializer.fromJson<int?>(json['syncStatus']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'machineId': serializer.toJson<int?>(machineId),
+      'jobId': serializer.toJson<int?>(jobId),
+      'tagId': serializer.toJson<int?>(tagId),
+      'path': serializer.toJson<String?>(path),
+      'status': serializer.toJson<int?>(status),
+      'createDate': serializer.toJson<DateTime?>(createDate),
+      'createBy': serializer.toJson<String?>(createBy),
+      'lastSync': serializer.toJson<DateTime?>(lastSync),
+      'syncStatus': serializer.toJson<int?>(syncStatus),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
+    };
+  }
+
+  DbCheckSheetMasterImage copyWith(
+          {int? id,
+          Value<int?> machineId = const Value.absent(),
+          Value<int?> jobId = const Value.absent(),
+          Value<int?> tagId = const Value.absent(),
+          Value<String?> path = const Value.absent(),
+          Value<int?> status = const Value.absent(),
+          Value<DateTime?> createDate = const Value.absent(),
+          Value<String?> createBy = const Value.absent(),
+          Value<DateTime?> lastSync = const Value.absent(),
+          Value<int?> syncStatus = const Value.absent(),
+          Value<String?> updatedAt = const Value.absent()}) =>
+      DbCheckSheetMasterImage(
+        id: id ?? this.id,
+        machineId: machineId.present ? machineId.value : this.machineId,
+        jobId: jobId.present ? jobId.value : this.jobId,
+        tagId: tagId.present ? tagId.value : this.tagId,
+        path: path.present ? path.value : this.path,
+        status: status.present ? status.value : this.status,
+        createDate: createDate.present ? createDate.value : this.createDate,
+        createBy: createBy.present ? createBy.value : this.createBy,
+        lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+      );
+  DbCheckSheetMasterImage copyWithCompanion(
+      CheckSheetMasterImagesCompanion data) {
+    return DbCheckSheetMasterImage(
+      id: data.id.present ? data.id.value : this.id,
+      machineId: data.machineId.present ? data.machineId.value : this.machineId,
+      jobId: data.jobId.present ? data.jobId.value : this.jobId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+      path: data.path.present ? data.path.value : this.path,
+      status: data.status.present ? data.status.value : this.status,
+      createDate:
+          data.createDate.present ? data.createDate.value : this.createDate,
+      createBy: data.createBy.present ? data.createBy.value : this.createBy,
+      lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DbCheckSheetMasterImage(')
+          ..write('id: $id, ')
+          ..write('machineId: $machineId, ')
+          ..write('jobId: $jobId, ')
+          ..write('tagId: $tagId, ')
+          ..write('path: $path, ')
+          ..write('status: $status, ')
+          ..write('createDate: $createDate, ')
+          ..write('createBy: $createBy, ')
+          ..write('lastSync: $lastSync, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, machineId, jobId, tagId, path, status,
+      createDate, createBy, lastSync, syncStatus, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DbCheckSheetMasterImage &&
+          other.id == this.id &&
+          other.machineId == this.machineId &&
+          other.jobId == this.jobId &&
+          other.tagId == this.tagId &&
+          other.path == this.path &&
+          other.status == this.status &&
+          other.createDate == this.createDate &&
+          other.createBy == this.createBy &&
+          other.lastSync == this.lastSync &&
+          other.syncStatus == this.syncStatus &&
+          other.updatedAt == this.updatedAt);
+}
+
+class CheckSheetMasterImagesCompanion
+    extends UpdateCompanion<DbCheckSheetMasterImage> {
+  final Value<int> id;
+  final Value<int?> machineId;
+  final Value<int?> jobId;
+  final Value<int?> tagId;
+  final Value<String?> path;
+  final Value<int?> status;
+  final Value<DateTime?> createDate;
+  final Value<String?> createBy;
+  final Value<DateTime?> lastSync;
+  final Value<int?> syncStatus;
+  final Value<String?> updatedAt;
+  const CheckSheetMasterImagesCompanion({
+    this.id = const Value.absent(),
+    this.machineId = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.path = const Value.absent(),
+    this.status = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.createBy = const Value.absent(),
+    this.lastSync = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  CheckSheetMasterImagesCompanion.insert({
+    this.id = const Value.absent(),
+    this.machineId = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.path = const Value.absent(),
+    this.status = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.createBy = const Value.absent(),
+    this.lastSync = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  static Insertable<DbCheckSheetMasterImage> custom({
+    Expression<int>? id,
+    Expression<int>? machineId,
+    Expression<int>? jobId,
+    Expression<int>? tagId,
+    Expression<String>? path,
+    Expression<int>? status,
+    Expression<DateTime>? createDate,
+    Expression<String>? createBy,
+    Expression<DateTime>? lastSync,
+    Expression<int>? syncStatus,
+    Expression<String>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (machineId != null) 'machineId': machineId,
+      if (jobId != null) 'jobId': jobId,
+      if (tagId != null) 'tagId': tagId,
+      if (path != null) 'path': path,
+      if (status != null) 'status': status,
+      if (createDate != null) 'createDate': createDate,
+      if (createBy != null) 'createBy': createBy,
+      if (lastSync != null) 'lastSync': lastSync,
+      if (syncStatus != null) 'syncStatus': syncStatus,
+      if (updatedAt != null) 'updatedAt': updatedAt,
+    });
+  }
+
+  CheckSheetMasterImagesCompanion copyWith(
+      {Value<int>? id,
+      Value<int?>? machineId,
+      Value<int?>? jobId,
+      Value<int?>? tagId,
+      Value<String?>? path,
+      Value<int?>? status,
+      Value<DateTime?>? createDate,
+      Value<String?>? createBy,
+      Value<DateTime?>? lastSync,
+      Value<int?>? syncStatus,
+      Value<String?>? updatedAt}) {
+    return CheckSheetMasterImagesCompanion(
+      id: id ?? this.id,
+      machineId: machineId ?? this.machineId,
+      jobId: jobId ?? this.jobId,
+      tagId: tagId ?? this.tagId,
+      path: path ?? this.path,
+      status: status ?? this.status,
+      createDate: createDate ?? this.createDate,
+      createBy: createBy ?? this.createBy,
+      lastSync: lastSync ?? this.lastSync,
+      syncStatus: syncStatus ?? this.syncStatus,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (machineId.present) {
+      map['machineId'] = Variable<int>(machineId.value);
+    }
+    if (jobId.present) {
+      map['jobId'] = Variable<int>(jobId.value);
+    }
+    if (tagId.present) {
+      map['tagId'] = Variable<int>(tagId.value);
+    }
+    if (path.present) {
+      map['path'] = Variable<String>(path.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (createDate.present) {
+      map['createDate'] = Variable<DateTime>(createDate.value);
+    }
+    if (createBy.present) {
+      map['createBy'] = Variable<String>(createBy.value);
+    }
+    if (lastSync.present) {
+      map['lastSync'] = Variable<DateTime>(lastSync.value);
+    }
+    if (syncStatus.present) {
+      map['syncStatus'] = Variable<int>(syncStatus.value);
+    }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CheckSheetMasterImagesCompanion(')
+          ..write('id: $id, ')
+          ..write('machineId: $machineId, ')
+          ..write('jobId: $jobId, ')
+          ..write('tagId: $tagId, ')
+          ..write('path: $path, ')
+          ..write('status: $status, ')
+          ..write('createDate: $createDate, ')
+          ..write('createBy: $createBy, ')
+          ..write('lastSync: $lastSync, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7442,6 +7984,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SyncsTable syncs = $SyncsTable(this);
   late final $UsersTable users = $UsersTable(this);
   late final $ImagesTable images = $ImagesTable(this);
+  late final $CheckSheetMasterImagesTable checkSheetMasterImages =
+      $CheckSheetMasterImagesTable(this);
   late final JobDao jobDao = JobDao(this as AppDatabase);
   late final DocumentDao documentDao = DocumentDao(this as AppDatabase);
   late final DocumentMachineDao documentMachineDao =
@@ -7454,6 +7998,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final SyncDao syncDao = SyncDao(this as AppDatabase);
   late final UserDao userDao = UserDao(this as AppDatabase);
   late final ImageDao imageDao = ImageDao(this as AppDatabase);
+  late final ChecksheetMasterImageDao checksheetMasterImageDao =
+      ChecksheetMasterImageDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7468,7 +8014,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         problems,
         syncs,
         users,
-        images
+        images,
+        checkSheetMasterImages
       ];
 }
 
@@ -10696,6 +11243,270 @@ typedef $$ImagesTableProcessedTableManager = ProcessedTableManager<
     (DbImage, BaseReferences<_$AppDatabase, $ImagesTable, DbImage>),
     DbImage,
     PrefetchHooks Function()>;
+typedef $$CheckSheetMasterImagesTableCreateCompanionBuilder
+    = CheckSheetMasterImagesCompanion Function({
+  Value<int> id,
+  Value<int?> machineId,
+  Value<int?> jobId,
+  Value<int?> tagId,
+  Value<String?> path,
+  Value<int?> status,
+  Value<DateTime?> createDate,
+  Value<String?> createBy,
+  Value<DateTime?> lastSync,
+  Value<int?> syncStatus,
+  Value<String?> updatedAt,
+});
+typedef $$CheckSheetMasterImagesTableUpdateCompanionBuilder
+    = CheckSheetMasterImagesCompanion Function({
+  Value<int> id,
+  Value<int?> machineId,
+  Value<int?> jobId,
+  Value<int?> tagId,
+  Value<String?> path,
+  Value<int?> status,
+  Value<DateTime?> createDate,
+  Value<String?> createBy,
+  Value<DateTime?> lastSync,
+  Value<int?> syncStatus,
+  Value<String?> updatedAt,
+});
+
+class $$CheckSheetMasterImagesTableFilterComposer
+    extends Composer<_$AppDatabase, $CheckSheetMasterImagesTable> {
+  $$CheckSheetMasterImagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get jobId => $composableBuilder(
+      column: $table.jobId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get tagId => $composableBuilder(
+      column: $table.tagId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get path => $composableBuilder(
+      column: $table.path, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createBy => $composableBuilder(
+      column: $table.createBy, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastSync => $composableBuilder(
+      column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$CheckSheetMasterImagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CheckSheetMasterImagesTable> {
+  $$CheckSheetMasterImagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get jobId => $composableBuilder(
+      column: $table.jobId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get tagId => $composableBuilder(
+      column: $table.tagId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get path => $composableBuilder(
+      column: $table.path, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createBy => $composableBuilder(
+      column: $table.createBy, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastSync => $composableBuilder(
+      column: $table.lastSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$CheckSheetMasterImagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CheckSheetMasterImagesTable> {
+  $$CheckSheetMasterImagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get machineId =>
+      $composableBuilder(column: $table.machineId, builder: (column) => column);
+
+  GeneratedColumn<int> get jobId =>
+      $composableBuilder(column: $table.jobId, builder: (column) => column);
+
+  GeneratedColumn<int> get tagId =>
+      $composableBuilder(column: $table.tagId, builder: (column) => column);
+
+  GeneratedColumn<String> get path =>
+      $composableBuilder(column: $table.path, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => column);
+
+  GeneratedColumn<String> get createBy =>
+      $composableBuilder(column: $table.createBy, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastSync =>
+      $composableBuilder(column: $table.lastSync, builder: (column) => column);
+
+  GeneratedColumn<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$CheckSheetMasterImagesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $CheckSheetMasterImagesTable,
+    DbCheckSheetMasterImage,
+    $$CheckSheetMasterImagesTableFilterComposer,
+    $$CheckSheetMasterImagesTableOrderingComposer,
+    $$CheckSheetMasterImagesTableAnnotationComposer,
+    $$CheckSheetMasterImagesTableCreateCompanionBuilder,
+    $$CheckSheetMasterImagesTableUpdateCompanionBuilder,
+    (
+      DbCheckSheetMasterImage,
+      BaseReferences<_$AppDatabase, $CheckSheetMasterImagesTable,
+          DbCheckSheetMasterImage>
+    ),
+    DbCheckSheetMasterImage,
+    PrefetchHooks Function()> {
+  $$CheckSheetMasterImagesTableTableManager(
+      _$AppDatabase db, $CheckSheetMasterImagesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CheckSheetMasterImagesTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CheckSheetMasterImagesTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CheckSheetMasterImagesTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int?> machineId = const Value.absent(),
+            Value<int?> jobId = const Value.absent(),
+            Value<int?> tagId = const Value.absent(),
+            Value<String?> path = const Value.absent(),
+            Value<int?> status = const Value.absent(),
+            Value<DateTime?> createDate = const Value.absent(),
+            Value<String?> createBy = const Value.absent(),
+            Value<DateTime?> lastSync = const Value.absent(),
+            Value<int?> syncStatus = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
+          }) =>
+              CheckSheetMasterImagesCompanion(
+            id: id,
+            machineId: machineId,
+            jobId: jobId,
+            tagId: tagId,
+            path: path,
+            status: status,
+            createDate: createDate,
+            createBy: createBy,
+            lastSync: lastSync,
+            syncStatus: syncStatus,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int?> machineId = const Value.absent(),
+            Value<int?> jobId = const Value.absent(),
+            Value<int?> tagId = const Value.absent(),
+            Value<String?> path = const Value.absent(),
+            Value<int?> status = const Value.absent(),
+            Value<DateTime?> createDate = const Value.absent(),
+            Value<String?> createBy = const Value.absent(),
+            Value<DateTime?> lastSync = const Value.absent(),
+            Value<int?> syncStatus = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
+          }) =>
+              CheckSheetMasterImagesCompanion.insert(
+            id: id,
+            machineId: machineId,
+            jobId: jobId,
+            tagId: tagId,
+            path: path,
+            status: status,
+            createDate: createDate,
+            createBy: createBy,
+            lastSync: lastSync,
+            syncStatus: syncStatus,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$CheckSheetMasterImagesTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $CheckSheetMasterImagesTable,
+        DbCheckSheetMasterImage,
+        $$CheckSheetMasterImagesTableFilterComposer,
+        $$CheckSheetMasterImagesTableOrderingComposer,
+        $$CheckSheetMasterImagesTableAnnotationComposer,
+        $$CheckSheetMasterImagesTableCreateCompanionBuilder,
+        $$CheckSheetMasterImagesTableUpdateCompanionBuilder,
+        (
+          DbCheckSheetMasterImage,
+          BaseReferences<_$AppDatabase, $CheckSheetMasterImagesTable,
+              DbCheckSheetMasterImage>
+        ),
+        DbCheckSheetMasterImage,
+        PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10719,4 +11530,7 @@ class $AppDatabaseManager {
       $$UsersTableTableManager(_db, _db.users);
   $$ImagesTableTableManager get images =>
       $$ImagesTableTableManager(_db, _db.images);
+  $$CheckSheetMasterImagesTableTableManager get checkSheetMasterImages =>
+      $$CheckSheetMasterImagesTableTableManager(
+          _db, _db.checkSheetMasterImages);
 }

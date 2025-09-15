@@ -1,6 +1,8 @@
 // lib/ui/document/document_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart'; // <<< 1. เพิ่ม Import สำหรับ DateFormat
+
 import 'package:biochecksheet7_flutter/presentation/screens/document/document_viewmodel.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // สำหรับ DbJob
 //import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // สำหรับ DbDocument
@@ -54,6 +56,14 @@ class _DocumentScreenState extends State<DocumentScreen> {
   // แสดง Dialog สำหรับสร้างเอกสารใหม่
   Future<void> _showCreateNewDocumentDialog(
       BuildContext context, DocumentViewModel viewModel) async {
+    // <<< 2. สร้างวันที่และเวลาที่จัดรูปแบบแล้ว
+    final String formattedDate =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+
+    // <<< 3. กำหนดค่าเริ่มต้นให้กับ Controller
+    final TextEditingController documentIdController =
+        TextEditingController(text: formattedDate);
+
     String? newDocumentName;
     await showDialog<String>(
       context: context,
@@ -62,8 +72,10 @@ class _DocumentScreenState extends State<DocumentScreen> {
           title: const Text('สร้างเอกสารใหม่'), // Title ของ Dialog
           content: TextField(
             autofocus: true, // โฟกัสอัตโนมัติเมื่อ Dialog เปิด
+            controller: documentIdController, // ใช้ Controller ที่สร้าง
             decoration: const InputDecoration(
                 hintText: 'ชื่อเอกสาร'), // Placeholder Text
+
             onChanged: (value) {
               newDocumentName = value; // เก็บชื่อเอกสารที่ผู้ใช้ป้อน
             },

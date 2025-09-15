@@ -12,6 +12,7 @@ import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
 class AMChecksheetViewModel extends ChangeNotifier {
   final DocumentRecordRepository _documentRecordRepository;
   final LoginRepository _loginRepository;
+  final AppDatabase _appDatabase; // เพิ่ม AppDatabase เพื่อเข้าถึง DAO อื่นๆ
 
   // --- ตัวแปรสำหรับจัดการ State ---
   String? _documentId;
@@ -48,7 +49,8 @@ class AMChecksheetViewModel extends ChangeNotifier {
 
   // --- Constructor ---
   AMChecksheetViewModel({required AppDatabase appDatabase})
-      : _documentRecordRepository =
+      : _appDatabase = appDatabase,
+        _documentRecordRepository =
             DocumentRecordRepository(appDatabase: appDatabase),
         _loginRepository = LoginRepository() {
     pageController = PageController(initialPage: _currentPage);
@@ -82,6 +84,16 @@ class AMChecksheetViewModel extends ChangeNotifier {
 
   Future<void> loadRecords(
       String documentId, String machineId, String jobId) async {
+    // --- *** จุดที่แก้ไข *** ---
+    // 1. รีเซ็ตค่า currentPage กลับไปเป็น 0
+    _currentPage = 0;
+    // 2. สั่งให้ PageController กลับไปที่หน้าแรก (สำคัญมาก)
+    // ใช้ hasClients เพื่อเช็คว่า PageController พร้อมใช้งานหรือยัง
+    if (pageController.hasClients) {
+      pageController.jumpToPage(0);
+    }
+    // --- สิ้นสุดการแก้ไข ---
+
     _isLoading = true;
     _documentId = documentId;
     _machineId = machineId;
@@ -121,11 +133,56 @@ class AMChecksheetViewModel extends ChangeNotifier {
     }
   }
 
+  /// === ฟังก์ชันใหม่: ค้นหารูปภาพ Master สำหรับ Tag ที่ระบุ ===
+  Future<DbCheckSheetMasterImage?> findMasterImageForTag(
+      DbJobTag jobTag) async {
+    try {
+      final jobId = int.tryParse(jobTag.jobId ?? '');
+      final machineId = int.tryParse(jobTag.machineId ?? '');
+      final tagId = int.tryParse(jobTag.tagId ?? '');
+
+      if (jobId == null || machineId == null || tagId == null) {
+        debugPrint("Invalid ID format for finding image.");
+        return null;
+      }
+
+      return await _appDatabase.checksheetMasterImageDao.getImageForTag(
+        jobId: jobId,
+        machineId: machineId,
+        tagId: tagId,
+      );
+    } catch (e) {
+      debugPrint("Error finding master image for tag ${jobTag.tagId}: $e");
+      return null;
+    }
+  }
+
   // --- เพิ่มฟังก์ชันที่ขาดไปทั้งหมด ---
 
-  /// อัปเดตค่า record เดียว (สำหรับ Input Widgets)
   Future<bool> updateRecordValue(int uid, String? newValue, String? newRemark,
       {String? newUnReadable, String? userId, int? newStatus}) async {
+    _recordErrors[uid] = null; // ล้าง error เก่าก่อน
+    notifyListeners();
+
+    // ค้นหา record ที่ต้องการอัปเดตเพื่อเอาข้อมูล jobTag มาใช้
+    final recordWithTag = _currentRecords.firstWhere(
+        (r) => r.documentRecord.uid == uid,
+        orElse: () => throw Exception('Record not found'));
+    final jobTag = recordWithTag.jobTag;
+
+    // --- Logic การ Validate (เฉพาะ Number) ---
+    if (jobTag?.tagType == 'Number' &&
+        newValue != null &&
+        newValue.isNotEmpty) {
+      final String? validationError = _validateNumberInput(newValue, jobTag);
+      if (validationError != null) {
+        _recordErrors[uid] = validationError; // กำหนด error message
+        notifyListeners();
+        return false; // หยุดการทำงานถ้า Validate ไม่ผ่าน
+      }
+    }
+    // --- สิ้นสุด Logic การ Validate ---
+
     final success = await _documentRecordRepository.updateRecordValue(
       uid: uid,
       newValue: newValue,
@@ -134,6 +191,7 @@ class AMChecksheetViewModel extends ChangeNotifier {
       userId: userId ?? _loginRepository.loggedInUser?.userId,
       newStatus: newStatus,
     );
+
     // Stream จะจัดการอัปเดต UI เอง
     return success;
   }
@@ -150,6 +208,30 @@ class AMChecksheetViewModel extends ChangeNotifier {
       newUnReadable: isUnReadable ? 'true' : 'false',
       newStatus: 0,
     );
+  }
+
+  String? _validateNumberInput(String? newValue, DbJobTag? jobTag) {
+    if (newValue == null || newValue.isEmpty) return null;
+
+    final double? numValue = double.tryParse(newValue);
+    if (numValue == null) return "ต้องเป็นตัวเลขเท่านั้น";
+
+    final String? specMin = jobTag?.specMin;
+    final String? specMax = jobTag?.specMax;
+
+    if (specMin != null && specMin.isNotEmpty) {
+      final double? min = double.tryParse(specMin);
+      if (min != null && numValue < min) {
+        return "ค่าต่ำกว่ามาตรฐาน ($min)";
+      }
+    }
+    if (specMax != null && specMax.isNotEmpty) {
+      final double? max = double.tryParse(specMax);
+      if (max != null && numValue > max) {
+        return "ค่าสูงกว่ามาตรฐาน ($max)";
+      }
+    }
+    return null; // ผ่านการตรวจสอบ
   }
 
   /// สั่งคำนวณค่า

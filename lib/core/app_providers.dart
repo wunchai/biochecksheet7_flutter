@@ -21,6 +21,7 @@ import 'package:biochecksheet7_flutter/presentation/screens/documentmachine/docu
 import 'package:biochecksheet7_flutter/presentation/screens/documentrecord/document_record_viewmodel.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_viewmodel.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/problem/problem_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/am_checksheet_viewmodel.dart';
 
 // CRUCIAL FIX: Conditional Import for ImageProcessor
 import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor.dart';
@@ -41,7 +42,10 @@ import 'package:biochecksheet7_flutter/presentation/screens/deviceinfo/device_in
 // Import DataSummary components
 import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_viewmodel.dart'; // <<< NEW: Import ViewModel
 import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_screen.dart'; // <<< NEW: Import Screen
-import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/am_checksheet_viewmodel.dart'; // <<< เพิ่ม Import
+
+// --- <<< เพิ่ม Import สำหรับ Image Sync >>> ---
+import 'package:biochecksheet7_flutter/data/network/checksheet_image_api_service.dart';
+import 'package:biochecksheet7_flutter/data/repositories/checksheet_image_repository.dart';
 
 // Define the list of all providers for the application
 Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
@@ -63,8 +67,24 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
   }
   // Create DeviceInfoService instance
   final DeviceInfoService deviceInfoService = DeviceInfoService();
-  final DataSyncService dataSyncService =
+
+  /*
+ final DataSyncService dataSyncService =
       DataSyncService(appDatabase: appDatabase); // Create instance once
+*/
+
+// --- <<< สร้าง Dependencies สำหรับ Image Sync >>> ---
+  final checksheetImageApiService = ChecksheetImageApiService();
+  final checksheetImageRepository = ChecksheetImageRepository(
+    appDatabase: appDatabase,
+    apiService: checksheetImageApiService,
+  );
+
+  final dataSyncService = DataSyncService(
+    appDatabase: appDatabase,
+    // --- <<< ส่ง Repository ของรูปภาพเข้าไปใน DataSyncService >>> ---
+    checksheetImageRepository: checksheetImageRepository,
+  );
 
   return [
     // Repositories (provided as value as they are singletons)

@@ -73,6 +73,7 @@ dependencies:
   device_info_plus: ^10.0.0 # สำหรับ Device ID, Serial No.
   package_info_plus: ^8.0.0 # สำหรับ App Version
   network_info_plus: ^6.1.4 # <<< CRUCIAL FIX: Downgrade version to ^6.1.4
+  intl: ^0.19.0 # สำหรับ DateFormat
 
 dev_dependencies:
   flutter_test:
