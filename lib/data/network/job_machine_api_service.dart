@@ -1,10 +1,13 @@
 // lib/data/network/job_machine_api_service.dart
 import 'dart:convert';
+import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 //import 'package:biochecksheet7_flutter/data/database/tables/document_machine_table.dart'; // สำหรับ DbDocumentMachine
 
-const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
+//const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
+
+final String _baseUrl = AppConfig.baseUrl;
 
 class JobMachineApiService {
   Future<List<DbDocumentMachine>> syncJobMachines() async {

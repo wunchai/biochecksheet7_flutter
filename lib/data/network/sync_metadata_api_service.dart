@@ -1,11 +1,13 @@
 // lib/data/network/sync_metadata_api_service.dart
 import 'dart:convert';
+import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:http/http.dart' as http;
 //import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // For SyncStatus (though not directly used here)
 import 'package:biochecksheet7_flutter/data/network/api_request_models.dart'; // <<< NEW: Import API Request Models
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import API Response Models (for SyncMetadataResponse)
 
-const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
+//const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
+final String _baseUrl = AppConfig.baseUrl;
 
 class SyncMetadataApiService {
   /// Checks the synchronization status and retrieves metadata actions from the API.

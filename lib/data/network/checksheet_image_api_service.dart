@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart';
+import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // สำหรับ DbCheckSheetMasterImage
 
 class ChecksheetImageApiService {
   // ไม่ต้องมี http.Client ใน Constructor แล้ว
@@ -88,6 +90,57 @@ class ChecksheetImageApiService {
       }
     } catch (e) {
       debugPrint('Error fetching base64 image: $e');
+      rethrow;
+    }
+  }
+
+  /// === ฟังก์ชันใหม่: อัปโหลดรูปภาพใหม่ขึ้น Server ===
+  /// ใช้ multipart/form-data เพื่อส่งไฟล์ Binary และข้อมูล Text
+  Future<bool> uploadNewMasterImage(
+      DbCheckSheetMasterImage imageRecord, File imageFile) async {
+    final uri = Uri.parse(
+        '$_baseUrl/CheckSheet_MasterImage_Upload'); // <<< Endpoint ใหม่สำหรับ Upload
+    debugPrint("Uploading new master image for TagId: ${imageRecord.tagId}");
+
+    try {
+      // 1. สร้าง Multipart Request
+      var request = http.MultipartRequest('POST', uri);
+
+      // 2. เพิ่มข้อมูล Text Fields
+      request.fields['JobId'] = imageRecord.jobId.toString();
+      request.fields['MachineId'] = imageRecord.machineId.toString();
+      request.fields['TagId'] = imageRecord.tagId.toString();
+      request.fields['CreateBy'] = imageRecord.createBy ?? 'unknown';
+      // Server สามารถใช้ CreateDate จากตอนที่ได้รับข้อมูลได้เลย หรือจะส่งจาก Client ก็ได้
+      request.fields['CreateDate'] =
+          imageRecord.createDate?.toIso8601String() ??
+              DateTime.now().toIso8601String();
+
+      // 3. เพิ่มไฟล์รูปภาพ
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image', // ชื่อ field ของไฟล์ (คุยกับฝั่ง Server)
+          imageFile.path,
+        ),
+      );
+
+      // 4. ส่ง Request
+      var response = await request.send();
+
+      // 5. ตรวจสอบผลลัพธ์
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('Image upload successful for TagId: ${imageRecord.tagId}');
+        // final responseBody = await response.stream.bytesToString();
+        // debugPrint('Server response: $responseBody');
+        return true;
+      } else {
+        debugPrint('Image upload failed with status: ${response.statusCode}');
+        final responseBody = await response.stream.bytesToString();
+        debugPrint('Error response: $responseBody');
+        throw Exception('Failed to upload image: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error uploading new master image: $e');
       rethrow;
     }
   }

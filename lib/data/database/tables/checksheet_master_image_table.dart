@@ -22,8 +22,12 @@ class CheckSheetMasterImages extends Table {
   // คอลัมน์สำหรับจัดการสถานะการ Sync ในแอป
   DateTimeColumn get lastSync => dateTime().nullable().named('lastSync')();
   IntColumn get syncStatus => integer().nullable().named('syncStatus')();
+
   TextColumn get updatedAt =>
       text().named('updatedAt').nullable()(); // Stores ISO 8601 string
+
+  IntColumn get newImage =>
+      integer().named('newImage').withDefault(const Constant(0))();
   @override
   Set<Column> get primaryKey => {id};
 }

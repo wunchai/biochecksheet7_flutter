@@ -1,12 +1,14 @@
 // lib/data/network/user_api_service.dart
 import 'dart:convert';
+import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart';
 import 'package:biochecksheet7_flutter/data/models/login_result.dart'; // Now imports both LoginResult and SyncResult
 import 'package:biochecksheet7_flutter/data/network/api_request_models.dart'; // Import API Request Models
 
 // Define your base URL (from Constants.kt or similar)
-const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
+//const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
+final String _baseUrl = AppConfig.baseUrl;
 
 class UserApiService {
   Future<LoginResult> login(String userCode, String password) async {

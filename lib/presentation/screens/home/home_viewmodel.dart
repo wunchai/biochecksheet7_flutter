@@ -60,6 +60,10 @@ class HomeViewModel extends ChangeNotifier {
     loadJobs();
   }
 
+  // --- <<< ส่วนที่เพิ่มใหม่ >>> ---
+  final ValueNotifier<double?> syncProgressNotifier = ValueNotifier(null);
+  final ValueNotifier<String> syncStatusNotifier = ValueNotifier('');
+
   /// Performs manual metadata sync and processes server actions.
   Future<void> performManualMetadataSync() async {
     _isLoading = true;
@@ -321,4 +325,34 @@ class HomeViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  /// เริ่มกระบวนการ Sync Master Images และอัปเดต Notifiers
+  Future<String> syncMasterImages() async {
+    // รีเซ็ตสถานะเริ่มต้น
+    syncProgressNotifier.value = null; // Indeterminate progress
+    syncStatusNotifier.value = 'กำลังตรวจสอบข้อมูลรูปภาพ...';
+
+    final result = await _dataSyncService.performMasterImageSync(
+      onProgress: (current, total) {
+        if (total > 0) {
+          syncProgressNotifier.value = current / total;
+          syncStatusNotifier.value =
+              'กำลังดาวน์โหลดรูปภาพ $current จาก $total...';
+        } else {
+          syncStatusNotifier.value = 'ไม่พบรูปภาพใหม่ที่ต้องดาวน์โหลด';
+        }
+      },
+    );
+
+    // สิ้นสุดกระบวนการ
+    syncProgressNotifier.value = null;
+
+    if (result is SyncSuccess) {
+      return result.message ?? 'การซิงค์สำเร็จ';
+    } else if (result is SyncError) {
+      return result.message ?? 'เกิดข้อผิดพลาดที่ไม่รู้จัก';
+    }
+    return 'การซิงค์สิ้นสุดลง';
+  }
+  // --- <<< สิ้นสุดส่วนที่เพิ่มใหม่ >>> ---
 }

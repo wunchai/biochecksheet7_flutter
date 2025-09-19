@@ -1,12 +1,14 @@
 // lib/data/network/problem_api_service.dart
 import 'dart:convert';
+import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 //import 'package:biochecksheet7_flutter/data/database/tables/problem_table.dart'; // For DbProblem
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import api_response_models.dart
 import 'dart:async';
 
-const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
+//const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
+final String _baseUrl = AppConfig.baseUrl;
 
 class ProblemApiService {
   /// Syncs problem data from API.

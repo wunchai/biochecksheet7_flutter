@@ -1,11 +1,13 @@
 // lib/data/network/image_api_service.dart
 import 'dart:convert'; // For base64Encode, jsonEncode
+import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:http/http.dart' as http; // For HTTP requests
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 //import 'package:biochecksheet7_flutter/data/database/tables/image_table.dart'; // For DbImage
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // For ImageUploadResult
 
-const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
+//const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
+final String _baseUrl = AppConfig.baseUrl;
 
 class ImageApiService {
   /// Uploads a single image to the API.

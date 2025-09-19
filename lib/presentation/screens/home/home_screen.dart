@@ -9,6 +9,7 @@ import 'package:biochecksheet7_flutter/presentation/screens/home/widgets/home_ap
 //import 'package:biochecksheet7_flutter/ui/deviceinfo/device_info_screen.dart'; // <<< NEW: Import DeviceInfoScreen
 import 'package:biochecksheet7_flutter/presentation/widgets/error_dialog.dart'; // <<< NEW: Import ErrorDialog
 import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // Import SyncStatus
+import 'package:biochecksheet7_flutter/presentation/widgets/sync_progress_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   final String title;
@@ -32,6 +33,33 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     // The ViewModel manages its own controllers' disposal.
     super.dispose();
+  }
+
+  // --- <<< ฟังก์ชันใหม่สำหรับจัดการการกดปุ่ม >>> ---
+  void _onSyncMasterImagesPressed(
+      BuildContext context, HomeViewModel viewModel) async {
+    // 1. แสดงหน้าต่าง Progress ทันที
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => SyncProgressDialog(
+        progressNotifier: viewModel.syncProgressNotifier,
+        statusNotifier: viewModel.syncStatusNotifier,
+      ),
+    );
+
+    // 2. เริ่มกระบวนการ Sync (ซึ่งจะใช้เวลา)
+    final String resultMessage = await viewModel.syncMasterImages();
+
+    // 3. เมื่อ Sync เสร็จสิ้น ให้ปิดหน้าต่าง Progress
+    if (context.mounted) Navigator.of(context).pop();
+
+    // 4. แสดงผลลัพธ์สุดท้ายด้วย SnackBar
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(resultMessage)),
+      );
+    }
   }
 
   // Helper method to display sync results (SnackBar or ErrorDialog)
@@ -83,6 +111,11 @@ class _HomeScreenState extends State<HomeScreen> {
             _showSyncResultFeedback(context, syncResult, 'การซิงค์ปัญหา');
           }
         },
+        onImagePressed: () async {
+          _onSyncMasterImagesPressed(
+              context, Provider.of<HomeViewModel>(context, listen: false));
+        },
+
         onUploadPressed: () async {
           final viewModel = Provider.of<HomeViewModel>(context, listen: false);
           final uploadResult = await viewModel

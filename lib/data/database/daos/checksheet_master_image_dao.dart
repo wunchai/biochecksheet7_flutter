@@ -19,6 +19,10 @@ class ChecksheetMasterImageDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
+  Future<List<DbCheckSheetMasterImage>> getAllImages() {
+    return select(checkSheetMasterImages).get();
+  }
+
   /// ดึงข้อมูลรูปภาพสำหรับ Tag ที่ระบุ
   Future<DbCheckSheetMasterImage?> getImageForTag({
     required int jobId,
@@ -57,4 +61,71 @@ class ChecksheetMasterImageDao extends DatabaseAccessor<AppDatabase>
 
   /// ล้างข้อมูลทั้งหมดในตาราง
   Future<void> clearAll() => delete(checkSheetMasterImages).go();
+
+  /// === ฟังก์ชันใหม่: จัดการการบันทึกรูปที่ถ่ายในแอป (ทั้ง Insert และ Update) ===
+  /// ตรวจสอบว่ามีข้อมูลสำหรับ tag นี้อยู่แล้วหรือไม่
+  /// - ถ้ามี: อัปเดต path และตั้งค่า newImage = 1
+  /// - ถ้าไม่มี: สร้าง record ใหม่ทั้งหมด
+  Future<void> saveNewLocalImage({
+    required int jobId,
+    required int machineId,
+    required int tagId,
+    required String localPath,
+    required String createBy,
+  }) async {
+    // 1. ค้นหา record ที่มีอยู่เดิมด้วย key ที่ไม่ซ้ำกัน
+    final existingRecord = await getImageForTag(
+      jobId: jobId,
+      machineId: machineId,
+      tagId: tagId,
+    );
+
+    // 2. เตรียมข้อมูลที่จะบันทึก (Companion)
+    final companion = CheckSheetMasterImagesCompanion(
+      jobId: Value(jobId),
+      machineId: Value(machineId),
+      tagId: Value(tagId),
+      path: Value(localPath), // Path ใหม่จากรูปที่ถ่าย
+      createDate: Value(DateTime.now()), // วันที่ปัจจุบัน
+      createBy: Value(createBy),
+      newImage: const Value(1), // ตั้งสถานะเป็นรูปใหม่
+      syncStatus: const Value(0), // สถานะยังไม่ Sync
+      status: const Value(1), // สถานะ Active
+    );
+
+    if (existingRecord != null) {
+      // --- กรณี UPDATE ---
+      // ถ้ามี record อยู่แล้ว ให้อัปเดตทับโดยใช้ id เดิม
+      await (update(checkSheetMasterImages)
+            ..where((tbl) => tbl.id.equals(existingRecord.id)))
+          .write(companion);
+    } else {
+      // --- กรณี INSERT ---
+      // ถ้ายังไม่มี ให้สร้าง record ใหม่
+      await into(checkSheetMasterImages).insert(companion);
+    }
+  }
+
+  /// ค้นหารูปภาพใหม่ทั้งหมดที่ต้องอัปโหลด (newImage = 1)
+  Future<List<DbCheckSheetMasterImage>> getImagesToUpload() {
+    return (select(checkSheetMasterImages)
+          ..where((tbl) => tbl.newImage.equals(1)))
+        .get();
+  }
+
+  // --- <<< จุดที่แก้ไขสำคัญ >>> ---
+  /// เปลี่ยนชื่อฟังก์ชันเป็น watch... และเปลี่ยน Furture เป็น Stream
+  /// โดยเปลี่ยน .getSingleOrNull() เป็น .watchSingleOrNull()
+  Stream<DbCheckSheetMasterImage?> watchImageForTag({
+    required int jobId,
+    required int machineId,
+    required int tagId,
+  }) {
+    return (select(checkSheetMasterImages)
+          ..where((tbl) =>
+              tbl.jobId.equals(jobId) &
+              tbl.machineId.equals(machineId) &
+              tbl.tagId.equals(tagId)))
+        .watchSingleOrNull(); // <<< เปลี่ยนจาก .get... เป็น .watch...
+  }
 }

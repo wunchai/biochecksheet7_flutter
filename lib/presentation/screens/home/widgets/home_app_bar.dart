@@ -8,6 +8,7 @@ class HomeAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String title;
   final TextEditingController searchController;
   final VoidCallback onRefreshPressed;
+  final VoidCallback onImagePressed;
   final VoidCallback onUploadPressed;
   final VoidCallback onLogoutPressed;
 
@@ -16,6 +17,7 @@ class HomeAppBar extends StatefulWidget implements PreferredSizeWidget {
     required this.title,
     required this.searchController,
     required this.onRefreshPressed,
+    required this.onImagePressed,
     required this.onUploadPressed,
     required this.onLogoutPressed,
   });
@@ -74,6 +76,12 @@ class _HomeAppBarState extends State<HomeAppBar> {
         IconButton(
           icon: const Icon(Icons.refresh),
           onPressed: widget.onRefreshPressed,
+        ),
+        // Sync Master Images Button
+        IconButton(
+          icon: const Icon(Icons.cloud_sync_sharp), // <<< ไอคอนใหม่
+          tooltip: 'Sync Master Images',
+          onPressed: widget.onImagePressed,
         ),
         // Upload Document Records button
         IconButton(

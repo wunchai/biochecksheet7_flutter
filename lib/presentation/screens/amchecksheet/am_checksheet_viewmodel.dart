@@ -1,6 +1,8 @@
 // lib/ui/amchecksheet/am_checksheet_viewmodel.dart
-
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart'; // <<< เพิ่ม Import
 
 // Import ส่วนที่จำเป็นจากโปรเจกต์ของคุณ
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
@@ -9,10 +11,17 @@ import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.da
 import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart';
 import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
 
+import 'package:biochecksheet7_flutter/data/services/image_processing_service.dart';
+import 'package:biochecksheet7_flutter/data/repositories/checksheet_image_repository.dart';
+import 'package:biochecksheet7_flutter/data/network/checksheet_image_api_service.dart';
+
 class AMChecksheetViewModel extends ChangeNotifier {
   final DocumentRecordRepository _documentRecordRepository;
   final LoginRepository _loginRepository;
   final AppDatabase _appDatabase; // เพิ่ม AppDatabase เพื่อเข้าถึง DAO อื่นๆ
+  // เพิ่ม property นี้เข้าไปใน class
+  final ImageProcessingService _imageProcessingService;
+  final ChecksheetImageRepository _checksheetImageRepository;
 
   // --- ตัวแปรสำหรับจัดการ State ---
   String? _documentId;
@@ -52,7 +61,10 @@ class AMChecksheetViewModel extends ChangeNotifier {
       : _appDatabase = appDatabase,
         _documentRecordRepository =
             DocumentRecordRepository(appDatabase: appDatabase),
-        _loginRepository = LoginRepository() {
+        _loginRepository = LoginRepository(),
+        _imageProcessingService = ImageProcessingService(),
+        _checksheetImageRepository = ChecksheetImageRepository(
+            appDatabase: appDatabase, apiService: ChecksheetImageApiService()) {
     pageController = PageController(initialPage: _currentPage);
   }
 
@@ -376,6 +388,132 @@ class AMChecksheetViewModel extends ChangeNotifier {
   }) async {
     // ... (โค้ด saveAllChanges เหมือนเดิม) ...
     return true; // Placeholder
+  }
+
+// --- <<< จุดที่แก้ไขสำคัญ >>> ---
+  /// เปลี่ยนชื่อฟังก์ชันและเปลี่ยน Furture เป็น Stream
+  Stream<DbCheckSheetMasterImage?> watchMasterImageForTag(DbJobTag jobTag) {
+    try {
+      final jobId = int.tryParse(jobTag.jobId ?? '');
+      final machineId = int.tryParse(jobTag.machineId ?? '');
+      final tagId = int.tryParse(jobTag.tagId ?? '');
+
+      if (jobId == null || machineId == null || tagId == null) {
+        debugPrint("Invalid ID format for watching image.");
+        return Stream.value(null); // คืน Stream ที่มีค่า null ทันที
+      }
+
+      // เรียกใช้ฟังก์ชัน watch... ใหม่จาก DAO
+      return _appDatabase.checksheetMasterImageDao.watchImageForTag(
+        jobId: jobId,
+        machineId: machineId,
+        tagId: tagId,
+      );
+    } catch (e) {
+      debugPrint("Error watching master image for tag ${jobTag.tagId}: $e");
+      return Stream.error(e); // คืน Stream ที่มี error
+    }
+  }
+
+  // --- <<< ฟังก์ชันใหม่ที่เพิ่มเข้ามา >>> ---
+  /// รับข้อมูลรูปภาพที่แก้ไขแล้วมาบันทึกทับข้อมูลเดิม
+  Future<bool> updateMasterImage(
+      DbCheckSheetMasterImage originalImage, Uint8List editedImageBytes) async {
+    try {
+      _isLoading = true;
+      _statusMessage = "กำลังบันทึกรูปภาพที่แก้ไข...";
+      notifyListeners();
+
+      // เรียกใช้ Repository เพื่อจัดการการบันทึกทับไฟล์/ข้อมูล
+      final success = await _checksheetImageRepository.overwriteMasterImage(
+        originalImageRecord: originalImage,
+        newImageBytes: editedImageBytes,
+      );
+
+      if (success) {
+        _syncMessage = "อัปเดตรูปภาพสำเร็จ";
+      } else {
+        _syncMessage = "ไม่สามารถอัปเดตรูปภาพได้";
+      }
+      return success;
+    } catch (e) {
+      _syncMessage = "เกิดข้อผิดพลาดในการอัปเดตรูปภาพ: $e";
+      return false;
+    } finally {
+      _isLoading = false;
+      _statusMessage = "";
+      notifyListeners();
+    }
+  }
+
+  Future<void> selectAndSaveNewMasterImage(
+      DbJobTag jobTag, ImageSource source) async {
+    try {
+      _isLoading = true;
+      _statusMessage = "กำลังประมวลผลรูปภาพ...";
+      notifyListeners();
+
+      // เรียกใช้ Service โดยส่ง `source` ที่ผู้ใช้เลือกไปด้วย
+      final String? imagePath =
+          await _imageProcessingService.pickAndProcessImage(source: source);
+
+      if (imagePath != null) {
+        final success =
+            await _checksheetImageRepository.createOrUpdateNewMasterImageRecord(
+          jobId: int.parse(jobTag.jobId!),
+          machineId: int.parse(jobTag.machineId!),
+          tagId: int.parse(jobTag.tagId!),
+          localPath: imagePath,
+        );
+
+        if (success) {
+          _syncMessage = "บันทึกรูปภาพใหม่เรียบร้อยแล้ว";
+          // TODO: ต้องมีวิธี refresh หน้าจอเพื่อแสดงรูปใหม่
+        } else {
+          _syncMessage = "ไม่สามารถบันทึกข้อมูลรูปภาพได้";
+        }
+      }
+    } catch (e) {
+      _syncMessage = "เกิดข้อผิดพลาด: $e";
+    } finally {
+      _isLoading = false;
+      _statusMessage = "";
+      notifyListeners();
+    }
+  }
+
+  // เพิ่มฟังก์ชันนี้เข้าไปใน class
+  Future<void> captureAndSaveNewMasterImage(DbJobTag jobTag) async {
+    try {
+      _isLoading = true;
+      _statusMessage = "กำลังประมวลผลรูปภาพ...";
+      notifyListeners();
+
+      final String? imagePath =
+          await _imageProcessingService.pickAndProcessImage();
+
+      if (imagePath != null) {
+        final success =
+            await _checksheetImageRepository.createOrUpdateNewMasterImageRecord(
+          jobId: int.parse(jobTag.jobId!),
+          machineId: int.parse(jobTag.machineId!),
+          tagId: int.parse(jobTag.tagId!),
+          localPath: imagePath,
+        );
+        if (success) {
+          _syncMessage = "บันทึกรูปภาพใหม่เรียบร้อยแล้ว";
+          // เราอาจจะต้องมีวิธี refresh หน้าจอเพื่อแสดงรูปใหม่
+        } else {
+          _syncMessage = "ไม่สามารถบันทึกข้อมูลรูปภาพได้";
+        }
+      }
+    } catch (e) {
+      _syncMessage = "เกิดข้อผิดพลาด: $e";
+    } finally {
+      _isLoading = false;
+      _statusMessage = "";
+      notifyListeners();
+    }
   }
 
   @override

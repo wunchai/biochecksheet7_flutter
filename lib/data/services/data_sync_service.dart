@@ -183,8 +183,10 @@ class DataSyncService {
       result = await _syncProblemsData();
       if (result is SyncError) return result;
 
+      /*
       result = await _syncMasterImages();
       if (result is SyncError) return result;
+      */
 
       //result = await _syncMetadataData();
       //if (result is SyncError) return result;
@@ -196,10 +198,32 @@ class DataSyncService {
     }
   }
 
-  Future<SyncStatus> _syncMasterImages() async {
+  /// === ฟังก์ชันใหม่: สำหรับ Sync Master Image โดยเฉพาะ ===
+  Future<SyncStatus> performMasterImageSync(
+      {required Function(int, int) onProgress}) async {
+    try {
+      // 1. ซิงค์ Metadata ก่อน (เป็นขั้นตอนที่เร็ว)
+      await _checksheetImageRepository.syncImageMetadata();
+
+      // 2. เริ่มดาวน์โหลดรูปภาพ พร้อมส่งต่อ callback
+      await _checksheetImageRepository.downloadMissingImages(
+          onProgress: onProgress);
+
+      return const SyncSuccess(message: 'ซิงค์ข้อมูล Master Image สำเร็จ!');
+    } on Exception catch (e) {
+      print('Error syncing master images: $e');
+      return SyncError(
+          exception: e, message: 'ข้อผิดพลาดในการซิงค์ Master Image: $e');
+    }
+  }
+
+  Future<SyncStatus> _syncMasterImages(
+      {required Function(int, int) onProgress}) async {
     try {
       await _checksheetImageRepository.syncImageMetadata();
-      await _checksheetImageRepository.downloadMissingImages();
+      await _checksheetImageRepository.downloadMissingImages(
+          onProgress: onProgress);
+
       return const SyncSuccess(message: 'ซิงค์ข้อมูลรูปภาพ Master สำเร็จ!');
     } on Exception catch (e) {
       print('Error syncing master images: $e');
@@ -685,6 +709,19 @@ class DataSyncService {
     } catch (e) {
       print('Error during image upload sync: $e');
       return SyncError(exception: e, message: 'ข้อผิดพลาดในการซิงค์รูปภาพ: $e');
+    }
+  }
+
+  // เพิ่มฟังก์ชันนี้เข้าไปใน Class DataSyncService
+  Future<SyncStatus> performMasterImageUploadSync() async {
+    try {
+      await _checksheetImageRepository.uploadNewMasterImages();
+      return const SyncSuccess(message: 'อัปโหลดรูปภาพ Master ใหม่สำเร็จ!');
+    } on Exception catch (e) {
+      print('Error uploading new master images: $e');
+      return SyncError(
+          exception: e,
+          message: 'ข้อผิดพลาดในการอัปโหลดรูปภาพ Master ใหม่: $e');
     }
   }
 }

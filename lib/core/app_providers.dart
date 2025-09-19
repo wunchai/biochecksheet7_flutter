@@ -30,7 +30,7 @@ import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_pr
 
 // Platform-specific image processor imports
 import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor_native.dart'
-    if (dart.library.html) 'package:biochecksheet7_flutter/ui/imagerecord/image_processor_web.dart';
+    if (dart.library.html) 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor_web.dart';
 
 // Import the abstract ImageProcessor class (still needed for type hinting)
 import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor.dart'; // <<< Make sure this is imported

@@ -1,5 +1,6 @@
 // lib/data/network/document_record_api_service.dart
 import 'dart:convert';
+import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 //import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart'; // สำหรับ DbDocumentRecord
@@ -7,8 +8,8 @@ import 'package:biochecksheet7_flutter/data/network/api_response_models.dart';
 // TODO: อาจจะต้องสร้าง Data Model สำหรับ Historical Record ถ้ามี Field ที่แตกต่างจาก DbDocumentRecord
 // import 'package:biochecksheet7_flutter/data/models/historical_record_data.dart';
 
-const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
-
+//const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
+final String _baseUrl = AppConfig.baseUrl;
 /*
 // NEW: Define a data class for API upload response (if API returns specific format)
 class UploadRecordResult {

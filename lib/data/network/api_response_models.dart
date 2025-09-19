@@ -81,7 +81,7 @@ class CheckSheetMasterImageResponse {
   final int? status;
   final String? createDate; // รับเป็น String ก่อน
   final String? createBy;
-
+  final String? updatedAt;
   CheckSheetMasterImageResponse({
     required this.id,
     this.machineId,
@@ -90,6 +90,7 @@ class CheckSheetMasterImageResponse {
     this.status,
     this.createDate,
     this.createBy,
+    this.updatedAt,
   });
 
   factory CheckSheetMasterImageResponse.fromJson(Map<String, dynamic> json) {
@@ -101,6 +102,7 @@ class CheckSheetMasterImageResponse {
       status: json['Status'] as int?,
       createDate: json['CreateDate'] as String?,
       createBy: json['CreateBy'] as String?,
+      updatedAt: json['UpdatedAt'] as String?,
     );
   }
 }

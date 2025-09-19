@@ -76,9 +76,11 @@ class AppDatabase extends _$AppDatabase {
 
   // NEW: Add getter for ImageDao
   ImageDao get imageDao => ImageDao(this); // <<< NEW: Add ImageDao getter
+  ChecksheetMasterImageDao get checksheetMasterImageDao =>
+      ChecksheetMasterImageDao(this);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   // Define the migration strategy.
   @override
@@ -126,10 +128,17 @@ class AppDatabase extends _$AppDatabase {
           if (from < 7) {
             await m.createTable(
                 checkSheetMasterImages); // ใช้ m.createTable สำหรับตารางใหม่
+            await _createUpdatedAtTrigger(
+                m, 'checksheet_master_images', 'updatedAt');
+          }
+          if (from < 8) {
+            await m.addColumn(
+                checkSheetMasterImages, checkSheetMasterImages.newImage);
           }
         },
       );
 
+  /*
   // Helper method to create a single SQL trigger for updatedAt column
   Future<void> _createUpdatedAtTrigger(
       Migrator m, String tableName, String columnName) async {
@@ -159,6 +168,39 @@ class AppDatabase extends _$AppDatabase {
       ''');
     print('SQL Trigger "$insertTriggerName" created/ensured.');
   }
+*/
+
+// --- *** จุดที่แก้ไข *** ---
+  Future<void> _createUpdatedAtTrigger(
+      Migrator m, String tableName, String columnName) async {
+    // 1. ตรวจสอบชื่อตารางเพื่อเลือก Primary Key ที่ถูกต้อง
+    final String primaryKeyColumn =
+        (tableName == 'checksheet_master_images') ? 'id' : 'uid';
+
+    // 2. สร้าง Trigger สำหรับ AFTER UPDATE
+    final triggerName = 'update_${tableName}_${columnName}';
+    await m.database.customStatement('''
+      CREATE TRIGGER IF NOT EXISTS $triggerName
+      AFTER UPDATE ON $tableName
+      FOR EACH ROW
+      BEGIN
+        -- 3. ใช้ primaryKeyColumn ที่เลือกไว้
+        UPDATE $tableName SET $columnName = STRFTIME('%Y-%m-%dT%H:%M:%f', 'now') WHERE $primaryKeyColumn = OLD.$primaryKeyColumn;
+      END;
+      ''');
+
+    // 4. สร้าง Trigger สำหรับ AFTER INSERT
+    final insertTriggerName = 'update_${tableName}_${columnName}_on_insert';
+    await m.database.customStatement('''
+      CREATE TRIGGER IF NOT EXISTS $insertTriggerName
+      AFTER INSERT ON $tableName
+      FOR EACH ROW
+      BEGIN
+        -- 5. ใช้ primaryKeyColumn ที่เลือกไว้
+        UPDATE $tableName SET $columnName = STRFTIME('%Y-%m-%dT%H:%M:%f', 'now') WHERE $primaryKeyColumn = NEW.$primaryKeyColumn;
+      END;
+      ''');
+  }
 
   // Helper method to create triggers for all tables
   Future<void> _createAllUpdatedAtTriggers(Migrator m) async {
@@ -172,6 +214,6 @@ class AppDatabase extends _$AppDatabase {
     await _createUpdatedAtTrigger(m, 'syncs', 'updatedAt');
     await _createUpdatedAtTrigger(m, 'users', 'updatedAt');
     await _createUpdatedAtTrigger(m, 'images', 'updatedAt');
-    await _createUpdatedAtTrigger(m, 'checksheet_master_image', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'checksheet_master_images', 'updatedAt');
   }
 }

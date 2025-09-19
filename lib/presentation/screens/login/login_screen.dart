@@ -96,6 +96,8 @@ class _LoginScreenState extends State<LoginScreen> {
       // Ensure widget is still mounted
       // Handle sync message/error after sync completes
       if (viewModel.syncMessage != null) {
+        final messageToShow = viewModel.syncMessage!;
+
         bool isError =
             viewModel.syncMessage!.toLowerCase().contains('failed') ||
                 viewModel.syncMessage!.toLowerCase().contains('error');
@@ -106,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
             builder: (BuildContext dialogContext) {
               return ErrorDialog(
                 title: 'ข้อผิดพลาดในการซิงค์ข้อมูล',
-                message: viewModel.syncMessage!,
+                message: messageToShow,
               );
             },
           );

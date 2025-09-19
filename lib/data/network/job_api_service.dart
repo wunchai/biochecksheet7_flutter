@@ -1,11 +1,13 @@
 // lib/data/network/job_api_service.dart
 import 'dart:convert';
+import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 //import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart'; // สำหรับ DbJob
 
-const String _baseUrl =
-    "http://10.1.200.26/ServiceJson/Service4.svc"; // URL เดียวกันกับ UserApiService
+//const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc"; // URL เดียวกันกับ UserApiService
+
+final String _baseUrl = AppConfig.baseUrl;
 
 class JobApiService {
   Future<List<DbJob>> syncJobs() async {

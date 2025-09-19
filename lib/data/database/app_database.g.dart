@@ -7494,6 +7494,14 @@ class $CheckSheetMasterImagesTable extends CheckSheetMasterImages
   late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
       'updatedAt', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _newImageMeta =
+      const VerificationMeta('newImage');
+  @override
+  late final GeneratedColumn<int> newImage = GeneratedColumn<int>(
+      'newImage', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -7506,7 +7514,8 @@ class $CheckSheetMasterImagesTable extends CheckSheetMasterImages
         createBy,
         lastSync,
         syncStatus,
-        updatedAt
+        updatedAt,
+        newImage
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -7566,6 +7575,10 @@ class $CheckSheetMasterImagesTable extends CheckSheetMasterImages
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
     }
+    if (data.containsKey('newImage')) {
+      context.handle(_newImageMeta,
+          newImage.isAcceptableOrUnknown(data['newImage']!, _newImageMeta));
+    }
     return context;
   }
 
@@ -7598,6 +7611,8 @@ class $CheckSheetMasterImagesTable extends CheckSheetMasterImages
           .read(DriftSqlType.int, data['${effectivePrefix}syncStatus']),
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
+      newImage: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}newImage'])!,
     );
   }
 
@@ -7620,6 +7635,7 @@ class DbCheckSheetMasterImage extends DataClass
   final DateTime? lastSync;
   final int? syncStatus;
   final String? updatedAt;
+  final int newImage;
   const DbCheckSheetMasterImage(
       {required this.id,
       this.machineId,
@@ -7631,7 +7647,8 @@ class DbCheckSheetMasterImage extends DataClass
       this.createBy,
       this.lastSync,
       this.syncStatus,
-      this.updatedAt});
+      this.updatedAt,
+      required this.newImage});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -7666,6 +7683,7 @@ class DbCheckSheetMasterImage extends DataClass
     if (!nullToAbsent || updatedAt != null) {
       map['updatedAt'] = Variable<String>(updatedAt);
     }
+    map['newImage'] = Variable<int>(newImage);
     return map;
   }
 
@@ -7697,6 +7715,7 @@ class DbCheckSheetMasterImage extends DataClass
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
+      newImage: Value(newImage),
     );
   }
 
@@ -7715,6 +7734,7 @@ class DbCheckSheetMasterImage extends DataClass
       lastSync: serializer.fromJson<DateTime?>(json['lastSync']),
       syncStatus: serializer.fromJson<int?>(json['syncStatus']),
       updatedAt: serializer.fromJson<String?>(json['updatedAt']),
+      newImage: serializer.fromJson<int>(json['newImage']),
     );
   }
   @override
@@ -7732,6 +7752,7 @@ class DbCheckSheetMasterImage extends DataClass
       'lastSync': serializer.toJson<DateTime?>(lastSync),
       'syncStatus': serializer.toJson<int?>(syncStatus),
       'updatedAt': serializer.toJson<String?>(updatedAt),
+      'newImage': serializer.toJson<int>(newImage),
     };
   }
 
@@ -7746,7 +7767,8 @@ class DbCheckSheetMasterImage extends DataClass
           Value<String?> createBy = const Value.absent(),
           Value<DateTime?> lastSync = const Value.absent(),
           Value<int?> syncStatus = const Value.absent(),
-          Value<String?> updatedAt = const Value.absent()}) =>
+          Value<String?> updatedAt = const Value.absent(),
+          int? newImage}) =>
       DbCheckSheetMasterImage(
         id: id ?? this.id,
         machineId: machineId.present ? machineId.value : this.machineId,
@@ -7759,6 +7781,7 @@ class DbCheckSheetMasterImage extends DataClass
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
         syncStatus: syncStatus.present ? syncStatus.value : this.syncStatus,
         updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+        newImage: newImage ?? this.newImage,
       );
   DbCheckSheetMasterImage copyWithCompanion(
       CheckSheetMasterImagesCompanion data) {
@@ -7776,6 +7799,7 @@ class DbCheckSheetMasterImage extends DataClass
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      newImage: data.newImage.present ? data.newImage.value : this.newImage,
     );
   }
 
@@ -7792,14 +7816,15 @@ class DbCheckSheetMasterImage extends DataClass
           ..write('createBy: $createBy, ')
           ..write('lastSync: $lastSync, ')
           ..write('syncStatus: $syncStatus, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('newImage: $newImage')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, machineId, jobId, tagId, path, status,
-      createDate, createBy, lastSync, syncStatus, updatedAt);
+      createDate, createBy, lastSync, syncStatus, updatedAt, newImage);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -7814,7 +7839,8 @@ class DbCheckSheetMasterImage extends DataClass
           other.createBy == this.createBy &&
           other.lastSync == this.lastSync &&
           other.syncStatus == this.syncStatus &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.newImage == this.newImage);
 }
 
 class CheckSheetMasterImagesCompanion
@@ -7830,6 +7856,7 @@ class CheckSheetMasterImagesCompanion
   final Value<DateTime?> lastSync;
   final Value<int?> syncStatus;
   final Value<String?> updatedAt;
+  final Value<int> newImage;
   const CheckSheetMasterImagesCompanion({
     this.id = const Value.absent(),
     this.machineId = const Value.absent(),
@@ -7842,6 +7869,7 @@ class CheckSheetMasterImagesCompanion
     this.lastSync = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.newImage = const Value.absent(),
   });
   CheckSheetMasterImagesCompanion.insert({
     this.id = const Value.absent(),
@@ -7855,6 +7883,7 @@ class CheckSheetMasterImagesCompanion
     this.lastSync = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.newImage = const Value.absent(),
   });
   static Insertable<DbCheckSheetMasterImage> custom({
     Expression<int>? id,
@@ -7868,6 +7897,7 @@ class CheckSheetMasterImagesCompanion
     Expression<DateTime>? lastSync,
     Expression<int>? syncStatus,
     Expression<String>? updatedAt,
+    Expression<int>? newImage,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -7881,6 +7911,7 @@ class CheckSheetMasterImagesCompanion
       if (lastSync != null) 'lastSync': lastSync,
       if (syncStatus != null) 'syncStatus': syncStatus,
       if (updatedAt != null) 'updatedAt': updatedAt,
+      if (newImage != null) 'newImage': newImage,
     });
   }
 
@@ -7895,7 +7926,8 @@ class CheckSheetMasterImagesCompanion
       Value<String?>? createBy,
       Value<DateTime?>? lastSync,
       Value<int?>? syncStatus,
-      Value<String?>? updatedAt}) {
+      Value<String?>? updatedAt,
+      Value<int>? newImage}) {
     return CheckSheetMasterImagesCompanion(
       id: id ?? this.id,
       machineId: machineId ?? this.machineId,
@@ -7908,6 +7940,7 @@ class CheckSheetMasterImagesCompanion
       lastSync: lastSync ?? this.lastSync,
       syncStatus: syncStatus ?? this.syncStatus,
       updatedAt: updatedAt ?? this.updatedAt,
+      newImage: newImage ?? this.newImage,
     );
   }
 
@@ -7947,6 +7980,9 @@ class CheckSheetMasterImagesCompanion
     if (updatedAt.present) {
       map['updatedAt'] = Variable<String>(updatedAt.value);
     }
+    if (newImage.present) {
+      map['newImage'] = Variable<int>(newImage.value);
+    }
     return map;
   }
 
@@ -7963,7 +7999,8 @@ class CheckSheetMasterImagesCompanion
           ..write('createBy: $createBy, ')
           ..write('lastSync: $lastSync, ')
           ..write('syncStatus: $syncStatus, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('newImage: $newImage')
           ..write(')'))
         .toString();
   }
@@ -11256,6 +11293,7 @@ typedef $$CheckSheetMasterImagesTableCreateCompanionBuilder
   Value<DateTime?> lastSync,
   Value<int?> syncStatus,
   Value<String?> updatedAt,
+  Value<int> newImage,
 });
 typedef $$CheckSheetMasterImagesTableUpdateCompanionBuilder
     = CheckSheetMasterImagesCompanion Function({
@@ -11270,6 +11308,7 @@ typedef $$CheckSheetMasterImagesTableUpdateCompanionBuilder
   Value<DateTime?> lastSync,
   Value<int?> syncStatus,
   Value<String?> updatedAt,
+  Value<int> newImage,
 });
 
 class $$CheckSheetMasterImagesTableFilterComposer
@@ -11313,6 +11352,9 @@ class $$CheckSheetMasterImagesTableFilterComposer
 
   ColumnFilters<String> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get newImage => $composableBuilder(
+      column: $table.newImage, builder: (column) => ColumnFilters(column));
 }
 
 class $$CheckSheetMasterImagesTableOrderingComposer
@@ -11356,6 +11398,9 @@ class $$CheckSheetMasterImagesTableOrderingComposer
 
   ColumnOrderings<String> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get newImage => $composableBuilder(
+      column: $table.newImage, builder: (column) => ColumnOrderings(column));
 }
 
 class $$CheckSheetMasterImagesTableAnnotationComposer
@@ -11399,6 +11444,9 @@ class $$CheckSheetMasterImagesTableAnnotationComposer
 
   GeneratedColumn<String> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get newImage =>
+      $composableBuilder(column: $table.newImage, builder: (column) => column);
 }
 
 class $$CheckSheetMasterImagesTableTableManager extends RootTableManager<
@@ -11443,6 +11491,7 @@ class $$CheckSheetMasterImagesTableTableManager extends RootTableManager<
             Value<DateTime?> lastSync = const Value.absent(),
             Value<int?> syncStatus = const Value.absent(),
             Value<String?> updatedAt = const Value.absent(),
+            Value<int> newImage = const Value.absent(),
           }) =>
               CheckSheetMasterImagesCompanion(
             id: id,
@@ -11456,6 +11505,7 @@ class $$CheckSheetMasterImagesTableTableManager extends RootTableManager<
             lastSync: lastSync,
             syncStatus: syncStatus,
             updatedAt: updatedAt,
+            newImage: newImage,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -11469,6 +11519,7 @@ class $$CheckSheetMasterImagesTableTableManager extends RootTableManager<
             Value<DateTime?> lastSync = const Value.absent(),
             Value<int?> syncStatus = const Value.absent(),
             Value<String?> updatedAt = const Value.absent(),
+            Value<int> newImage = const Value.absent(),
           }) =>
               CheckSheetMasterImagesCompanion.insert(
             id: id,
@@ -11482,6 +11533,7 @@ class $$CheckSheetMasterImagesTableTableManager extends RootTableManager<
             lastSync: lastSync,
             syncStatus: syncStatus,
             updatedAt: updatedAt,
+            newImage: newImage,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

@@ -40,6 +40,7 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.22
   sqlite3: ^2.3.0
   path_provider: ^2.1.1 # Helps find appropriate locations for storing files (like databases)
+  path_provider_windows: ^2.3.0
   path: ^1.8.3 # Utility for path manipulation
   http: ^1.1.0
   
@@ -47,14 +48,12 @@ dependencies:
   json_annotation: ^4.8.1 # Annotations for code generation to/from JSON
 
   # State Management (you can choose others later if preferred, e.g., BLoC, Riverpod)
-  provider: ^6.0.5 # A popular and easy-to-use state management solution
+  provider: ^6.0.5 # A popular and easy-to-use state ma`agement solution
 
   # Charts (MPAndroidChart equivalent)
   fl_chart: ^1.0.0 # A powerful Flutter chart library
 
-  # Permissions handling
-  permission_handler: ^12.0.0+1 # For requesting and checking platform permissions
-
+  
   # Background tasks (for SyncService equivalent)
   workmanager: ^0.6.0 # A plugin for running background tasks (Android and iOS)
   flutter_launcher_icons: ^0.14.4
@@ -74,6 +73,13 @@ dependencies:
   package_info_plus: ^8.0.0 # สำหรับ App Version
   network_info_plus: ^6.1.4 # <<< CRUCIAL FIX: Downgrade version to ^6.1.4
   intl: ^0.19.0 # สำหรับ DateFormat
+  image_editor_plus: ^1.0.6
+ 
+
+dependency_overrides:
+  screenshot: ^3.0.0
+  # Permissions handling
+  permission_handler: ^12.0.0+1 # For requesting and checking platform permissions
 
 dev_dependencies:
   flutter_test:
@@ -92,8 +98,7 @@ dev_dependencies:
   json_serializable: ^6.7.1 # Code generator for json_annotation
   
   
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
+
 
 # The following section is specific to Flutter packages.
 flutter:
