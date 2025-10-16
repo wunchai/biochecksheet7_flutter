@@ -218,248 +218,260 @@ class _DocumentRecordScreenState extends State<DocumentRecordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // ใช้ DocumentRecordAppBar ที่สร้างขึ้นมา
-      appBar: DocumentRecordAppBar(
-        title: widget.title,
-        searchController: _searchController,
-        onRefreshPressed: () {
-          Provider.of<DocumentRecordViewModel>(context, listen: false)
-              .refreshRecords();
-        },
-        onSavePressed: () {
-          final viewModel =
-              Provider.of<DocumentRecordViewModel>(context, listen: false);
-          viewModel.saveAllChanges(
-            allControllers: _controllers,
-            allComboBoxValues: _selectedComboBoxValues,
-          );
-        },
-      ),
-      body: Consumer<DocumentRecordViewModel>(
-        builder: (context, viewModel, child) {
-          if (viewModel.syncMessage != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(viewModel.syncMessage!)),
-              );
-              viewModel.syncMessage = null;
-            });
-          }
+        // ใช้ DocumentRecordAppBar ที่สร้างขึ้นมา
+        appBar: DocumentRecordAppBar(
+          title: widget.title,
+          searchController: _searchController,
+          onRefreshPressed: () {
+            Provider.of<DocumentRecordViewModel>(context, listen: false)
+                .refreshRecords();
+          },
+          onSavePressed: () {
+            final viewModel =
+                Provider.of<DocumentRecordViewModel>(context, listen: false);
+            viewModel.saveAllChanges(
+              allControllers: _controllers,
+              allComboBoxValues: _selectedComboBoxValues,
+            );
+          },
+        ),
+        body: SafeArea(
+          child: Consumer<DocumentRecordViewModel>(
+            builder: (context, viewModel, child) {
+              if (viewModel.syncMessage != null) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(viewModel.syncMessage!)),
+                  );
+                  viewModel.syncMessage = null;
+                });
+              }
 
-          return Stack(
-            children: [
-              Column(
+              return Stack(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      viewModel.statusMessage,
-                      style: const TextStyle(
-                          fontSize: 12.0,
-                          color: Colors.black), // ตัวอย่าง: ขนาด 16.0 สีดำ
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: StreamBuilder<List<DocumentRecordWithTagAndProblem>>(
-                      stream: viewModel.recordsStream,
-                      builder: (context, snapshot) {
-                        if (viewModel.isLoading && !snapshot.hasData) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        } else if (snapshot.hasError) {
-                          return Center(
-                              child: Text('ข้อผิดพลาด: ${snapshot.error}'));
-                        } else if (!snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return const Center(
-                              child: Text(
-                                  'ไม่พบบันทึกสำหรับเอกสารและเครื่องจักรนี้.'));
-                        } else {
-                          final records = snapshot.data!;
-                          return ListView.builder(
-                            itemCount: records.length,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0, vertical: 4.0),
-                            itemBuilder: (context, index) {
-                              final recordWithTag = records[index];
-                              final DbDocumentRecord record =
-                                  recordWithTag.documentRecord;
-                              final DbJobTag? jobTag = recordWithTag.jobTag;
-                              final DbProblem? problem = null;
-                              // Determine if input fields should be read-only (if status is 2)
-                              final bool isRecordReadOnly = record.status == 2;
+                  Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          viewModel.statusMessage,
+                          style: const TextStyle(
+                              fontSize: 12.0,
+                              color: Colors.black), // ตัวอย่าง: ขนาด 16.0 สีดำ
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Expanded(
+                        child: StreamBuilder<
+                            List<DocumentRecordWithTagAndProblem>>(
+                          stream: viewModel.recordsStream,
+                          builder: (context, snapshot) {
+                            if (viewModel.isLoading && !snapshot.hasData) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('ข้อผิดพลาด: ${snapshot.error}'));
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const Center(
+                                  child: Text(
+                                      'ไม่พบบันทึกสำหรับเอกสารและเครื่องจักรนี้.'));
+                            } else {
+                              final records = snapshot.data!;
+                              return ListView.builder(
+                                itemCount: records.length,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 4.0),
+                                itemBuilder: (context, index) {
+                                  final recordWithTag = records[index];
+                                  final DbDocumentRecord record =
+                                      recordWithTag.documentRecord;
+                                  final DbJobTag? jobTag = recordWithTag.jobTag;
+                                  final DbProblem? problem = null;
+                                  // Determine if input fields should be read-only (if status is 2)
+                                  final bool isRecordReadOnly =
+                                      record.status == 2;
 
-                              return Card(
-                                margin:
-                                    const EdgeInsets.symmetric(vertical: 8.0),
-                                elevation: 4.0,
-                                child: InkWell(
-                                  onTap: () {
-                                    _showRecordDetailsDialog(
-                                        context, recordWithTag);
-                                  },
-                                  onLongPress: () {
-                                    _showRecordDetailsDialog(
-                                        context, recordWithTag);
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
+                                  return Card(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 8.0),
+                                    elevation: 4.0,
+                                    child: InkWell(
+                                      onTap: () {
+                                        _showRecordDetailsDialog(
+                                            context, recordWithTag);
+                                      },
+                                      onLongPress: () {
+                                        _showRecordDetailsDialog(
+                                            context, recordWithTag);
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            Expanded(
-                                              child: Text(
-                                                jobTag?.tagName ?? 'N/A',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .titleMedium
-                                                    ?.copyWith(
-                                                        fontWeight:
-                                                            FontWeight.bold),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    jobTag?.tagName ?? 'N/A',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .titleMedium
+                                                        ?.copyWith(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                  ),
+                                                ),
+                                                // Local Chart Button (only for Number type tags)
+                                                if (jobTag?.tagType == 'Number')
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                        Icons.show_chart),
+                                                    onPressed: () {
+                                                      _showChartDialog(
+                                                          context,
+                                                          record.tagId ?? '',
+                                                          jobTag,
+                                                          viewModel);
+                                                    },
+                                                  ),
+                                                // Online Chart Button (only for Number type tags)
+                                                if (jobTag?.tagType == 'Number')
+                                                  IconButton(
+                                                    icon: const Icon(Icons
+                                                        .history), // Example icon for history
+                                                    onPressed: () {
+                                                      _showOnlineChartDialog(
+                                                          context,
+                                                          record.tagId ?? '',
+                                                          jobTag,
+                                                          viewModel);
+                                                    },
+                                                  ),
+                                                // NEW: Image Button (for any tag type)
+                                                IconButton(
+                                                  icon: const Icon(Icons
+                                                      .image), // Icon for image
+                                                  onPressed: () {
+                                                    // Disable if read-only
+                                                    final bool
+                                                        isImageScreenReadOnly =
+                                                        record.status ==
+                                                            2; // <<< NEW: Calculate isReadOnly for ImageScreen
+                                                    print(
+                                                        'DocumentRecordScreen: Image button pressed for DocID: "${widget.documentId}", Tag ID: "${record.tagId}", IsImageScreenReadOnly: $isImageScreenReadOnly');
+
+                                                    // Navigate to ImageRecordScreen, passing all relevant IDs
+                                                    Navigator.pushNamed(
+                                                      context,
+                                                      '/image_record',
+                                                      arguments: {
+                                                        'title':
+                                                            'รูปภาพ: ${jobTag?.tagName ?? 'N/A'}',
+                                                        'documentId':
+                                                            widget.documentId,
+                                                        'machineId':
+                                                            widget.machineId,
+                                                        'jobId': widget.jobId,
+                                                        'tagId': record
+                                                            .tagId, // Pass the tagId of this record
+                                                        'problemId':
+                                                            null, // No problemId for regular document records
+                                                        'isReadOnly':
+                                                            isImageScreenReadOnly, // <<< NEW: Pass isReadOnly
+                                                      },
+                                                    );
+                                                    print(
+                                                        'Image button pressed for Tag ID: ${record.tagId}');
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8.0),
+
+                                            _buildInputField(context, record,
+                                                jobTag, problem, viewModel,
+                                                isRecordReadOnly:
+                                                    isRecordReadOnly),
+
+                                            if (record.value != null &&
+                                                record.value!.isNotEmpty)
+                                              Text(
+                                                  'ค่าปัจจุบัน: ${record.value}',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall),
+
+                                            // Button for Remark (only if not read-only)
+                                            Align(
+                                              alignment: Alignment.centerRight,
+                                              child: TextButton(
+                                                onPressed: isRecordReadOnly
+                                                    ? null
+                                                    : () =>
+                                                        _showRemarkInputDialog(
+                                                            context,
+                                                            record,
+                                                            viewModel),
+                                                child: Text(
+                                                  record.remark != null &&
+                                                          record.remark!
+                                                              .isNotEmpty
+                                                      ? 'แก้ไขหมายเหตุ'
+                                                      : 'เพิ่มหมายเหตุ',
+                                                ),
                                               ),
                                             ),
-                                            // Local Chart Button (only for Number type tags)
-                                            if (jobTag?.tagType == 'Number')
-                                              IconButton(
-                                                icon: const Icon(
-                                                    Icons.show_chart),
-                                                onPressed: () {
-                                                  _showChartDialog(
-                                                      context,
-                                                      record.tagId ?? '',
-                                                      jobTag,
-                                                      viewModel);
-                                                },
-                                              ),
-                                            // Online Chart Button (only for Number type tags)
-                                            if (jobTag?.tagType == 'Number')
-                                              IconButton(
-                                                icon: const Icon(Icons
-                                                    .history), // Example icon for history
-                                                onPressed: () {
-                                                  _showOnlineChartDialog(
-                                                      context,
-                                                      record.tagId ?? '',
-                                                      jobTag,
-                                                      viewModel);
-                                                },
-                                              ),
-                                            // NEW: Image Button (for any tag type)
-                                            IconButton(
-                                              icon: const Icon(Icons
-                                                  .image), // Icon for image
-                                              onPressed: () {
-                                                // Disable if read-only
-                                                final bool
-                                                    isImageScreenReadOnly =
-                                                    record.status ==
-                                                        2; // <<< NEW: Calculate isReadOnly for ImageScreen
-                                                print(
-                                                    'DocumentRecordScreen: Image button pressed for DocID: "${widget.documentId}", Tag ID: "${record.tagId}", IsImageScreenReadOnly: $isImageScreenReadOnly');
-
-                                                // Navigate to ImageRecordScreen, passing all relevant IDs
-                                                Navigator.pushNamed(
-                                                  context,
-                                                  '/image_record',
-                                                  arguments: {
-                                                    'title':
-                                                        'รูปภาพ: ${jobTag?.tagName ?? 'N/A'}',
-                                                    'documentId':
-                                                        widget.documentId,
-                                                    'machineId':
-                                                        widget.machineId,
-                                                    'jobId': widget.jobId,
-                                                    'tagId': record
-                                                        .tagId, // Pass the tagId of this record
-                                                    'problemId':
-                                                        null, // No problemId for regular document records
-                                                    'isReadOnly':
-                                                        isImageScreenReadOnly, // <<< NEW: Pass isReadOnly
-                                                  },
-                                                );
-                                                print(
-                                                    'Image button pressed for Tag ID: ${record.tagId}');
-                                              },
+                                            // Optional: Display current remark if it exists (for quick glance)
+                                            if (record.remark != null &&
+                                                record.remark!.isNotEmpty)
+                                              Text('หมายเหตุ: ${record.remark}',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall),
+                                            // Display record status
+                                            Align(
+                                              alignment: Alignment.centerRight,
+                                              child: Text(
+                                                  'สถานะ: ${record.status}',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                          fontWeight:
+                                                              FontWeight.bold)),
                                             ),
                                           ],
                                         ),
-                                        const SizedBox(height: 8.0),
-
-                                        _buildInputField(context, record,
-                                            jobTag, problem, viewModel,
-                                            isRecordReadOnly: isRecordReadOnly),
-
-                                        if (record.value != null &&
-                                            record.value!.isNotEmpty)
-                                          Text('ค่าปัจจุบัน: ${record.value}',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall),
-
-                                        // Button for Remark (only if not read-only)
-                                        Align(
-                                          alignment: Alignment.centerRight,
-                                          child: TextButton(
-                                            onPressed: isRecordReadOnly
-                                                ? null
-                                                : () => _showRemarkInputDialog(
-                                                    context, record, viewModel),
-                                            child: Text(
-                                              record.remark != null &&
-                                                      record.remark!.isNotEmpty
-                                                  ? 'แก้ไขหมายเหตุ'
-                                                  : 'เพิ่มหมายเหตุ',
-                                            ),
-                                          ),
-                                        ),
-                                        // Optional: Display current remark if it exists (for quick glance)
-                                        if (record.remark != null &&
-                                            record.remark!.isNotEmpty)
-                                          Text('หมายเหตุ: ${record.remark}',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall),
-                                        // Display record status
-                                        Align(
-                                          alignment: Alignment.centerRight,
-                                          child: Text('สถานะ: ${record.status}',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall
-                                                  ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold)),
-                                        ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ),
+                                  );
+                                },
                               );
-                            },
-                          );
-                        }
-                      },
-                    ),
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
+                  if (viewModel.isLoading)
+                    Container(
+                      color: Colors.black.withOpacity(0.5),
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(),
+                    ),
                 ],
-              ),
-              if (viewModel.isLoading)
-                Container(
-                  color: Colors.black.withOpacity(0.5),
-                  alignment: Alignment.center,
-                  child: const CircularProgressIndicator(),
-                ),
-            ],
-          );
-        },
-      ),
-    );
+              );
+            },
+          ),
+        ));
   }
 
   // --- Helper method to build dynamic input fields based on tagType ---

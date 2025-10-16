@@ -99,7 +99,7 @@ class ChecksheetImageApiService {
   Future<bool> uploadNewMasterImage(
       DbCheckSheetMasterImage imageRecord, File imageFile) async {
     final uri = Uri.parse(
-        '$_baseUrl/CheckSheet_MasterImage_Upload'); // <<< Endpoint ใหม่สำหรับ Upload
+        '$_baseUrl/api/CheckSheet_MasterImage_Upload'); // <<< Endpoint ใหม่สำหรับ Upload
     debugPrint("Uploading new master image for TagId: ${imageRecord.tagId}");
 
     try {

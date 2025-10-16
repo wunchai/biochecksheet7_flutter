@@ -330,38 +330,41 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
                         ),
                       ),
                       // Navigation Controls
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0, vertical: 8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: viewModel.currentPage > 0
-                                  ? viewModel.navigateToPreviousPage
-                                  : null,
-                              icon: const Icon(Icons.arrow_back),
-                              label: const Text('ย้อนกลับ'),
-                            ),
-                            if (records.isNotEmpty)
-                              Text(
-                                '${viewModel.currentPage + 1} / ${records.length}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(fontWeight: FontWeight.bold),
+                      SafeArea(
+                        top: false, // เราไม่ต้องการให้มันเว้นที่ด้านบน
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: viewModel.currentPage > 0
+                                    ? viewModel.navigateToPreviousPage
+                                    : null,
+                                icon: const Icon(Icons.arrow_back),
+                                label: const Text('ย้อนกลับ'),
                               ),
-                            ElevatedButton.icon(
-                              onPressed:
-                                  viewModel.currentPage < records.length - 1
-                                      ? viewModel.navigateToNextPage
-                                      : null,
-                              icon: const Icon(Icons.arrow_forward),
-                              label: const Text('ถัดไป'),
-                            ),
-                          ],
+                              if (records.isNotEmpty)
+                                Text(
+                                  '${viewModel.currentPage + 1} / ${records.length}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                              ElevatedButton.icon(
+                                onPressed:
+                                    viewModel.currentPage < records.length - 1
+                                        ? viewModel.navigateToNextPage
+                                        : null,
+                                icon: const Icon(Icons.arrow_forward),
+                                label: const Text('ถัดไป'),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      )
                     ],
                   );
                 },

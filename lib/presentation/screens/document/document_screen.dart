@@ -53,6 +53,7 @@ class _DocumentScreenState extends State<DocumentScreen> {
         .setSearchQuery(_searchController.text);
   }
 
+/*
   // แสดง Dialog สำหรับสร้างเอกสารใหม่
   Future<void> _showCreateNewDocumentDialog(
       BuildContext context, DocumentViewModel viewModel) async {
@@ -97,6 +98,58 @@ class _DocumentScreenState extends State<DocumentScreen> {
                     Navigator.of(context).pop(); // ปิด Dialog หากสร้างสำเร็จ
                   } else {
                     // จัดการข้อผิดพลาด (Snackbar แสดงโดย ViewModel แล้ว)
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+*/
+
+  Future<void> _showCreateNewDocumentDialog(
+      BuildContext context, DocumentViewModel viewModel) async {
+    // 1. สร้างวันที่และเวลาที่จัดรูปแบบแล้ว
+    final String formattedDate =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+
+    // 2. กำหนดค่าเริ่มต้นให้กับ Controller
+    final TextEditingController documentIdController =
+        TextEditingController(text: formattedDate);
+
+    await showDialog<void>(
+      // เปลี่ยนเป็น void เพราะเราจัดการทุกอย่างข้างใน
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('สร้างเอกสารใหม่'),
+          content: TextField(
+            autofocus: true,
+            controller: documentIdController, // ใช้ Controller
+            decoration: const InputDecoration(hintText: 'ชื่อเอกสาร'),
+            // --- <<< 3. ลบ onChanged ที่ไม่จำเป็นออกไป >>> ---
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('ยกเลิก'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('สร้าง'),
+              onPressed: () async {
+                // --- <<< 4. อ่านค่าจาก Controller โดยตรง >>> ---
+                final String documentName = documentIdController.text;
+
+                if (documentName.isNotEmpty) {
+                  final success =
+                      await viewModel.createNewDocument(documentName);
+                  if (success && context.mounted) {
+                    Navigator.of(context).pop(); // ปิด Dialog หากสร้างสำเร็จ
                   }
                 }
               },

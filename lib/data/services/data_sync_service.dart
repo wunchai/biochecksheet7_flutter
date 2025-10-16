@@ -712,6 +712,7 @@ class DataSyncService {
     }
   }
 
+/*
   // เพิ่มฟังก์ชันนี้เข้าไปใน Class DataSyncService
   Future<SyncStatus> performMasterImageUploadSync() async {
     try {
@@ -722,6 +723,20 @@ class DataSyncService {
       return SyncError(
           exception: e,
           message: 'ข้อผิดพลาดในการอัปโหลดรูปภาพ Master ใหม่: $e');
+    }
+  }
+  */
+  /// === ฟังก์ชันใหม่: สำหรับ Upload Master Image โดยเฉพาะ ===
+  Future<SyncStatus> performMasterImageUploadSync(
+      {required Function(int, int) onProgress}) async {
+    try {
+      await _checksheetImageRepository.uploadNewMasterImages(
+          onProgress: onProgress);
+      return const SyncSuccess(message: 'อัปโหลดรูปภาพใหม่สำเร็จ!');
+    } on Exception catch (e) {
+      print('Error uploading new master images: $e');
+      return SyncError(
+          exception: e, message: 'ข้อผิดพลาดในการอัปโหลดรูปภาพใหม่: $e');
     }
   }
 }

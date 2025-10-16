@@ -128,4 +128,14 @@ class ChecksheetMasterImageDao extends DatabaseAccessor<AppDatabase>
               tbl.tagId.equals(tagId)))
         .watchSingleOrNull(); // <<< เปลี่ยนจาก .get... เป็น .watch...
   }
+
+  // --- <<< ฟังก์ชันใหม่ที่เพิ่มเข้ามา >>> ---
+  /// อัปเดตสถานะของรูปภาพหลังจากอัปโหลดสำเร็จ
+  Future<void> updateStatusAfterUpload(int id) {
+    return (update(checkSheetMasterImages)..where((tbl) => tbl.id.equals(id)))
+        .write(const CheckSheetMasterImagesCompanion(
+      newImage: Value(0), // ตั้งค่า newImage กลับเป็น 0
+      syncStatus: Value(1), // ตั้งค่า syncStatus เป็น 1 (ซิงค์แล้ว)
+    ));
+  }
 }

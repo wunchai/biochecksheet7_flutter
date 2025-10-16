@@ -326,6 +326,7 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
+/*
   /// เริ่มกระบวนการ Sync Master Images และอัปเดต Notifiers
   Future<String> syncMasterImages() async {
     // รีเซ็ตสถานะเริ่มต้น
@@ -355,4 +356,54 @@ class HomeViewModel extends ChangeNotifier {
     return 'การซิงค์สิ้นสุดลง';
   }
   // --- <<< สิ้นสุดส่วนที่เพิ่มใหม่ >>> ---
+  */
+  /// === ฟังก์ชันที่แก้ไข: จัดการทั้งการ Upload และ Download ===
+  Future<String> syncMasterImages() async {
+    // --- ขั้นตอนที่ 1: UPLOAD ---
+    syncProgressNotifier.value = null; // Indeterminate progress
+    syncStatusNotifier.value = 'ขั้นตอนที่ 1/2: กำลังอัปโหลดรูปภาพใหม่...';
+
+    final uploadResult = await _dataSyncService.performMasterImageUploadSync(
+      onProgress: (current, total) {
+        if (total > 0) {
+          syncProgressNotifier.value = current / total;
+          syncStatusNotifier.value =
+              'กำลังอัปโหลดรูปภาพ $current จาก $total...';
+        } else {
+          syncStatusNotifier.value = 'ไม่พบรูปภาพใหม่ที่ต้องอัปโหลด';
+        }
+      },
+    );
+
+    // หากการ Upload ล้มเหลว ให้หยุดทำงานและรายงานผล
+    if (uploadResult is SyncError) {
+      return uploadResult.message ?? 'เกิดข้อผิดพลาดในการอัปโหลด';
+    }
+
+    // --- ขั้นตอนที่ 2: DOWNLOAD ---
+    syncProgressNotifier.value = null; // Reset progress for download
+    syncStatusNotifier.value =
+        'ขั้นตอนที่ 2/2: กำลังดาวน์โหลดรูปภาพจากเซิร์ฟเวอร์...';
+
+    final downloadResult = await _dataSyncService.performMasterImageSync(
+      onProgress: (current, total) {
+        if (total > 0) {
+          syncProgressNotifier.value = current / total;
+          syncStatusNotifier.value =
+              'กำลังดาวน์โหลดรูปภาพ $current จาก $total...';
+        } else {
+          syncStatusNotifier.value = 'ไม่พบรูปภาพใหม่ที่ต้องดาวน์โหลด';
+        }
+      },
+    );
+
+    syncProgressNotifier.value = null;
+
+    if (downloadResult is SyncSuccess) {
+      return 'ซิงค์ข้อมูล Master Image สำเร็จ!';
+    } else if (downloadResult is SyncError) {
+      return downloadResult.message ?? 'เกิดข้อผิดพลาดในการดาวน์โหลด';
+    }
+    return 'การซิงค์สิ้นสุดลง';
+  }
 }

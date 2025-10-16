@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // <<< 1. เพิ่ม Import
 import 'package:provider/provider.dart';
 
 // Import new modular files
@@ -25,8 +26,20 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
 Future<void> main() async {
+  // --- <<< 2. เพิ่มโค้ดส่วนนี้เข้าไป ---
+  // ตรวจสอบให้แน่ใจว่า Flutter Engine พร้อมทำงานแล้ว
+  WidgetsFlutterBinding.ensureInitialized();
+// เปิดใช้งานโหมด Edge-to-Edge
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
   runZonedGuarded<Future<void>>(() async {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // (ทางเลือก) ทำให้ System Bar โปร่งใสเพื่อให้สวยงามยิ่งขึ้น
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      statusBarColor: Colors.transparent,
+    ));
 
     // CRUCIAL FIX: Only initialize Workmanager and related tasks on Android/iOS.
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {

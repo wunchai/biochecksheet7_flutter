@@ -438,6 +438,7 @@ class ChecksheetImageRepository {
     return filePath;
   }
 
+/*
   /// อัปโหลดรูปภาพใหม่ (newImage = 1) ขึ้น Server
   Future<void> uploadNewMasterImages() async {
     try {
@@ -474,6 +475,53 @@ class ChecksheetImageRepository {
     } catch (e) {
       debugPrint(
           'An error occurred during the uploadNewMasterImages process: $e');
+      rethrow;
+    }
+  }
+
+  */
+
+  /// === ฟังก์ชันที่แก้ไข: เพิ่มการรายงานความคืบหน้า และอัปเดตสถานะหลังอัปโหลด ===
+  Future<void> uploadNewMasterImages(
+      {required Function(int current, int total) onProgress}) async {
+    try {
+      final imagesToUpload =
+          await _appDatabase.checksheetMasterImageDao.getImagesToUpload();
+      final total = imagesToUpload.length;
+      debugPrint('Found $total new master images to upload.');
+
+      if (total == 0) {
+        onProgress(0, 0); // แจ้งว่าไม่มีอะไรต้องทำ
+        return;
+      }
+
+      int current = 0;
+      for (final imageRecord in imagesToUpload) {
+        current++;
+        // --- <<< รายงานความคืบหน้าก่อนเริ่มอัปโหลด >>> ---
+        onProgress(current, total);
+
+        try {
+          if (imageRecord.path == null || imageRecord.path!.isEmpty) continue;
+          final imageFile = File(imageRecord.path!);
+          if (!await imageFile.exists()) continue;
+
+          final success =
+              await _apiService.uploadNewMasterImage(imageRecord, imageFile);
+
+          if (success) {
+            // --- <<< อัปเดตสถานะใน Local DB หลังจาก Upload สำเร็จ >>> ---
+            await _appDatabase.checksheetMasterImageDao
+                .updateStatusAfterUpload(imageRecord.id);
+            debugPrint(
+                'Successfully uploaded and updated status for image ID ${imageRecord.id}');
+          }
+        } catch (e) {
+          debugPrint('Failed to upload image ID ${imageRecord.id}. Error: $e');
+        }
+      }
+    } catch (e) {
+      debugPrint('An error occurred during uploadNewMasterImages: $e');
       rethrow;
     }
   }
