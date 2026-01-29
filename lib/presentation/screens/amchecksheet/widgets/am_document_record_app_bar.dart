@@ -12,6 +12,7 @@ class AmDocumentRecordAppBar extends StatefulWidget
   final TextEditingController searchController;
   final VoidCallback onRefreshPressed;
   final VoidCallback onSavePressed;
+  final VoidCallback onImagePressed; // <<< NEW Callback for Image Sync button
 
   const AmDocumentRecordAppBar({
     super.key,
@@ -19,6 +20,7 @@ class AmDocumentRecordAppBar extends StatefulWidget
     required this.searchController,
     required this.onRefreshPressed,
     required this.onSavePressed,
+    required this.onImagePressed, // <<< Add to constructor
   });
 
   @override
@@ -35,6 +37,8 @@ class _AmDocumentRecordAppBarState extends State<AmDocumentRecordAppBar> {
       false; // Internal state for the Post button's enabled status.
   bool _canUploadButtonEnabled =
       false; // Internal state for the Upload button's enabled status.
+  bool _canSaveButtonEnabled =
+      true; // Internal state for the Save button's enabled status.
 
   StreamSubscription<List<DocumentRecordWithTagAndProblem>>?
       _recordsSubscription;
@@ -94,6 +98,10 @@ class _AmDocumentRecordAppBarState extends State<AmDocumentRecordAppBar> {
     if (currentRecords.isEmpty) {
       newCanPost = false;
       newCanUpload = false;
+      // _canSaveButtonEnabled keeps default or previous state if empty?
+      // Let's assume enabled if empty (save nothing = success), or disabled?
+      // Safety: Disable save if empty to avoid confusion.
+      _canSaveButtonEnabled = false;
       print('No records found. Buttons disabled.');
     } else {
       bool allAreStatus1 = true;
@@ -136,11 +144,6 @@ class _AmDocumentRecordAppBarState extends State<AmDocumentRecordAppBar> {
       }
 
       // NEW Logic for Upload button:
-      // It should be enabled if:
-      // A) All records are Status 1 (ready for initial upload, not yet posted)
-      // OR B) All records are Status 2 (already posted, allowing re-upload).
-      // AND C) No records are Status 0 (all must be validated or posted).
-      // This means currentRecords.every((r) => r.documentRecord.status == 1 || r.documentRecord.status == 2)
       if (currentRecords.isNotEmpty && !anyAreStatus0) {
         // If there are records AND NONE are status 0
         if (allAreStatus1 || allAreStatus2) {
@@ -157,6 +160,15 @@ class _AmDocumentRecordAppBarState extends State<AmDocumentRecordAppBar> {
         newCanUpload = false;
         print(
             'Upload button: DISABLED (No records OR some records are Status 0)');
+      }
+
+      // NEW Logic for Save button:
+      // Disable if ALL records are status 2 (Posted/Read-only)
+      if (allAreStatus2 && currentRecords.isNotEmpty) {
+        _canSaveButtonEnabled = false;
+        print('Save button: DISABLED (All records are Posted/Read-only)');
+      } else {
+        _canSaveButtonEnabled = true; // Enabled otherwise
       }
     }
 
@@ -218,12 +230,20 @@ class _AmDocumentRecordAppBarState extends State<AmDocumentRecordAppBar> {
           },
         ),
         IconButton(
+          icon: const Icon(
+              Icons.image), // Image Sync Button (similar to HomeScreen)
+          tooltip: 'Sync Master Images',
+          onPressed: widget.onImagePressed,
+        ),
+        IconButton(
           icon: const Icon(Icons.refresh),
           onPressed: widget.onRefreshPressed,
         ),
         IconButton(
           icon: const Icon(Icons.save),
-          onPressed: widget.onSavePressed,
+          onPressed: (viewModel.isLoading || !_canSaveButtonEnabled)
+              ? null
+              : widget.onSavePressed,
         ),
         // Post Button
         IconButton(

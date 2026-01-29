@@ -21,6 +21,7 @@ import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/inputs/
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/inputs/am_record_problem_input.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/widgets/am_record_detail_dialog.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/widgets/am_remark_input_dialog.dart';
+import 'package:biochecksheet7_flutter/presentation/widgets/sync_progress_dialog.dart'; // Import SyncProgressDialog
 
 class AMChecksheetScreen extends StatefulWidget {
   final String title;
@@ -72,7 +73,34 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
     return controller;
   }
 
-// --- <<< จุดที่แก้ไขสำคัญ: แก้ไขฟังก์ชันเปิด Editor ใหม่ทั้งหมด >>> ---
+  // --- <<< ฟังก์ชันใหม่สำหรับจัดการการกดปุ่ม Sync Master Image >>> ---
+  void _onSyncMasterImagesPressed(
+      BuildContext context, AMChecksheetViewModel viewModel) async {
+    // 1. แสดงหน้าต่าง Progress ทันที
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => SyncProgressDialog(
+        progressNotifier: viewModel.syncProgressNotifier,
+        statusNotifier: viewModel.syncStatusNotifier,
+      ),
+    );
+
+    // 2. เริ่มกระบวนการ Sync (ซึ่งจะใช้เวลา)
+    final String resultMessage = await viewModel.syncMasterImages();
+
+    // 3. เมื่อ Sync เสร็จสิ้น ให้ปิดหน้าต่าง Progress
+    if (context.mounted) Navigator.of(context).pop();
+
+    // 4. แสดงผลลัพธ์สุดท้ายด้วย SnackBar
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(resultMessage)),
+      );
+    }
+  }
+
+  // --- <<< จุดที่แก้ไขสำคัญ: แก้ไขฟังก์ชันเปิด Editor ใหม่ทั้งหมด >>> ---
   Future<void> _openImageEditor(
     BuildContext context,
     AMChecksheetViewModel viewModel,
@@ -270,7 +298,12 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
         if (viewModel.syncMessage != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(viewModel.syncMessage!)),
+              SnackBar(
+                content: Text(viewModel.syncMessage!),
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.only(
+                    bottom: 100.0, left: 16.0, right: 16.0),
+              ),
             );
             viewModel.syncMessage = null; // เคลียร์ข้อความหลังแสดงผล
           });
@@ -289,6 +322,9 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
                 allControllers: _controllers,
                 allComboBoxValues: _selectedComboBoxValues,
               );
+            },
+            onImagePressed: () {
+              _onSyncMasterImagesPressed(context, viewModel);
             },
           ),
           body: Stack(
@@ -632,6 +668,19 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (jobTag?.tagGroupName != null &&
+                        jobTag!.tagGroupName!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4.0),
+                        child: Text(
+                          jobTag.tagGroupName!,
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: Theme.of(context).primaryColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                      ),
                     Text(
                       jobTag?.tagName ?? 'N/A',
                       style: Theme.of(context)
@@ -639,9 +688,26 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
                           .titleLarge
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
+                    if (jobTag?.description != null &&
+                        jobTag!.description!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          jobTag!.description!,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                    if (jobTag?.note != null && jobTag!.note!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          jobTag!.note!,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
                     const SizedBox(height: 4),
                     Text(
-                      'หน่วย: ${jobTag?.unit ?? '-'} | มาตรฐาน: ${jobTag?.unit ?? '-'}',
+                      'หน่วย: ${jobTag?.unit ?? '-'} | มาตรฐาน: ${jobTag?.specMin ?? '-'} - ${jobTag?.specMax ?? '-'}',
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
@@ -733,12 +799,23 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
                     ? null
                     : () => _showRemarkInputDialog(context, record, viewModel),
               ),
-              Text(
-                'สถานะ: ${record.status}',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.grey[700]),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'สถานะ: ${_getStatusText(record.status)}',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: Colors.grey[700]),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    record.syncStatus == 1 ? Icons.cloud_done : Icons.cloud_off,
+                    size: 16,
+                    color: record.syncStatus == 1 ? Colors.green : Colors.grey,
+                  ),
+                ],
               ),
             ],
           ),
@@ -841,5 +918,12 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
           isReadOnly: isRecordReadOnly,
         );
     }
+  }
+
+  String _getStatusText(int? status) {
+    if (status == 0) return 'รอตรวจสอบ';
+    if (status == 1) return 'บันทึกแล้ว';
+    if (status == 2) return 'โพสต์แล้ว';
+    return 'ไม่ทราบสถานะ';
   }
 }

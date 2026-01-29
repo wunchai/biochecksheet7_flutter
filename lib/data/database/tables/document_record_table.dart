@@ -13,6 +13,9 @@ class DocumentRecords extends Table {
   // @ColumnInfo(name = "machineId") var machineId: String? = null
   TextColumn get machineId => text().named('machineId').nullable()();
 
+  TextColumn get orderId =>
+      text().named('OrderId').nullable()(); // NEW: Add OrderId field
+
   // @ColumnInfo(name = "jobId") var jobId: String? = null
   TextColumn get jobId => text().named('jobId').nullable()();
 
@@ -32,7 +35,8 @@ class DocumentRecords extends Table {
   TextColumn get tagGroupName => text().named('TagGroupName').nullable()();
 
   // @ColumnInfo(name = "tagSelectionValue") var tagSelectionValue: String? = null
-  TextColumn get tagSelectionValue => text().named('tagSelectionValue').nullable()();
+  TextColumn get tagSelectionValue =>
+      text().named('tagSelectionValue').nullable()();
 
   // @ColumnInfo(name = "description") var description: String? = null
   TextColumn get description => text().named('description').nullable()();
@@ -65,20 +69,25 @@ class DocumentRecords extends Table {
   TextColumn get remark => text().named('remark').nullable()();
 
   // @ColumnInfo(name = "status") var status: Int = 0
-  IntColumn get status => integer().named('status').withDefault(const Constant(0))();
+  IntColumn get status =>
+      integer().named('status').withDefault(const Constant(0))();
 
   // @ColumnInfo(name = "unReadable") var unReadable: String = "false"
   // In Kotlin, it's a String "false". In Dart, we can map it to a BoolColumn.
   // If you strictly need "true"/"false" strings in DB, use TextColumn.
   // For now, let's keep it as TextColumn to match the exact string storage.
-  TextColumn get unReadable => text().named('unReadable').withDefault(const Constant('false'))();
+  TextColumn get unReadable =>
+      text().named('unReadable').withDefault(const Constant('false'))();
 
   // @ColumnInfo(name = "lastSync") var lastSync: String? = null
   TextColumn get lastSync => text().named('lastSync').nullable()();
 
-  TextColumn get createBy => text().named('CreateBy').nullable()(); 
+  TextColumn get createBy => text().named('CreateBy').nullable()();
 
-  IntColumn get syncStatus => integer().named('syncStatus').withDefault(const Constant(0))(); // Default to 0
+  IntColumn get syncStatus => integer()
+      .named('syncStatus')
+      .withDefault(const Constant(0))(); // Default to 0
 
-   TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
+  TextColumn get updatedAt =>
+      text().named('updatedAt').nullable()(); // Stores ISO 8601 string
 }

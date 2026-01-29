@@ -10,89 +10,114 @@ final String _baseUrl = AppConfig.baseUrl;
 
 class JobTagApiService {
   Future<List<DbJobTag>> syncJobTags() async {
-    final uri = Uri.parse("$_baseUrl/CheckSheet_MasterTag_Sync");
-    print("Syncing job tags with URL: $uri");
-    final headers = {"Content-Type": "application/json"};
-    final Map<String, dynamic> parameterObject = {
-      "username": "000000"
-      // ถ้ามี Password ก็เพิ่ม Password: "your_password"
-    };
-    final body = jsonEncode({
-      "ServiceName": "CheckSheet_MasterTag_Sync",
-      "Paremeter": jsonEncode(parameterObject) // <<< แก้ไขตรงนี้
-    });
-    print("Request body: $body");
-    try {
-      final response = await http.post(uri, headers: headers, body: body);
+    List<DbJobTag> allSyncedTags = [];
+    int pageIndex = 1;
+    const int pageSize = 10;
+    bool hasMoreData = true;
 
-      final String decodedBody =
-          utf8.decode(response.bodyBytes); // <<< แก้ไขตรงนี้
-      print(
-          "Job Sync API Response: $decodedBody"); // Debugging log with decoded body
+    print("Starting batched job tag sync...");
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
-        if (responseJson['Table'] != null && responseJson['Table'] is List) {
-          final List<dynamic> tagList = responseJson['Table'];
-          final List<DbJobTag> syncedTags = tagList.map((tagData) {
-            // Original query string from API
-            final String? originalQueryStr = tagData['QueryStr'];
-            // Convert original query string to drift-compatible snake_case SQL
-            final String? driftCompatibleQueryStr = originalQueryStr != null
-                ? _convertToDriftSql(originalQueryStr) // Call helper function
-                : null;
+    while (hasMoreData) {
+      final uri = Uri.parse("$_baseUrl/CHECKSHEET_MASTERTAG_PAGED_SYNC");
+      print("Syncing job tags page $pageIndex");
 
-            return DbJobTag(
-              uid: 0,
-              machineId: tagData['MachineId']?.toString() ??
-                  '', // Convert int to String
-              jobId:
-                  tagData['JobId']?.toString() ?? '', // Convert int to String
-              tagId:
-                  tagData['TagId']?.toString() ?? '', // Convert int to String
-              tagName: tagData['TagName'] ?? '',
-              tagType: tagData['TagType'] ?? '',
-              tagGroupId: tagData['TagGroupId']?.toString() ??
-                  '', // Convert int to String
-              tagGroupName: tagData['TagGroupName'] ?? '',
-              description: tagData['Description'] ?? '',
-              specification: tagData['Specification'] ?? '',
-              specMin: tagData['SpecMin']?.toString() ??
-                  '', // Convert double to String
-              specMax: tagData['SpecMax']?.toString() ??
-                  '', // Convert double to String
-              unit: tagData['Unit'] ?? '',
-              //queryStr: tagData['QueryStr'] ?? '',
-              queryStr: originalQueryStr, // Store original query string
-              status: int.tryParse(tagData['Status'].toString()) ?? 0,
-              lastSync: DateTime.now().toIso8601String(),
-              note: tagData['Note'] ?? '',
-              value: tagData['Value']?.toString() ??
-                  '', // Convert to String, handle null
-              remark: tagData['Remark'] ?? '',
-              createDate: tagData['CreateDate'] ?? '',
-              createBy: tagData['CreateBy'] ?? '',
-              valueType: tagData['ValueType'] ?? '',
-              tagSelectionValue: tagData['TagSelectionValue'] ?? '',
-              driftQueryStr:
-                  driftCompatibleQueryStr, // <<< NEW: Store drift-compatible SQL
-            );
-          }).toList();
-          return syncedTags;
+      final body = jsonEncode({
+        'userId': '000000',
+        'pageIndex': pageIndex.toString(),
+        'pageSize': pageSize.toString(),
+      });
+
+      try {
+        final response = await http.post(uri,
+            headers: {'Content-Type': 'application/json'}, body: body);
+
+        final String decodedBody = utf8.decode(response.bodyBytes);
+        // print("Job Sync API Response (Page $pageIndex): $decodedBody");
+
+        if (response.statusCode == 200) {
+          // print("#################################");
+          // print(decodedBody);
+
+          final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
+
+          if (responseJson['Jobs'] != null) {
+            final String jobsJsonString = responseJson['Jobs'];
+            final dynamic decodedJobs = jsonDecode(jobsJsonString);
+
+            if (decodedJobs is List) {
+              final List<dynamic> tagList = decodedJobs;
+
+              if (tagList.isEmpty) {
+                hasMoreData = false;
+                break;
+              }
+
+              final List<DbJobTag> syncedTags = tagList.map((tagData) {
+                final String? originalQueryStr = tagData['QueryStr'];
+                final String? driftCompatibleQueryStr = originalQueryStr != null
+                    ? _convertToDriftSql(originalQueryStr)
+                    : null;
+
+                return DbJobTag(
+                  uid: 0,
+                  machineId: tagData['MachineId']?.toString() ?? '',
+                  jobId: tagData['JobId']?.toString() ?? '',
+                  tagId: tagData['TagId']?.toString() ?? '',
+                  tagName: tagData['TagName'] ?? '',
+                  tagType: tagData['TagType'] ?? '',
+                  tagGroupId: tagData['TagGroupId']?.toString() ?? '',
+                  tagGroupName: tagData['TagGroupName'] ?? '',
+                  description: tagData['Description'] ?? '',
+                  specification: tagData['Specification'] ?? '',
+                  specMin: tagData['SpecMin']?.toString() ?? '',
+                  specMax: tagData['SpecMax']?.toString() ?? '',
+                  unit: tagData['Unit'] ?? '',
+                  queryStr: originalQueryStr,
+                  status: int.tryParse(tagData['Status'].toString()) ?? 0,
+                  lastSync: DateTime.now().toIso8601String(),
+                  note: tagData['Note'] ?? '',
+                  value: tagData['Value']?.toString() ?? '',
+                  remark: tagData['Remark'] ?? '',
+                  createDate: tagData['CreateDate'] ?? '',
+                  createBy: tagData['CreateBy'] ?? '',
+                  valueType: tagData['ValueType'] ?? '',
+                  tagSelectionValue: tagData['TagSelectionValue'] ?? '',
+                  orderId: tagData['OrderId']?.toString(), // NEW: Map OrderId
+                  driftQueryStr: driftCompatibleQueryStr,
+                );
+              }).toList();
+
+              allSyncedTags.addAll(syncedTags);
+              print("Fetched ${syncedTags.length} tags from page $pageIndex");
+
+              if (syncedTags.length < pageSize) {
+                hasMoreData = false;
+              } else {
+                pageIndex++;
+              }
+            } else {
+              hasMoreData = false;
+            }
+          } else {
+            // Handle case where Jobs is null
+            hasMoreData = false;
+          }
         } else {
-          throw Exception("Job Tag Sync API response format invalid.");
+          throw Exception(
+              "Job Tag Sync failed: Status code ${response.statusCode}");
         }
-      } else {
-        throw Exception(
-            "Job Tag Sync failed: Status code ${response.statusCode}");
+      } on http.ClientException catch (e) {
+        print("Network error during job tag sync page $pageIndex: ${e}");
+        throw Exception("Network error during job tag sync: ${e.message}");
+      } catch (e) {
+        print(
+            "An unexpected error occurred during job tag sync page $pageIndex: $e");
+        throw Exception("An unexpected error occurred during job tag sync: $e");
       }
-    } on http.ClientException catch (e) {
-      print("Network error during job tag sync: ${e}");
-      throw Exception("Network error during job tag sync: ${e.message}");
-    } catch (e) {
-      print("An unexpected error occurred during job tag sync: $e");
-      throw Exception("An unexpected error occurred during job tag sync: $e");
     }
+
+    print("Total job tags fetched: ${allSyncedTags.length}");
+    return allSyncedTags;
   }
 
   // Helper function to convert SQL from camelCase to snake_case for drift

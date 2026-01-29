@@ -8,12 +8,19 @@ class JobTags extends Table {
   IntColumn get uid => integer().autoIncrement().named('uid')();
 
   // @ColumnInfo(name = "tagId") var tagId: String? = null
-  TextColumn get tagId => text().named('TagId').nullable()(); // NEW: Will map int to String
+  TextColumn get tagId =>
+      text().named('TagId').nullable()(); // NEW: Will map int to String
 
   // @ColumnInfo(name = "jobId") var jobId: String? = null
-  TextColumn get jobId => text().named('JobId').nullable()(); // NEW: Will map int to String
+  TextColumn get jobId =>
+      text().named('JobId').nullable()(); // NEW: Will map int to String
 
-  TextColumn get machineId => text().named('MachineId').nullable()(); // NEW: Add this field and map int to String
+  TextColumn get machineId => text()
+      .named('MachineId')
+      .nullable()(); // NEW: Add this field and map int to String
+
+  TextColumn get orderId =>
+      text().named('OrderId').nullable()(); // NEW: Add OrderId field from API
 
   // @ColumnInfo(name = "tagName") var tagName: String? = null
   TextColumn get tagName => text().named('tagName').nullable()();
@@ -22,7 +29,8 @@ class JobTags extends Table {
   TextColumn get tagType => text().named('tagType').nullable()();
 
   // @ColumnInfo(name = "tagGroupId") var tagGroupId: String? = null
-  TextColumn get tagGroupId => text().named('TagGroupId').nullable()(); // NEW: Will map int to String
+  TextColumn get tagGroupId =>
+      text().named('TagGroupId').nullable()(); // NEW: Will map int to String
 
   // @ColumnInfo(name = "TagGroupName") var tagGroupName: String? = null
   TextColumn get tagGroupName => text().named('TagGroupName').nullable()();
@@ -34,10 +42,12 @@ class JobTags extends Table {
   TextColumn get specification => text().named('specification').nullable()();
 
   // @ColumnInfo(name = "specMin") var specMin : String? = null
-  TextColumn get specMin => text().named('SpecMin').nullable()(); // NEW: Will map double to String
+  TextColumn get specMin =>
+      text().named('SpecMin').nullable()(); // NEW: Will map double to String
 
   // @ColumnInfo(name = "specMax") var specMax : String? = null
-  TextColumn get specMax => text().named('SpecMax').nullable()(); // NEW: Will map double to String
+  TextColumn get specMax =>
+      text().named('SpecMax').nullable()(); // NEW: Will map double to String
 
   // @ColumnInfo(name = "unit") var unit: String? = null
   TextColumn get unit => text().named('unit').nullable()();
@@ -46,21 +56,27 @@ class JobTags extends Table {
   TextColumn get queryStr => text().named('queryStr').nullable()();
 
   // @ColumnInfo(name = "status") var status: Int = 0
-  IntColumn get status => integer().named('status').withDefault(const Constant(0))();
+  IntColumn get status =>
+      integer().named('status').withDefault(const Constant(0))();
 
   // @ColumnInfo(name = "lastSync") var lastSync: String? = null
   TextColumn get lastSync => text().named('lastSync').nullable()();
 
   // NEW: Add driftQueryStr for raw SQL queries with snake_case table/column names
   TextColumn get driftQueryStr => text().named('driftQueryStr').nullable()();
-   // NEW: Add fields from API response
+  // NEW: Add fields from API response
   TextColumn get note => text().named('Note').nullable()();
-  TextColumn get value => text().named('Value').nullable()(); // API has 'Value' as null
+  TextColumn get value =>
+      text().named('Value').nullable()(); // API has 'Value' as null
   TextColumn get remark => text().named('Remark').nullable()();
   TextColumn get createDate => text().named('CreateDate').nullable()();
   TextColumn get createBy => text().named('CreateBy').nullable()();
-  TextColumn get valueType => text().named('ValueType').nullable()(); // API has 'ValueType'
-  TextColumn get tagSelectionValue => text().named('TagSelectionValue').nullable()(); // API has 'TagSelectionValue'
+  TextColumn get valueType =>
+      text().named('ValueType').nullable()(); // API has 'ValueType'
+  TextColumn get tagSelectionValue => text()
+      .named('TagSelectionValue')
+      .nullable()(); // API has 'TagSelectionValue'
 
-  TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
+  TextColumn get updatedAt =>
+      text().named('updatedAt').nullable()(); // Stores ISO 8601 string
 }

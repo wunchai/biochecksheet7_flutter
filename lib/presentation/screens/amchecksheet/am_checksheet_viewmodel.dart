@@ -14,6 +14,8 @@ import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
 import 'package:biochecksheet7_flutter/data/services/image_processing_service.dart';
 import 'package:biochecksheet7_flutter/data/repositories/checksheet_image_repository.dart';
 import 'package:biochecksheet7_flutter/data/network/checksheet_image_api_service.dart';
+import 'package:biochecksheet7_flutter/data/services/data_sync_service.dart'; // Import DataSyncService
+import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // Import SyncStatus
 
 class AMChecksheetViewModel extends ChangeNotifier {
   final DocumentRecordRepository _documentRecordRepository;
@@ -22,6 +24,7 @@ class AMChecksheetViewModel extends ChangeNotifier {
   // เพิ่ม property นี้เข้าไปใน class
   final ImageProcessingService _imageProcessingService;
   final ChecksheetImageRepository _checksheetImageRepository;
+  final DataSyncService _dataSyncService; // Add DataSyncService
 
   // --- ตัวแปรสำหรับจัดการ State ---
   String? _documentId;
@@ -50,6 +53,10 @@ class AMChecksheetViewModel extends ChangeNotifier {
   final Map<int, String?> _recordErrors = {};
   Map<int, String?> get recordErrors => _recordErrors;
 
+  // Sync Progress Notifiers
+  final ValueNotifier<double?> syncProgressNotifier = ValueNotifier(null);
+  final ValueNotifier<String> syncStatusNotifier = ValueNotifier('');
+
   // --- ส่วนจัดการ PageView ---
   int _currentPage = 0;
   int get currentPage => _currentPage;
@@ -64,7 +71,9 @@ class AMChecksheetViewModel extends ChangeNotifier {
         _loginRepository = LoginRepository(),
         _imageProcessingService = ImageProcessingService(),
         _checksheetImageRepository = ChecksheetImageRepository(
-            appDatabase: appDatabase, apiService: ChecksheetImageApiService()) {
+            appDatabase: appDatabase, apiService: ChecksheetImageApiService()),
+        _dataSyncService = DataSyncService(appDatabase: appDatabase) {
+    // Initialize DataSyncService
     pageController = PageController(initialPage: _currentPage);
   }
 
@@ -386,8 +395,279 @@ class AMChecksheetViewModel extends ChangeNotifier {
     required Map<int, TextEditingController> allControllers,
     required Map<int, String?> allComboBoxValues,
   }) async {
-    // ... (โค้ด saveAllChanges เหมือนเดิม) ...
-    return true; // Placeholder
+    _isLoading = true;
+    _syncMessage = null;
+    _statusMessage = "กำลังบันทึกการเปลี่ยนแปลงทั้งหมด...";
+    notifyListeners();
+
+    // NEW: เรียกฟังก์ชัน Validate ก่อนบันทึก
+    final bool validationPassed = await _validateAllRecordsForValidation(
+      allControllers: allControllers,
+      allComboBoxValues: allComboBoxValues,
+    );
+
+    if (!validationPassed) {
+      _isLoading = false;
+      notifyListeners();
+      _statusMessage = "บันทึกข้อมูลล้มเหลว: โปรดแก้ไขข้อผิดพลาดก่อน.";
+      _syncMessage = "มีข้อผิดพลาดในการ Validate. โปรดตรวจสอบ.";
+      return false; // หยุดการทำงานถ้า Validation ไม่ผ่าน
+    }
+
+    // หาก Validation ผ่าน ก็ดำเนินการบันทึกต่อ
+    int updatedCount = 0;
+    bool allSucceeded = true;
+    final String? currentUserId = _loginRepository.loggedInUser?.userId;
+
+    // ใช้ข้อมูลปัจจุบันจาก _currentRecords
+    final List<DocumentRecordWithTagAndProblem> currentRecordsSnapshot =
+        List.from(_currentRecords);
+
+    if (currentRecordsSnapshot.isEmpty) {
+      _statusMessage = "ไม่มีบันทึกให้บันทึก.";
+      _isLoading = false;
+      notifyListeners();
+      return true; // ไม่มีอะไรให้บันทึก
+    }
+
+    for (final recordWithTag in currentRecordsSnapshot) {
+      final DbDocumentRecord record = recordWithTag.documentRecord;
+      final DbJobTag? jobTag = recordWithTag.jobTag;
+
+      String? uiValue;
+      String? uiRemark = record.remark; // Default to existing remark
+
+      // ดึงค่าจาก UI Controller/Map
+      if (jobTag?.tagType == 'ComboBox' || jobTag?.tagType == 'CheckBox') {
+        if (allComboBoxValues.containsKey(record.uid)) {
+          uiValue = allComboBoxValues[record.uid];
+        } else {
+          uiValue =
+              record.value; // Fallback to DB value if UI element not built
+        }
+      } else {
+        if (allControllers.containsKey(record.uid)) {
+          uiValue = allControllers[record.uid]?.text;
+        } else {
+          uiValue =
+              record.value; // Fallback to DB value if UI element not built
+        }
+      }
+
+      // เปรียบเทียบกับค่าล่าสุดใน DB (ดึงมาใหม่เพื่อความแม่นยำ)
+      final DbDocumentRecord? latestRecordInDB =
+          await _documentRecordRepository.getRecordByUid(record.uid);
+
+      bool valueChanged = uiValue != (latestRecordInDB?.value ?? '');
+      bool remarkChanged = uiRemark !=
+          (latestRecordInDB?.remark ?? ''); // เปรียบเทียบกับค่า remark ปัจจุบัน
+      // สำหรับ unReadable, ตรวจสอบสถานะใหม่จาก UI (ถ้าเป็น Number type และ empty/not empty)
+      String newUnReadableStatus =
+          (jobTag?.tagType == 'Number' && (uiValue?.isEmpty ?? false))
+              ? 'true'
+              : 'false';
+      bool unReadableStatusChanged =
+          newUnReadableStatus != (latestRecordInDB?.unReadable ?? 'false');
+
+      // Check if this specific record passed validation (no error for it)
+      bool recordPassedIndividualValidation = (_recordErrors[record.uid] ==
+          null); // Error from _validateAllRecordsForValidation
+      // Determine the status to apply for this record
+      int statusToApply =
+          latestRecordInDB?.status ?? 0; // Get current status from DB
+      if (recordPassedIndividualValidation) {
+        // If the record is valid
+        if (statusToApply != 1 && statusToApply != 2) {
+          // And its current status is not 1 or 2 (needs promotion)
+          statusToApply = 1; // Set to 1 (Validated)
+        }
+        // If statusToApply is already 1 or 2, keep it.
+      } else {
+        // If record did NOT pass validation (has an error)
+        statusToApply = 0; // Ensure its status is 0 (Validation Failed)
+      }
+      bool needsUpdateCall = valueChanged ||
+          remarkChanged ||
+          unReadableStatusChanged ||
+          (statusToApply != (latestRecordInDB?.status ?? 0));
+      // ตรวจสอบว่ามีการเปลี่ยนแปลงจริงในค่า, หมายเหตุ, หรือสถานะ unReadable
+      if (needsUpdateCall) {
+        bool success;
+        success = await _documentRecordRepository.updateRecordValue(
+          uid: record.uid,
+          newValue: uiValue, // Pass the current UI value
+          newRemark: uiRemark, // Pass the current UI remark
+          newUnReadable:
+              (jobTag?.tagType == 'Number') ? newUnReadableStatus : null,
+          userId: currentUserId,
+          newStatus: statusToApply, // Pass the determined status
+        );
+
+        if (success) {
+          updatedCount++;
+          _recordErrors[record.uid] = null; // ล้าง Error สำหรับ Record นี้
+        } else {
+          allSucceeded = false;
+          _recordErrors.putIfAbsent(
+              record.uid, () => "บันทึกข้อมูลล้มเหลว"); // เก็บ Error
+        }
+      } else {
+        // หากไม่มีการเปลี่ยนแปลง แต่ Record นี้มี Error จาก Validation
+        if (_recordErrors[record.uid] != null) {
+          allSucceeded = false; // ถ้ามี Error จาก Validation, ก็ถือว่าไม่สำเร็จ
+        }
+      }
+    }
+
+    if (allSucceeded) {
+      _syncMessage =
+          "บันทึกการเปลี่ยนแปลงทั้งหมดสำเร็จ ($updatedCount รายการ)!";
+      _statusMessage = "บันทึกข้อมูลเรียบร้อย.";
+    } else {
+      _syncMessage =
+          "บันทึกการเปลี่ยนแปลงบางรายการล้มเหลว. โปรดตรวจสอบข้อผิดพลาด.";
+      _statusMessage = "บันทึกข้อมูลล้มเหลว.";
+    }
+    _isLoading = false;
+    notifyListeners(); // แจ้ง UI ให้ Refresh/Rebuild
+    // ไม่ต้องโหลดใหม่ทั้งหมดเพราะ Stream จะจัดการเอง แต่ถ้าต้องการความชัวร์ก็เรียกได้
+    // await loadRecords(_documentId!, _machineId!, _jobId!);
+    return allSucceeded;
+  }
+
+  // NEW: ฟังก์ชัน Validate โดยเฉพาะ (เทียบเท่า btValidate)
+  // จะตรวจสอบความครบถ้วนและอัปเดต userId สำหรับ TagType='User'
+  Future<bool> _validateAllRecordsForValidation({
+    required Map<int, TextEditingController> allControllers,
+    required Map<int, String?> allComboBoxValues,
+  }) async {
+    _recordErrors.clear(); // ล้าง Error ทั้งหมดก่อนเริ่ม Validate ใหม่
+    bool allRecordsValid = true;
+    final String? currentUserId = _loginRepository.loggedInUser?.userId;
+
+    // ใช้ข้อมูลจาก _currentRecords
+    final List<DocumentRecordWithTagAndProblem> currentRecordsSnapshot =
+        List.from(_currentRecords);
+
+    for (final recordWithTag in currentRecordsSnapshot) {
+      final DbDocumentRecord record = recordWithTag.documentRecord;
+      final DbJobTag? jobTag = recordWithTag.jobTag;
+
+      String? uiValue;
+
+      // ดึงค่าจาก UI Controller/Map
+      if (jobTag?.tagType == 'ComboBox' || jobTag?.tagType == 'CheckBox') {
+        if (allComboBoxValues.containsKey(record.uid)) {
+          uiValue = allComboBoxValues[record.uid];
+        } else {
+          uiValue =
+              record.value; // Fallback to DB value if UI element not built
+        }
+      } else {
+        if (allControllers.containsKey(record.uid)) {
+          uiValue = allControllers[record.uid]?.text;
+        } else {
+          uiValue =
+              record.value; // Fallback to DB value if UI element not built
+        }
+      }
+      uiValue = uiValue?.trim();
+      String? uiRemark = record.remark
+          ?.trim(); // Remark ไม่ได้อยู่ใน Controller หลักเสมอไป เอาจาก DB เดิมก่อน
+
+      String? validationErrorForThisRecord;
+
+      // --- 1. Auto-populate User ID for 'User' TagType (เทียบเท่า updateUserTag) ---
+      if (jobTag?.tagType == 'User') {
+        if (currentUserId != null &&
+            currentUserId.isNotEmpty &&
+            (uiValue == null || uiValue.isEmpty)) {
+          uiValue = currentUserId; // กำหนด userId อัตโนมัติ
+          allControllers[record.uid]?.text =
+              currentUserId; // อัปเดต UI Controller ด้วย (เพื่อให้ UI แสดงค่า)
+          // บันทึกลง DB ทันที (เพราะถือว่าเป็นการเปลี่ยนแปลงที่สำคัญ)
+          await _documentRecordRepository.updateRecordValue(
+            uid: record.uid,
+            newValue: currentUserId,
+            newRemark: record.remark,
+            userId: currentUserId,
+            newStatus: 0, // ตั้ง Status เป็น 0 เมื่อมีการแก้ไข/Auto-populate
+          );
+        } else if ((uiValue == null || uiValue == '') &&
+            (currentUserId == null || currentUserId.isEmpty)) {
+          validationErrorForThisRecord =
+              "กรุณาเข้าสู่ระบบ หรือ ซิงค์ข้อมูลผู้ใช้ เพื่อกรอก User ID อัตโนมัติ.";
+          allRecordsValid = false;
+        }
+      }
+
+      // --- 2. Required Field Validation (สำหรับทุก Record) ---
+      // กฎ: ทุก Record ต้องมีข้อมูล (uiValue ไม่ว่างเปล่า)
+      // ยกเว้น: Number ที่เลือก N/A
+
+      // ตรวจสอบสถานะ unReadable สำหรับ Number (จาก DB ล่าสุด หรือจาก UI Logic)
+      // ในที่นี้เราดูจาก DB ล่าสุด หรือถ้า UI ว่างและเป็น Number เราอาจจะถือว่าเป็น N/A?
+      // แต่ปกติ N/A ต้องมีการติ๊กเลือก หรือกดปุ่ม
+      // ใน Code เก่า (DocumentRecordViewModel) ใช้ latestRecordInDB?.unReadable
+
+      final DbDocumentRecord? latestRecordInDB =
+          await _documentRecordRepository.getRecordByUid(record.uid);
+      bool isCurrentlyUnReadable = (jobTag?.tagType == 'Number' &&
+          (latestRecordInDB?.unReadable == 'true'));
+
+      // ถ้า UI Value ว่าง และไม่ใช่ UnReadable -> Error
+      if (uiValue == null || uiValue == '') {
+        if (jobTag?.tagType == 'Number') {
+          if (!isCurrentlyUnReadable) {
+            // ถ้าเป็น Number แต่ไม่ได้เลือก N/A = Error
+            validationErrorForThisRecord = "จำเป็นต้องกรอกข้อมูลตัวเลข.";
+            allRecordsValid = false;
+          }
+        } else if (jobTag?.tagType != 'Problem') {
+          // Tag Type อื่นๆ (Text, ComboBox, CheckBox) ถือเป็น Required ถ้าว่างเปล่า
+          validationErrorForThisRecord = "จำเป็นต้องกรอกข้อมูล.";
+          allRecordsValid = false;
+        }
+      }
+
+      // --- 3. Mandatory Remark for N/A Number ---
+      if (jobTag?.tagType == 'Number' && isCurrentlyUnReadable) {
+        if (uiRemark == null || uiRemark.isEmpty) {
+          // หมายเหตุอาจจะต้องดึงจาก DB ถ้าไม่ได้แก้ในหน้านี้
+          // แต่ปกติหน้า AM Checksheet แก้หมายเหตุได้
+          // ในที่นี้เราใช้ record.remark ไปก่อน
+          if (record.remark == null || record.remark!.isEmpty) {
+            validationErrorForThisRecord =
+                "เมื่อ 'ไม่อ่านค่าได้' ต้องระบุหมายเหตุ.";
+            allRecordsValid = false;
+          }
+        }
+      }
+
+      // --- 4. Type-specific validation (สำหรับค่าที่ไม่ว่างเปล่า และยังไม่มี Error) ---
+      if (validationErrorForThisRecord == null &&
+          uiValue != null &&
+          uiValue.isNotEmpty) {
+        if (jobTag?.tagType == 'Number') {
+          validationErrorForThisRecord = _validateNumberInput(uiValue, jobTag);
+          if (validationErrorForThisRecord != null) {
+            allRecordsValid = false;
+          }
+        }
+      }
+
+      // --- สิ้นสุด Validation Rules ---
+
+      if (validationErrorForThisRecord != null) {
+        _recordErrors[record.uid] = validationErrorForThisRecord;
+      } else {
+        _recordErrors[record.uid] =
+            null; // Clear any existing error for this record
+      }
+    }
+
+    notifyListeners();
+    return allRecordsValid;
   }
 
 // --- <<< จุดที่แก้ไขสำคัญ >>> ---
@@ -514,6 +794,56 @@ class AMChecksheetViewModel extends ChangeNotifier {
       _statusMessage = "";
       notifyListeners();
     }
+  }
+
+  /// === ฟังก์ชันที่แก้ไข: จัดการทั้งการ Upload และ Download (เหมือน HomeViewModel) ===
+  Future<String> syncMasterImages() async {
+    // --- ขั้นตอนที่ 1: UPLOAD ---
+    syncProgressNotifier.value = null; // Indeterminate progress
+    syncStatusNotifier.value = 'ขั้นตอนที่ 1/2: กำลังอัปโหลดรูปภาพใหม่...';
+
+    final uploadResult = await _dataSyncService.performMasterImageUploadSync(
+      onProgress: (current, total) {
+        if (total > 0) {
+          syncProgressNotifier.value = current / total;
+          syncStatusNotifier.value =
+              'กำลังอัปโหลดรูปภาพ $current จาก $total...';
+        } else {
+          syncStatusNotifier.value = 'ไม่พบรูปภาพใหม่ที่ต้องอัปโหลด';
+        }
+      },
+    );
+
+    // หากการ Upload ล้มเหลว ให้หยุดทำงานและรายงานผล
+    if (uploadResult is SyncError) {
+      return uploadResult.message ?? 'เกิดข้อผิดพลาดในการอัปโหลด';
+    }
+
+    // --- ขั้นตอนที่ 2: DOWNLOAD ---
+    syncProgressNotifier.value = null; // Reset progress for download
+    syncStatusNotifier.value =
+        'ขั้นตอนที่ 2/2: กำลังดาวน์โหลดรูปภาพจากเซิร์ฟเวอร์...';
+
+    final downloadResult = await _dataSyncService.performMasterImageSync(
+      onProgress: (current, total) {
+        if (total > 0) {
+          syncProgressNotifier.value = current / total;
+          syncStatusNotifier.value =
+              'กำลังดาวน์โหลดรูปภาพ $current จาก $total...';
+        } else {
+          syncStatusNotifier.value = 'ไม่พบรูปภาพใหม่ที่ต้องดาวน์โหลด';
+        }
+      },
+    );
+
+    syncProgressNotifier.value = null;
+
+    if (downloadResult is SyncSuccess) {
+      return 'ซิงค์ข้อมูล Master Image สำเร็จ!';
+    } else if (downloadResult is SyncError) {
+      return downloadResult.message ?? 'เกิดข้อผิดพลาดในการดาวน์โหลด';
+    }
+    return 'การซิงค์สิ้นสุดลง';
   }
 
   @override

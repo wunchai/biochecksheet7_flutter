@@ -11,6 +11,7 @@ import 'package:biochecksheet7_flutter/data/services/database_maintenance_servic
 import 'package:biochecksheet7_flutter/data/services/data_cleanup_service.dart';
 import 'package:biochecksheet7_flutter/data/services/device_info_service.dart';
 import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // For SyncSuccess, SyncError
+import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart'; // <<< Import LoginRepository
 
 // TOP-LEVEL BACKGROUND TASK DISPATCHER
 // This function needs to be outside of any class or main()
@@ -23,6 +24,10 @@ void callbackDispatcher() {
     try {
       // Initialize AppDatabase for the background task.
       final appDatabase = await AppDatabase.instance();
+
+      // Initialize LoginRepository (singleton) for the background task.
+      // This is crucial because some services/repositories might depend on it.
+      await LoginRepository.initialize(appDatabase);
 
       // Initialize services for the background task.
       // These services need to be initialized within the background isolate.

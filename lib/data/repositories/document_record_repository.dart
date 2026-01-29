@@ -293,6 +293,11 @@ class DocumentRecordRepository {
             remark: const drift.Value(''), // Default empty remark
             unReadable: const drift.Value('false'),
             lastSync: drift.Value(DateTime.now().toIso8601String()),
+            orderId:
+                drift.Value(jobTag.orderId), // NEW: Copy OrderId from JobTag
+            note: drift.Value(jobTag.note), // <<< NEW: Copy Note from JobTag
+            valueType: drift.Value(
+                jobTag.valueType), // <<< NEW: Copy ValueType from JobTag
           );
           await _documentRecordDao.insertDocumentRecord(newRecordEntry);
           print('Created new record for Tag ID: ${jobTag.tagId}');
@@ -431,49 +436,61 @@ class DocumentRecordRepository {
             'Main document not found for documentId: $documentId. Cannot upload records.');
       }
 
-      // 3. Call API service to upload these records
-      // CRUCIAL FIX: Expect List<UploadRecordResult> from API service
-      final List<UploadRecordResult> uploadResults =
-          await _documentRecordApiService.uploadRecords(
-        recordsToUpload,
-        documentCreateDate: mainDocument.createDate,
-        documentUserId: mainDocument.userId,
-      );
-
-      // 4. Process upload results and update syncStatus in local DB
+      // 3. Call API service to upload these records (Batched)
+      final int batchSize = 10;
       bool overallUploadSuccess = true;
-      for (final apiResult in uploadResults) {
-        final int recordUid = apiResult.uid;
-        final int apiResultCode = apiResult.result; // Assuming 3 for success
 
-        // Determine new syncStatus based on API result
-        int newSyncStatus = 0; // Default to 0 (failed/not synced)
-        if (apiResultCode == 3) {
-          // Assuming 3 means success from API
-          newSyncStatus = 1; // Set to 1 (Synced)
-        }
+      for (var i = 0; i < recordsToUpload.length; i += batchSize) {
+        final List<DbDocumentRecord> chunk = recordsToUpload.sublist(
+            i,
+            (i + batchSize) > recordsToUpload.length
+                ? recordsToUpload.length
+                : i + batchSize);
 
-        // Update record's status to 2 and syncStatus based on API response
-        final success = await _documentRecordDao.updateDocumentRecord(
-          DocumentRecordsCompanion(
-            uid: drift.Value(recordUid),
-            status: const drift.Value(
-                2), // Always set to 2 (Posted) after attempting upload
-            syncStatus: drift.Value(
-                newSyncStatus), // Update syncStatus based on API result
-            lastSync: drift.Value(
-                DateTime.now().toIso8601String()), // Update last sync timestamp
-          ),
+        print(
+            'Uploading batch ${i ~/ batchSize + 1} of ${(recordsToUpload.length / batchSize).ceil()} (Size: ${chunk.length})');
+
+        // CRUCIAL FIX: Expect List<UploadRecordResult> from API service
+        final List<UploadRecordResult> uploadResults =
+            await _documentRecordApiService.uploadRecords(
+          chunk,
+          documentCreateDate: mainDocument.createDate,
+          documentUserId: mainDocument.userId,
         );
-        if (!success) {
-          overallUploadSuccess =
-              false; // If any local DB update fails, mark overall as failed
-          print('Failed to update local syncStatus for UID $recordUid');
+
+        // 4. Process upload results and update syncStatus in local DB
+        for (final apiResult in uploadResults) {
+          final int recordUid = apiResult.uid;
+          final int apiResultCode = apiResult.result; // Assuming 3 for success
+
+          // Determine new syncStatus based on API result
+          int newSyncStatus = 0; // Default to 0 (failed/not synced)
+          if (apiResultCode == 3) {
+            // Assuming 3 means success from API
+            newSyncStatus = 1; // Set to 1 (Synced)
+          }
+
+          // Update record's status to 2 and syncStatus based on API response
+          final success = await _documentRecordDao.updateDocumentRecord(
+            DocumentRecordsCompanion(
+              uid: drift.Value(recordUid),
+              status: const drift.Value(
+                  2), // Always set to 2 (Posted) after attempting upload
+              syncStatus: drift.Value(
+                  newSyncStatus), // Update syncStatus based on API result
+              lastSync: drift.Value(DateTime.now()
+                  .toIso8601String()), // Update last sync timestamp
+            ),
+          );
+          if (!success) {
+            overallUploadSuccess =
+                false; // If any local DB update fails, mark overall as failed
+            print('Failed to update local syncStatus for UID $recordUid');
+          }
         }
       }
 
-      print(
-          'Processed ${uploadResults.length} upload results. Overall success: $overallUploadSuccess');
+      print('Processed all batches. Overall success: $overallUploadSuccess');
       return overallUploadSuccess;
     } catch (e) {
       print('Error during records upload to server: $e');

@@ -1774,6 +1774,12 @@ class $DocumentRecordsTable extends DocumentRecords
   late final GeneratedColumn<String> machineId = GeneratedColumn<String>(
       'machineId', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _orderIdMeta =
+      const VerificationMeta('orderId');
+  @override
+  late final GeneratedColumn<String> orderId = GeneratedColumn<String>(
+      'OrderId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _jobIdMeta = const VerificationMeta('jobId');
   @override
   late final GeneratedColumn<String> jobId = GeneratedColumn<String>(
@@ -1916,6 +1922,7 @@ class $DocumentRecordsTable extends DocumentRecords
         uid,
         documentId,
         machineId,
+        orderId,
         jobId,
         tagId,
         tagName,
@@ -1963,6 +1970,10 @@ class $DocumentRecordsTable extends DocumentRecords
     if (data.containsKey('machineId')) {
       context.handle(_machineIdMeta,
           machineId.isAcceptableOrUnknown(data['machineId']!, _machineIdMeta));
+    }
+    if (data.containsKey('OrderId')) {
+      context.handle(_orderIdMeta,
+          orderId.isAcceptableOrUnknown(data['OrderId']!, _orderIdMeta));
     }
     if (data.containsKey('jobId')) {
       context.handle(
@@ -2085,6 +2096,8 @@ class $DocumentRecordsTable extends DocumentRecords
           .read(DriftSqlType.string, data['${effectivePrefix}documentId']),
       machineId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}machineId']),
+      orderId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}OrderId']),
       jobId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}jobId']),
       tagId: attachedDatabase.typeMapping
@@ -2145,6 +2158,7 @@ class DbDocumentRecord extends DataClass
   final int uid;
   final String? documentId;
   final String? machineId;
+  final String? orderId;
   final String? jobId;
   final String? tagId;
   final String? tagName;
@@ -2172,6 +2186,7 @@ class DbDocumentRecord extends DataClass
       {required this.uid,
       this.documentId,
       this.machineId,
+      this.orderId,
       this.jobId,
       this.tagId,
       this.tagName,
@@ -2204,6 +2219,9 @@ class DbDocumentRecord extends DataClass
     }
     if (!nullToAbsent || machineId != null) {
       map['machineId'] = Variable<String>(machineId);
+    }
+    if (!nullToAbsent || orderId != null) {
+      map['OrderId'] = Variable<String>(orderId);
     }
     if (!nullToAbsent || jobId != null) {
       map['jobId'] = Variable<String>(jobId);
@@ -2280,6 +2298,9 @@ class DbDocumentRecord extends DataClass
       machineId: machineId == null && nullToAbsent
           ? const Value.absent()
           : Value(machineId),
+      orderId: orderId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(orderId),
       jobId:
           jobId == null && nullToAbsent ? const Value.absent() : Value(jobId),
       tagId:
@@ -2345,6 +2366,7 @@ class DbDocumentRecord extends DataClass
       uid: serializer.fromJson<int>(json['uid']),
       documentId: serializer.fromJson<String?>(json['documentId']),
       machineId: serializer.fromJson<String?>(json['machineId']),
+      orderId: serializer.fromJson<String?>(json['orderId']),
       jobId: serializer.fromJson<String?>(json['jobId']),
       tagId: serializer.fromJson<String?>(json['tagId']),
       tagName: serializer.fromJson<String?>(json['tagName']),
@@ -2378,6 +2400,7 @@ class DbDocumentRecord extends DataClass
       'uid': serializer.toJson<int>(uid),
       'documentId': serializer.toJson<String?>(documentId),
       'machineId': serializer.toJson<String?>(machineId),
+      'orderId': serializer.toJson<String?>(orderId),
       'jobId': serializer.toJson<String?>(jobId),
       'tagId': serializer.toJson<String?>(tagId),
       'tagName': serializer.toJson<String?>(tagName),
@@ -2408,6 +2431,7 @@ class DbDocumentRecord extends DataClass
           {int? uid,
           Value<String?> documentId = const Value.absent(),
           Value<String?> machineId = const Value.absent(),
+          Value<String?> orderId = const Value.absent(),
           Value<String?> jobId = const Value.absent(),
           Value<String?> tagId = const Value.absent(),
           Value<String?> tagName = const Value.absent(),
@@ -2435,6 +2459,7 @@ class DbDocumentRecord extends DataClass
         uid: uid ?? this.uid,
         documentId: documentId.present ? documentId.value : this.documentId,
         machineId: machineId.present ? machineId.value : this.machineId,
+        orderId: orderId.present ? orderId.value : this.orderId,
         jobId: jobId.present ? jobId.value : this.jobId,
         tagId: tagId.present ? tagId.value : this.tagId,
         tagName: tagName.present ? tagName.value : this.tagName,
@@ -2469,6 +2494,7 @@ class DbDocumentRecord extends DataClass
       documentId:
           data.documentId.present ? data.documentId.value : this.documentId,
       machineId: data.machineId.present ? data.machineId.value : this.machineId,
+      orderId: data.orderId.present ? data.orderId.value : this.orderId,
       jobId: data.jobId.present ? data.jobId.value : this.jobId,
       tagId: data.tagId.present ? data.tagId.value : this.tagId,
       tagName: data.tagName.present ? data.tagName.value : this.tagName,
@@ -2511,6 +2537,7 @@ class DbDocumentRecord extends DataClass
           ..write('uid: $uid, ')
           ..write('documentId: $documentId, ')
           ..write('machineId: $machineId, ')
+          ..write('orderId: $orderId, ')
           ..write('jobId: $jobId, ')
           ..write('tagId: $tagId, ')
           ..write('tagName: $tagName, ')
@@ -2543,6 +2570,7 @@ class DbDocumentRecord extends DataClass
         uid,
         documentId,
         machineId,
+        orderId,
         jobId,
         tagId,
         tagName,
@@ -2574,6 +2602,7 @@ class DbDocumentRecord extends DataClass
           other.uid == this.uid &&
           other.documentId == this.documentId &&
           other.machineId == this.machineId &&
+          other.orderId == this.orderId &&
           other.jobId == this.jobId &&
           other.tagId == this.tagId &&
           other.tagName == this.tagName &&
@@ -2603,6 +2632,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
   final Value<int> uid;
   final Value<String?> documentId;
   final Value<String?> machineId;
+  final Value<String?> orderId;
   final Value<String?> jobId;
   final Value<String?> tagId;
   final Value<String?> tagName;
@@ -2630,6 +2660,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     this.uid = const Value.absent(),
     this.documentId = const Value.absent(),
     this.machineId = const Value.absent(),
+    this.orderId = const Value.absent(),
     this.jobId = const Value.absent(),
     this.tagId = const Value.absent(),
     this.tagName = const Value.absent(),
@@ -2658,6 +2689,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     this.uid = const Value.absent(),
     this.documentId = const Value.absent(),
     this.machineId = const Value.absent(),
+    this.orderId = const Value.absent(),
     this.jobId = const Value.absent(),
     this.tagId = const Value.absent(),
     this.tagName = const Value.absent(),
@@ -2686,6 +2718,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     Expression<int>? uid,
     Expression<String>? documentId,
     Expression<String>? machineId,
+    Expression<String>? orderId,
     Expression<String>? jobId,
     Expression<String>? tagId,
     Expression<String>? tagName,
@@ -2714,6 +2747,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
       if (uid != null) 'uid': uid,
       if (documentId != null) 'documentId': documentId,
       if (machineId != null) 'machineId': machineId,
+      if (orderId != null) 'OrderId': orderId,
       if (jobId != null) 'jobId': jobId,
       if (tagId != null) 'tagId': tagId,
       if (tagName != null) 'tagName': tagName,
@@ -2744,6 +2778,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
       {Value<int>? uid,
       Value<String?>? documentId,
       Value<String?>? machineId,
+      Value<String?>? orderId,
       Value<String?>? jobId,
       Value<String?>? tagId,
       Value<String?>? tagName,
@@ -2771,6 +2806,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
       uid: uid ?? this.uid,
       documentId: documentId ?? this.documentId,
       machineId: machineId ?? this.machineId,
+      orderId: orderId ?? this.orderId,
       jobId: jobId ?? this.jobId,
       tagId: tagId ?? this.tagId,
       tagName: tagName ?? this.tagName,
@@ -2808,6 +2844,9 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
     }
     if (machineId.present) {
       map['machineId'] = Variable<String>(machineId.value);
+    }
+    if (orderId.present) {
+      map['OrderId'] = Variable<String>(orderId.value);
     }
     if (jobId.present) {
       map['jobId'] = Variable<String>(jobId.value);
@@ -2887,6 +2926,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DbDocumentRecord> {
           ..write('uid: $uid, ')
           ..write('documentId: $documentId, ')
           ..write('machineId: $machineId, ')
+          ..write('orderId: $orderId, ')
           ..write('jobId: $jobId, ')
           ..write('tagId: $tagId, ')
           ..write('tagName: $tagName, ')
@@ -3460,6 +3500,12 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
   late final GeneratedColumn<String> machineId = GeneratedColumn<String>(
       'MachineId', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _orderIdMeta =
+      const VerificationMeta('orderId');
+  @override
+  late final GeneratedColumn<String> orderId = GeneratedColumn<String>(
+      'OrderId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _tagNameMeta =
       const VerificationMeta('tagName');
   @override
@@ -3589,6 +3635,7 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
         tagId,
         jobId,
         machineId,
+        orderId,
         tagName,
         tagType,
         tagGroupId,
@@ -3636,6 +3683,10 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
     if (data.containsKey('MachineId')) {
       context.handle(_machineIdMeta,
           machineId.isAcceptableOrUnknown(data['MachineId']!, _machineIdMeta));
+    }
+    if (data.containsKey('OrderId')) {
+      context.handle(_orderIdMeta,
+          orderId.isAcceptableOrUnknown(data['OrderId']!, _orderIdMeta));
     }
     if (data.containsKey('tagName')) {
       context.handle(_tagNameMeta,
@@ -3752,6 +3803,8 @@ class $JobTagsTable extends JobTags with TableInfo<$JobTagsTable, DbJobTag> {
           .read(DriftSqlType.string, data['${effectivePrefix}JobId']),
       machineId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}MachineId']),
+      orderId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}OrderId']),
       tagName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}tagName']),
       tagType: attachedDatabase.typeMapping
@@ -3808,6 +3861,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
   final String? tagId;
   final String? jobId;
   final String? machineId;
+  final String? orderId;
   final String? tagName;
   final String? tagType;
   final String? tagGroupId;
@@ -3834,6 +3888,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       this.tagId,
       this.jobId,
       this.machineId,
+      this.orderId,
       this.tagName,
       this.tagType,
       this.tagGroupId,
@@ -3867,6 +3922,9 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
     }
     if (!nullToAbsent || machineId != null) {
       map['MachineId'] = Variable<String>(machineId);
+    }
+    if (!nullToAbsent || orderId != null) {
+      map['OrderId'] = Variable<String>(orderId);
     }
     if (!nullToAbsent || tagName != null) {
       map['tagName'] = Variable<String>(tagName);
@@ -3942,6 +4000,9 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       machineId: machineId == null && nullToAbsent
           ? const Value.absent()
           : Value(machineId),
+      orderId: orderId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(orderId),
       tagName: tagName == null && nullToAbsent
           ? const Value.absent()
           : Value(tagName),
@@ -4008,6 +4069,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       tagId: serializer.fromJson<String?>(json['tagId']),
       jobId: serializer.fromJson<String?>(json['jobId']),
       machineId: serializer.fromJson<String?>(json['machineId']),
+      orderId: serializer.fromJson<String?>(json['orderId']),
       tagName: serializer.fromJson<String?>(json['tagName']),
       tagType: serializer.fromJson<String?>(json['tagType']),
       tagGroupId: serializer.fromJson<String?>(json['tagGroupId']),
@@ -4040,6 +4102,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       'tagId': serializer.toJson<String?>(tagId),
       'jobId': serializer.toJson<String?>(jobId),
       'machineId': serializer.toJson<String?>(machineId),
+      'orderId': serializer.toJson<String?>(orderId),
       'tagName': serializer.toJson<String?>(tagName),
       'tagType': serializer.toJson<String?>(tagType),
       'tagGroupId': serializer.toJson<String?>(tagGroupId),
@@ -4069,6 +4132,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           Value<String?> tagId = const Value.absent(),
           Value<String?> jobId = const Value.absent(),
           Value<String?> machineId = const Value.absent(),
+          Value<String?> orderId = const Value.absent(),
           Value<String?> tagName = const Value.absent(),
           Value<String?> tagType = const Value.absent(),
           Value<String?> tagGroupId = const Value.absent(),
@@ -4095,6 +4159,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
         tagId: tagId.present ? tagId.value : this.tagId,
         jobId: jobId.present ? jobId.value : this.jobId,
         machineId: machineId.present ? machineId.value : this.machineId,
+        orderId: orderId.present ? orderId.value : this.orderId,
         tagName: tagName.present ? tagName.value : this.tagName,
         tagType: tagType.present ? tagType.value : this.tagType,
         tagGroupId: tagGroupId.present ? tagGroupId.value : this.tagGroupId,
@@ -4128,6 +4193,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
       tagId: data.tagId.present ? data.tagId.value : this.tagId,
       jobId: data.jobId.present ? data.jobId.value : this.jobId,
       machineId: data.machineId.present ? data.machineId.value : this.machineId,
+      orderId: data.orderId.present ? data.orderId.value : this.orderId,
       tagName: data.tagName.present ? data.tagName.value : this.tagName,
       tagType: data.tagType.present ? data.tagType.value : this.tagType,
       tagGroupId:
@@ -4170,6 +4236,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           ..write('tagId: $tagId, ')
           ..write('jobId: $jobId, ')
           ..write('machineId: $machineId, ')
+          ..write('orderId: $orderId, ')
           ..write('tagName: $tagName, ')
           ..write('tagType: $tagType, ')
           ..write('tagGroupId: $tagGroupId, ')
@@ -4201,6 +4268,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
         tagId,
         jobId,
         machineId,
+        orderId,
         tagName,
         tagType,
         tagGroupId,
@@ -4231,6 +4299,7 @@ class DbJobTag extends DataClass implements Insertable<DbJobTag> {
           other.tagId == this.tagId &&
           other.jobId == this.jobId &&
           other.machineId == this.machineId &&
+          other.orderId == this.orderId &&
           other.tagName == this.tagName &&
           other.tagType == this.tagType &&
           other.tagGroupId == this.tagGroupId &&
@@ -4259,6 +4328,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
   final Value<String?> tagId;
   final Value<String?> jobId;
   final Value<String?> machineId;
+  final Value<String?> orderId;
   final Value<String?> tagName;
   final Value<String?> tagType;
   final Value<String?> tagGroupId;
@@ -4285,6 +4355,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     this.tagId = const Value.absent(),
     this.jobId = const Value.absent(),
     this.machineId = const Value.absent(),
+    this.orderId = const Value.absent(),
     this.tagName = const Value.absent(),
     this.tagType = const Value.absent(),
     this.tagGroupId = const Value.absent(),
@@ -4312,6 +4383,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     this.tagId = const Value.absent(),
     this.jobId = const Value.absent(),
     this.machineId = const Value.absent(),
+    this.orderId = const Value.absent(),
     this.tagName = const Value.absent(),
     this.tagType = const Value.absent(),
     this.tagGroupId = const Value.absent(),
@@ -4339,6 +4411,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     Expression<String>? tagId,
     Expression<String>? jobId,
     Expression<String>? machineId,
+    Expression<String>? orderId,
     Expression<String>? tagName,
     Expression<String>? tagType,
     Expression<String>? tagGroupId,
@@ -4366,6 +4439,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       if (tagId != null) 'TagId': tagId,
       if (jobId != null) 'JobId': jobId,
       if (machineId != null) 'MachineId': machineId,
+      if (orderId != null) 'OrderId': orderId,
       if (tagName != null) 'tagName': tagName,
       if (tagType != null) 'tagType': tagType,
       if (tagGroupId != null) 'TagGroupId': tagGroupId,
@@ -4395,6 +4469,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       Value<String?>? tagId,
       Value<String?>? jobId,
       Value<String?>? machineId,
+      Value<String?>? orderId,
       Value<String?>? tagName,
       Value<String?>? tagType,
       Value<String?>? tagGroupId,
@@ -4421,6 +4496,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
       tagId: tagId ?? this.tagId,
       jobId: jobId ?? this.jobId,
       machineId: machineId ?? this.machineId,
+      orderId: orderId ?? this.orderId,
       tagName: tagName ?? this.tagName,
       tagType: tagType ?? this.tagType,
       tagGroupId: tagGroupId ?? this.tagGroupId,
@@ -4459,6 +4535,9 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
     }
     if (machineId.present) {
       map['MachineId'] = Variable<String>(machineId.value);
+    }
+    if (orderId.present) {
+      map['OrderId'] = Variable<String>(orderId.value);
     }
     if (tagName.present) {
       map['tagName'] = Variable<String>(tagName.value);
@@ -4533,6 +4612,7 @@ class JobTagsCompanion extends UpdateCompanion<DbJobTag> {
           ..write('tagId: $tagId, ')
           ..write('jobId: $jobId, ')
           ..write('machineId: $machineId, ')
+          ..write('orderId: $orderId, ')
           ..write('tagName: $tagName, ')
           ..write('tagType: $tagType, ')
           ..write('tagGroupId: $tagGroupId, ')
@@ -8847,6 +8927,7 @@ typedef $$DocumentRecordsTableCreateCompanionBuilder = DocumentRecordsCompanion
   Value<int> uid,
   Value<String?> documentId,
   Value<String?> machineId,
+  Value<String?> orderId,
   Value<String?> jobId,
   Value<String?> tagId,
   Value<String?> tagName,
@@ -8876,6 +8957,7 @@ typedef $$DocumentRecordsTableUpdateCompanionBuilder = DocumentRecordsCompanion
   Value<int> uid,
   Value<String?> documentId,
   Value<String?> machineId,
+  Value<String?> orderId,
   Value<String?> jobId,
   Value<String?> tagId,
   Value<String?> tagName,
@@ -8918,6 +9000,9 @@ class $$DocumentRecordsTableFilterComposer
 
   ColumnFilters<String> get machineId => $composableBuilder(
       column: $table.machineId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get orderId => $composableBuilder(
+      column: $table.orderId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get jobId => $composableBuilder(
       column: $table.jobId, builder: (column) => ColumnFilters(column));
@@ -9007,6 +9092,9 @@ class $$DocumentRecordsTableOrderingComposer
 
   ColumnOrderings<String> get machineId => $composableBuilder(
       column: $table.machineId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get orderId => $composableBuilder(
+      column: $table.orderId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get jobId => $composableBuilder(
       column: $table.jobId, builder: (column) => ColumnOrderings(column));
@@ -9098,6 +9186,9 @@ class $$DocumentRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get machineId =>
       $composableBuilder(column: $table.machineId, builder: (column) => column);
+
+  GeneratedColumn<String> get orderId =>
+      $composableBuilder(column: $table.orderId, builder: (column) => column);
 
   GeneratedColumn<String> get jobId =>
       $composableBuilder(column: $table.jobId, builder: (column) => column);
@@ -9199,6 +9290,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             Value<int> uid = const Value.absent(),
             Value<String?> documentId = const Value.absent(),
             Value<String?> machineId = const Value.absent(),
+            Value<String?> orderId = const Value.absent(),
             Value<String?> jobId = const Value.absent(),
             Value<String?> tagId = const Value.absent(),
             Value<String?> tagName = const Value.absent(),
@@ -9227,6 +9319,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             uid: uid,
             documentId: documentId,
             machineId: machineId,
+            orderId: orderId,
             jobId: jobId,
             tagId: tagId,
             tagName: tagName,
@@ -9255,6 +9348,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             Value<int> uid = const Value.absent(),
             Value<String?> documentId = const Value.absent(),
             Value<String?> machineId = const Value.absent(),
+            Value<String?> orderId = const Value.absent(),
             Value<String?> jobId = const Value.absent(),
             Value<String?> tagId = const Value.absent(),
             Value<String?> tagName = const Value.absent(),
@@ -9283,6 +9377,7 @@ class $$DocumentRecordsTableTableManager extends RootTableManager<
             uid: uid,
             documentId: documentId,
             machineId: machineId,
+            orderId: orderId,
             jobId: jobId,
             tagId: tagId,
             tagName: tagName,
@@ -9577,6 +9672,7 @@ typedef $$JobTagsTableCreateCompanionBuilder = JobTagsCompanion Function({
   Value<String?> tagId,
   Value<String?> jobId,
   Value<String?> machineId,
+  Value<String?> orderId,
   Value<String?> tagName,
   Value<String?> tagType,
   Value<String?> tagGroupId,
@@ -9604,6 +9700,7 @@ typedef $$JobTagsTableUpdateCompanionBuilder = JobTagsCompanion Function({
   Value<String?> tagId,
   Value<String?> jobId,
   Value<String?> machineId,
+  Value<String?> orderId,
   Value<String?> tagName,
   Value<String?> tagType,
   Value<String?> tagGroupId,
@@ -9647,6 +9744,9 @@ class $$JobTagsTableFilterComposer
 
   ColumnFilters<String> get machineId => $composableBuilder(
       column: $table.machineId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get orderId => $composableBuilder(
+      column: $table.orderId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get tagName => $composableBuilder(
       column: $table.tagName, builder: (column) => ColumnFilters(column));
@@ -9733,6 +9833,9 @@ class $$JobTagsTableOrderingComposer
 
   ColumnOrderings<String> get machineId => $composableBuilder(
       column: $table.machineId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get orderId => $composableBuilder(
+      column: $table.orderId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get tagName => $composableBuilder(
       column: $table.tagName, builder: (column) => ColumnOrderings(column));
@@ -9822,6 +9925,9 @@ class $$JobTagsTableAnnotationComposer
 
   GeneratedColumn<String> get machineId =>
       $composableBuilder(column: $table.machineId, builder: (column) => column);
+
+  GeneratedColumn<String> get orderId =>
+      $composableBuilder(column: $table.orderId, builder: (column) => column);
 
   GeneratedColumn<String> get tagName =>
       $composableBuilder(column: $table.tagName, builder: (column) => column);
@@ -9914,6 +10020,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             Value<String?> tagId = const Value.absent(),
             Value<String?> jobId = const Value.absent(),
             Value<String?> machineId = const Value.absent(),
+            Value<String?> orderId = const Value.absent(),
             Value<String?> tagName = const Value.absent(),
             Value<String?> tagType = const Value.absent(),
             Value<String?> tagGroupId = const Value.absent(),
@@ -9941,6 +10048,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             tagId: tagId,
             jobId: jobId,
             machineId: machineId,
+            orderId: orderId,
             tagName: tagName,
             tagType: tagType,
             tagGroupId: tagGroupId,
@@ -9968,6 +10076,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             Value<String?> tagId = const Value.absent(),
             Value<String?> jobId = const Value.absent(),
             Value<String?> machineId = const Value.absent(),
+            Value<String?> orderId = const Value.absent(),
             Value<String?> tagName = const Value.absent(),
             Value<String?> tagType = const Value.absent(),
             Value<String?> tagGroupId = const Value.absent(),
@@ -9995,6 +10104,7 @@ class $$JobTagsTableTableManager extends RootTableManager<
             tagId: tagId,
             jobId: jobId,
             machineId: machineId,
+            orderId: orderId,
             tagName: tagName,
             tagType: tagType,
             tagGroupId: tagGroupId,

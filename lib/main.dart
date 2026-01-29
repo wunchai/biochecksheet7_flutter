@@ -65,7 +65,7 @@ Future<void> main() async {
         "documentRecordUploadSyncTask",
         frequency: const Duration(hours: 4),
         initialDelay: const Duration(minutes: 1),
-        constraints:  Constraints(
+        constraints: Constraints(
           networkType: NetworkType.connected,
         ),
       );
@@ -74,19 +74,21 @@ Future<void> main() async {
         "databaseBackupUploadTask",
         "databaseBackupUploadTask",
         inputData: {"userId": "current_user_id", "deviceId": "some_device_id"},
-        constraints:  Constraints(networkType: NetworkType.connected),
+        constraints: Constraints(networkType: NetworkType.connected),
         tag: "backup_db_tag",
       );
 
       await Workmanager().registerOneOffTask(
         "executeRawSqlQueryTask",
         "executeRawSqlQueryTask",
-        inputData: {"rawQuery": "UPDATE users SET status = 0 WHERE userId = 'test';"},
-        constraints:  Constraints(networkType: NetworkType.connected),
+        inputData: {
+          "rawQuery": "UPDATE users SET status = 0 WHERE userId = 'test';"
+        },
+        constraints: Constraints(networkType: NetworkType.connected),
         tag: "raw_sql_tag",
       );
 */
-      /*
+
       await Workmanager().registerPeriodicTask(
         "syncAllTask",
         "syncAllTask",
@@ -96,7 +98,6 @@ Future<void> main() async {
           networkType: NetworkType.connected,
         ),
       );
-        */
     }
 
     // Initialize AppDatabase (singleton)

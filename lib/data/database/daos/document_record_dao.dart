@@ -184,9 +184,12 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase>
       ..where(documentRecords.documentId.equals(documentId) &
           documentRecords.machineId.equals(machineId))
       ..orderBy([
+        drift.OrderingTerm(expression: jobTags.jobId),
+        drift.OrderingTerm(expression: jobTags.machineId),
         drift.OrderingTerm(expression: jobTags.tagGroupId),
-        drift.OrderingTerm(expression: jobTags.tagType),
-        drift.OrderingTerm(expression: jobTags.tagName),
+        drift.OrderingTerm(
+            expression:
+                drift.CustomExpression('CAST(job_tags.OrderId AS INTEGER)')),
       ]);
 
     print(

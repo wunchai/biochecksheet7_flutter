@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "com.biolab.checksheet"
-        minSdk = 21 // Workmanager requires minSdkVersion 21 or higher
+        minSdk = flutter.minSdkVersion // Workmanager requires minSdkVersion 21 or higher
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

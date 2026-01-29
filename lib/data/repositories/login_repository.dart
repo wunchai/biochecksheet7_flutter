@@ -7,6 +7,7 @@ import 'package:biochecksheet7_flutter/data/database/daos/user_dao.dart';
 import 'package:biochecksheet7_flutter/data/network/sync_status.dart';
 import 'package:drift/drift.dart';
 import 'package:collection/collection.dart'; // <<< CRUCIAL FIX: Import collection for firstWhereOrNull
+import 'package:biochecksheet7_flutter/data/utils/demo_seeder.dart'; // Import DemoSeeder
 
 class LoginRepository {
   final UserApiService _userApiService;
@@ -88,6 +89,23 @@ class LoginRepository {
   /// Performs user login.
   /// On successful login, updates user's local session status to active in the database.
   Future<LoginResult> login(String username, String password) async {
+    // --- DEMO MODE FOR PLAY STORE REVIEW ---
+    if (username == 'demo' && password == 'demo1234') {
+      try {
+        print(
+            'LoginRepository: Demo credentials detected. Seeding demo data...');
+        // Access AppDatabase via the DAO
+        final db = _userDao.attachedDatabase;
+        final seeder = DemoSeeder(db);
+        await seeder.seedDemoData();
+        print('LoginRepository: Demo data seeded successfully.');
+      } catch (e) {
+        print('LoginRepository: Error seeding demo data: $e');
+        // We continue execution; if seeding failed but user exists, login might still work.
+      }
+    }
+    // ---------------------------------------
+
     try {
       final localUser = await _userDao.getLogin(username, password);
 
