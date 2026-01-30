@@ -15,10 +15,11 @@ import 'package:biochecksheet7_flutter/data/network/checksheet_image_api_service
 // Import all DAOs
 import 'package:biochecksheet7_flutter/data/database/daos/user_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/job_dao.dart';
-import 'package:biochecksheet7_flutter/data/database/daos/document_machine_dao.dart';
+// import 'package:biochecksheet7_flutter/data/database/daos/document_machine_dao.dart'; // Unused
+import 'package:biochecksheet7_flutter/data/database/daos/job_machine_dao.dart'; // <<< NEW: Import JobMachineDao
 import 'package:biochecksheet7_flutter/data/database/daos/job_tag_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/problem_dao.dart';
-import 'package:biochecksheet7_flutter/data/database/daos/sync_dao.dart';
+// import 'package:biochecksheet7_flutter/data/database/daos/sync_dao.dart'; // Unused
 import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
 //import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart';
@@ -59,15 +60,17 @@ class DataSyncService {
   final DocumentRecordApiService
       _documentRecordApiService; // <<< เพิ่ม Dependency นี้
 
-  final ChecksheetImageApiService _checksheetImageApiService;
+  // final ChecksheetImageApiService _checksheetImageApiService; // Unused
   // DAOs (now direct instances)
   final UserDao _userDao;
   final JobDao _jobDao;
-  final DocumentMachineDao _documentMachineDao;
+  // final DocumentMachineDao _documentMachineDao; // Unused
+  final JobMachineDao _jobMachineDao; // <<< NEW: Declare here
   final JobTagDao _jobTagDao;
   final ProblemDao _problemDao;
-  final SyncDao _syncDao;
-  final DocumentDao _documentDao; // <<< เพิ่ม Dependency นี้
+  // final SyncDao _syncDao; // Unused
+  final DocumentDao _documentDao;
+
   final DocumentRecordDao _documentRecordDao; // <<< เพิ่ม Dependency นี้
 
   // Repositories (for DataSyncService to orchestrate)
@@ -118,11 +121,12 @@ class DataSyncService {
             DocumentRecordApiService(), // <<< สร้าง instance
         _userDao = appDatabase.userDao, // Access dao directly
         _jobDao = appDatabase.jobDao, // Access dao directly
-        _documentMachineDao =
-            appDatabase.documentMachineDao, // Access dao directly
+        // _documentMachineDao = appDatabase.documentMachineDao, // Unused
+        _jobMachineDao =
+            appDatabase.jobMachineDao, // <<< NEW: Access dao directly
         _jobTagDao = appDatabase.jobTagDao, // Access dao directly
         _problemDao = appDatabase.problemDao, // Access dao directly
-        _syncDao = appDatabase.syncDao, // Access dao directly
+        // _syncDao = appDatabase.syncDao, // Unused
         _documentDao = appDatabase.documentDao, // <<< สร้าง instance
         _documentRecordDao =
             appDatabase.documentRecordDao, // Ensure this is initialized
@@ -138,8 +142,7 @@ class DataSyncService {
             imageRepository ?? ImageRepository(appDatabase: appDatabase),
         _problemRepositoryInstance =
             problemRepository ?? ProblemRepository(appDatabase: appDatabase),
-        _checksheetImageApiService =
-            checksheetImageApiService ?? ChecksheetImageApiService(),
+        // _checksheetImageApiService = checksheetImageApiService ?? ChecksheetImageApiService(), // Unused
         _checksheetImageRepository = checksheetImageRepository ??
             ChecksheetImageRepository(
                 appDatabase: appDatabase,
@@ -198,6 +201,39 @@ class DataSyncService {
     }
   }
 
+  // ... (omitted methods) ...
+
+  Future<SyncStatus> syncJobMachinesData() async {
+    try {
+      final machines = await _jobMachineApiService
+          .syncJobMachines(); // Returns List<DbJobMachine>
+      await _jobMachineDao.deleteAllJobMachines();
+      final machinesToInsert = machines.map((machine) {
+        return JobMachinesCompanion(
+          uid: drift.Value.absent(),
+          id: drift.Value(machine.id),
+          jobId: drift.Value(machine.jobId),
+          machineId: drift.Value(machine.machineId),
+          machineName: drift.Value(machine.machineName),
+          machineType: drift.Value(machine.machineType),
+          description: drift.Value(machine.description),
+          specification: drift.Value(machine.specification),
+          status: drift.Value(machine.status),
+          uiType: drift.Value(machine.uiType),
+          createDate: drift.Value(machine.createDate),
+          createBy: drift.Value(machine.createBy),
+          lastSync: drift.Value(DateTime.now().toIso8601String()),
+        );
+      }).toList();
+      await _jobMachineDao.insertAllJobMachines(machinesToInsert);
+      return const SyncSuccess(message: 'ซิงค์ข้อมูล Machines สำเร็จ!');
+    } on Exception catch (e) {
+      print('Error syncing machines: $e');
+      return SyncError(
+          exception: e, message: 'ข้อผิดพลาดในการซิงค์ Machines: $e');
+    }
+  }
+
   /// === ฟังก์ชันใหม่: สำหรับ Sync Master Image โดยเฉพาะ ===
   Future<SyncStatus> performMasterImageSync(
       {required Function(int, int) onProgress}) async {
@@ -217,20 +253,7 @@ class DataSyncService {
     }
   }
 
-  Future<SyncStatus> _syncMasterImages(
-      {required Function(int, int) onProgress}) async {
-    try {
-      await _checksheetImageRepository.syncImageMetadata();
-      await _checksheetImageRepository.downloadMissingImages(
-          onProgress: onProgress);
-
-      return const SyncSuccess(message: 'ซิงค์ข้อมูลรูปภาพ Master สำเร็จ!');
-    } on Exception catch (e) {
-      print('Error syncing master images: $e');
-      return SyncError(
-          exception: e, message: 'ข้อผิดพลาดในการซิงค์รูปภาพ Master: $e');
-    }
-  }
+// REMOVED _syncMasterImages as it is unused
 
   /// Performs a synchronization of problem data only.
   /// CRUCIAL FIX: Directly return the result from _syncProblemsData().
@@ -289,39 +312,6 @@ class DataSyncService {
     } on Exception catch (e) {
       print('Error syncing jobs: $e');
       return SyncError(exception: e, message: 'ข้อผิดพลาดในการซิงค์ Jobs: $e');
-    }
-  }
-
-  Future<SyncStatus> syncJobMachinesData() async {
-    try {
-      final machines = await _jobMachineApiService
-          .syncJobMachines(); // This returns List<DbDocumentMachine>
-      await _documentMachineDao.deleteAllDocumentMachines();
-      final machinesToInsert = machines.map((machine) {
-        return DocumentMachinesCompanion(
-          // This is the companion object being built
-          // CRITICAL FIX: Map 'id', 'createDate', 'createBy'
-          id: drift.Value(machine.id), // <<< Map 'id' (int)
-          jobId: drift.Value(machine.jobId),
-          documentId: drift.Value(machine.documentId),
-          machineId: drift.Value(machine.machineId),
-          machineName: drift.Value(machine.machineName),
-          machineType: drift.Value(machine.machineType),
-          description: drift.Value(machine.description),
-          specification: drift.Value(machine.specification),
-          status: drift.Value(machine.status),
-          uiType: drift.Value(machine.uiType),
-          lastSync: drift.Value(DateTime.now().toIso8601String()),
-          createDate: drift.Value(machine.createDate), // <<< Map 'createDate'
-          createBy: drift.Value(machine.createBy), // <<< Map 'createBy'
-        );
-      }).toList();
-      await _documentMachineDao.insertAllDocumentMachines(machinesToInsert);
-      return const SyncSuccess(message: 'ซิงค์ข้อมูล Machines สำเร็จ!');
-    } on Exception catch (e) {
-      print('Error syncing machines: $e');
-      return SyncError(
-          exception: e, message: 'ข้อผิดพลาดในการซิงค์ Machines: $e');
     }
   }
 

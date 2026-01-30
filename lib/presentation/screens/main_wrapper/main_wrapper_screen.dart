@@ -69,9 +69,11 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        'MainWrapperScreen: build called. Selected index: $_selectedIndex'); // Debugging
+    // print('MainWrapperScreen: build called. Selected index: $_selectedIndex'); // Debugging
     return Scaffold(
+      backgroundColor:
+          Colors.grey[100], // Match HomeScreen background for seamless look
+      extendBody: false, // Fix obstruction: Reserve space for navbar
       body: PageView(
         key: const ValueKey('mainPageView'), // Add a key for stability
         controller: _pageController,
@@ -79,32 +81,61 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
           setState(() {
             _selectedIndex = index;
           });
-          print('MainWrapperScreen: Page changed, index: $index'); // Debugging
+          // print('MainWrapperScreen: Page changed, index: $index'); // Debugging
         },
         children: _screens, // Display the list of screens.
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        key: const ValueKey('mainBottomNavBar'), // Add a key for stability
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: 24,
+            top: 12), // Add top margin for spacing from list
+        decoration: BoxDecoration(
+          color: Colors.blue.shade900, // Dark Blue background
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color:
+                  Colors.black.withOpacity(0.3), // Darker shadow for visibility
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BottomNavigationBar(
+            key: const ValueKey('mainBottomNavBar'), // Add a key for stability
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            items: const <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home_rounded),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.warning_amber_rounded),
+                activeIcon: Icon(Icons.warning_rounded),
+                label: 'Problem',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.summarize_outlined),
+                activeIcon: Icon(Icons.summarize_rounded),
+                label: 'Summary',
+              ),
+            ],
+            currentIndex:
+                _selectedIndex, // Highlight the currently selected tab.
+            selectedItemColor: Colors.white, // White for selected
+            unselectedItemColor: Colors.white60, // White60 for unselected
+            showUnselectedLabels: true,
+            type:
+                BottomNavigationBarType.fixed, // Ensures all labels are shown.
+            onTap: _onItemTapped, // Callback when a tab is tapped.
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.warning),
-            label: 'Problem',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons
-                .summarize), // <<< CHANGED: Notifications to Summarize icon
-            label: 'Summary', // <<< CHANGED: Notifications to Summary
-          ),
-        ],
-        currentIndex: _selectedIndex, // Highlight the currently selected tab.
-        selectedItemColor: Colors.blue[800], // Color for selected icon/label.
-        unselectedItemColor: Colors.grey, // Ensure unselected items are visible
-        onTap: _onItemTapped, // Callback when a tab is tapped.
-        type: BottomNavigationBarType.fixed, // Ensures all labels are shown.
+        ),
       ),
     );
   }

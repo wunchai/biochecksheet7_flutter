@@ -27,4 +27,4 @@ class ImageProcessorWeb implements ImageProcessor {
   }
 }
 
-// REMOVED: ImageProcessor getPlatformSpecificImageProcessor() => ImageProcessorWeb(); // <<< REMOVE THIS LINE
+ImageProcessor getPlatformImageProcessor() => ImageProcessorWeb();

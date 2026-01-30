@@ -43,4 +43,4 @@ class ImageProcessorNative implements ImageProcessor {
   }
 }
 
-// REMOVED: ImageProcessor getPlatformSpecificImageProcessor() => ImageProcessorNative(); // <<< REMOVE THIS LINE
+ImageProcessor getPlatformImageProcessor() => ImageProcessorNative();

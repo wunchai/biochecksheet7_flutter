@@ -5,6 +5,7 @@ import 'package:biochecksheet7_flutter/presentation/screens/documentmachine/docu
 import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // สำหรับ DbJob
 //import 'package:biochecksheet7_flutter/data/database/tables/document_machine_table.dart'; // สำหรับ DbDocumentMachine
 import 'package:biochecksheet7_flutter/presentation/screens/documentrecord/document_record_screen.dart'; // สำหรับนำทางไป DocumentRecordScreen
+import 'package:biochecksheet7_flutter/presentation/screens/documentmachine/widgets/machine_card.dart';
 
 /// เทียบเท่ากับ DocumentMachineActivity.kt ในโปรเจกต์ Kotlin เดิม
 /// หน้าจอนี้แสดงรายการเครื่องจักรที่เกี่ยวข้องกับเอกสารและ Job ที่ระบุ
@@ -35,6 +36,59 @@ class _DocumentMachineScreenState extends State<DocumentMachineScreen> {
     });
   }
 
+  Future<void> _showCloseJobConfirmationDialog(
+      BuildContext context, DocumentMachineViewModel viewModel) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('ยืนยันปิดงาน'),
+        content: const Text(
+            'คุณต้องการปิดงานนี้ใช่หรือไม่?\nหากปิดงานแล้วจะไม่สามารถแก้ไขข้อมูลได้อีก'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('ยกเลิก'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('ยืนยันปิดงาน'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final error = await viewModel.closeJob();
+      if (context.mounted) {
+        if (error == null) {
+          // Success
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('ปิดงานเรียบร้อยแล้ว'),
+                backgroundColor: Colors.green),
+          );
+          Navigator.of(context).pop(); // Go back to document list
+        } else {
+          // Failure
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('ไม่สามารถปิดงานได้'),
+              content: Text(error),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('ตกลง'),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,8 +103,23 @@ class _DocumentMachineScreenState extends State<DocumentMachineScreen> {
                     .refreshMachines(); // เรียก refresh ใน ViewModel
               },
             ),
-            // TODO: เพิ่มไอคอนค้นหาที่นี่ หากมีการใช้งานฟังก์ชันค้นหาสำหรับเครื่องจักร
           ],
+        ),
+        floatingActionButton: Consumer<DocumentMachineViewModel>(
+          builder: (context, viewModel, child) {
+            // NEW: If job is closed, hide the button
+            if (viewModel.isJobClosed) {
+              return Container(); // Or null if strictly FAB
+            }
+            return FloatingActionButton.extended(
+              onPressed: viewModel.isLoading
+                  ? null
+                  : () => _showCloseJobConfirmationDialog(context, viewModel),
+              label: const Text('ปิดงาน'),
+              icon: const Icon(Icons.check_circle),
+              backgroundColor: Colors.green,
+            );
+          },
         ),
         body: SafeArea(
           child: Consumer<DocumentMachineViewModel>(
@@ -114,114 +183,33 @@ class _DocumentMachineScreenState extends State<DocumentMachineScreen> {
                                     horizontal: 8.0,
                                     vertical: 4.0), // Padding สำหรับทั้งรายการ
                                 itemBuilder: (context, index) {
-                                  final machine = machines[
-                                      index]; // ได้รับรายการเครื่องจักรปัจจุบัน
-                                  // แสดงแต่ละเครื่องจักรเป็น Card คล้ายกับ document_machine_fragment_item.xml
-                                  return Card(
-                                    margin: const EdgeInsets.symmetric(
-                                        vertical:
-                                            8.0), // ระยะห่างแนวตั้งระหว่าง Card
-                                    elevation: 4.0, // เพิ่มเงาให้กับ Card
-                                    child: InkWell(
-                                      // InkWell ให้ผลตอบรับด้วยภาพเมื่อแตะ Card
-                                      onTap: () {
-                                        // นำทางไปยัง DocumentRecordScreen เมื่อแตะเครื่องจักร
-                                        print(
-                                            'แตะเครื่องจักร: ${machine.machineName}');
+                                  final machine = machines[index];
+                                  return MachineCard(
+                                    machine: machine,
+                                    onTap: () {
+                                      print(
+                                          'แตะเครื่องจักร: ${machine.machineName}');
+                                      String routeName = '/document_record';
+                                      String title =
+                                          'Record: ${machine.machineName ?? ''}';
 
-                                        // --- ส่วนที่แก้ไข ---
-                                        // 1. กำหนด Route เริ่มต้นเป็น document_record
-                                        String routeName = '/document_record';
-                                        String title =
-                                            'Record: ${machine.machineName ?? ''}';
+                                      if (machine.uiType == 1) {
+                                        routeName = '/am_checksheet';
+                                        title =
+                                            'AM Check: ${machine.machineName ?? ''}';
+                                      }
 
-                                        // 2. ตรวจสอบค่า uiType (ใช้ ?? 0 เพื่อป้องกันค่า null)
-                                        if (machine.uiType == 1) {
-                                          routeName =
-                                              '/am_checksheet'; // ถ้าเป็น 1, เปลี่ยนไปหน้า AM Checksheet
-                                          title =
-                                              'AM Check: ${machine.machineName ?? ''}';
-                                        }
-
-                                        // 3. ใช้ Navigator.pushNamed กับ routeName ที่เลือกไว้
-                                        Navigator.pushNamed(
-                                          context,
-                                          routeName,
-                                          arguments: {
-                                            'title': title,
-                                            'documentId': widget.documentId,
-                                            'machineId': machine.machineId,
-                                            'jobId': widget.jobId,
-                                          },
-                                        );
-                                        // --- สิ้นสุดส่วนที่แก้ไข ---
-
-                                        /*   Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            DocumentRecordScreen(
-                                          title:
-                                              'บันทึก: ${machine.machineName ?? 'N/A'}', // Title สำหรับหน้า Record
-                                          documentId: widget
-                                              .documentId, // ส่ง documentId ปัจจุบัน
-                                          machineId: machine.machineId ?? '',
-                                          jobId: viewModel.jobId ??
-                                              '', // <<< ส่ง jobId ไปด้วย // ส่ง machineId ของเครื่องจักรที่แตะ
-                                        ),
-                                      ),
-                                    );*/
-                                      },
-
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(
-                                            16.0), // Padding ภายในเนื้อหา Card
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment
-                                              .start, // จัดข้อความชิดซ้าย
-                                          children: [
-                                            Text(
-                                              machine.machineName ??
-                                                  'N/A', // แสดงชื่อเครื่องจักร
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleMedium
-                                                  ?.copyWith(
-                                                      fontWeight: FontWeight
-                                                          .bold), // ชื่อตัวหนา
-                                            ),
-                                            const SizedBox(
-                                                height:
-                                                    4.0), // ช่องว่างแนวตั้งเล็กน้อย
-                                            Text(
-                                                'รหัสเครื่องจักร: ${machine.machineId ?? 'N/A'}',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall), // แสดงรหัสเครื่องจักร
-                                            Text(
-                                                'ประเภท: ${machine.machineType ?? 'N/A'}',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall), // แสดงประเภท
-                                            Text(
-                                                'คำอธิบาย: ${machine.description ?? 'N/A'}',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall), // แสดงคำอธิบาย
-                                            Text(
-                                                'ข้อมูลจำเพาะ: ${machine.specification ?? 'N/A'}',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall), // แสดงข้อมูลจำเพาะ
-                                            Text(
-                                                'สถานะ: ${machine.status ?? 'N/A'}',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall), // แสดงสถานะ
-                                          ],
-                                        ),
-                                      ),
-                                    ),
+                                      Navigator.pushNamed(
+                                        context,
+                                        routeName,
+                                        arguments: {
+                                          'title': title,
+                                          'documentId': widget.documentId,
+                                          'machineId': machine.machineId,
+                                          'jobId': widget.jobId,
+                                        },
+                                      );
+                                    },
                                   );
                                 },
                               );

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
+//import 'dart:typed_data';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -16,40 +16,8 @@ class ChecksheetImageRepository {
       _loginRepository; // <<< เพิ่ม Repository สำหรับดึงข้อมูลผู้ใช้
 
 // ฟังก์ชันนี้จะทำงานอยู่เบื้องหลัง ไม่รบกวน UI หลัก
-  Future<String> _saveAndOverwriteInIsolate(Map<String, dynamic> params) async {
-    // รับข้อมูลที่จำเป็นเข้ามา
-    final Uint8List newImageBytes = params['newBytes'];
-    final String? oldPath = params['oldPath'];
-    // <<< รับ Path หลักของโฟลเดอร์เข้ามา ไม่ต้องหาเอง >>>
-    final String baseDirectoryPath = params['basePath'];
-
-    // 1. สร้าง Path ใหม่โดยใช้ Path หลักที่ได้รับมา
-    final imageDir = Directory('$baseDirectoryPath/new_master_images');
-    if (!await imageDir.exists()) {
-      await imageDir.create(recursive: true);
-    }
-    final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final newFilePath = '${imageDir.path}/edited_master_$timestamp.jpg';
-
-    // 2. เขียนไฟล์ใหม่ (งานหนัก)
-    final newFile = File(newFilePath);
-    await newFile.writeAsBytes(newImageBytes);
-
-    // 3. ลบไฟล์เก่าทิ้ง
-    if (oldPath != null && oldPath.isNotEmpty) {
-      try {
-        final oldFile = File(oldPath);
-        if (await oldFile.exists()) {
-          await oldFile.delete();
-        }
-      } catch (e) {
-        debugPrint('Could not delete old image file in isolate. Error: $e');
-      }
-    }
-
-    // 4. คืนค่า Path ใหม่กลับไปให้ Main Thread
-    return newFilePath;
-  }
+// ฟังก์ชันนี้จะทำงานอยู่เบื้องหลัง ไม่รบกวน UI หลัก
+// REMOVED _saveAndOverwriteInIsolate as it is unused
 
   ChecksheetImageRepository({
     required AppDatabase appDatabase,
@@ -353,72 +321,15 @@ class ChecksheetImageRepository {
     }
   }
 
-  Future<String> _saveImageToPlatformFile(Uint8List bytes,
-      [String? oldPath]) async {
-    final dir = await _getAppDirectory();
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final path = '${dir.path}/edited_master_$timestamp.jpg';
-    final file = File(path);
-
-    await file.writeAsBytes(bytes);
-
-    // ลบไฟล์เก่า
-    if (oldPath != null && oldPath.isNotEmpty) {
-      try {
-        final oldFile = File(oldPath);
-        if (await oldFile.exists()) await oldFile.delete();
-      } catch (e) {
-        debugPrint('Failed to delete old file at $oldPath: $e');
-      }
-    }
-
-    return path;
-  }
+// REMOVED _saveImageToPlatformFile as it is unused
 
   /// ===== Helper: Path สำหรับ Windows =====
 
   /// Helper: หา Directory สำหรับเก็บไฟล์บนแต่ละแพลตฟอร์ม
-  Future<Directory> _getAppDirectory() async {
-    if (kIsWeb) {
-      throw UnimplementedError('Web does not use filesystem');
-    } else if (Platform.isWindows) {
-      final userProfile = Platform.environment['USERPROFILE'];
-      if (userProfile != null) {
-        final dir = Directory('$userProfile/Documents/new_master_images');
-        if (!await dir.exists()) await dir.create(recursive: true);
-        return dir;
-      } else {
-        throw Exception('Cannot find Windows Documents folder');
-      }
-    } else {
-      // Android / iOS
-      return await getApplicationDocumentsDirectory();
-    }
-  }
+  // REMOVED _getAppDirectory as it is unused
 
   /// ===== Helper: บันทึกไฟล์ใหม่ และลบไฟล์เก่า =====
-  Future<String> _saveImageToFile(Uint8List bytes, [String? oldPath]) async {
-    final dir = await _getAppDirectory();
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final path = '${dir.path}/edited_master_$timestamp.jpg';
-    final file = File(path);
-
-    await file.writeAsBytes(bytes);
-
-/*
-    if (oldPath != null && oldPath.isNotEmpty) {
-      try {
-        final oldFile = File(oldPath);
-        if (await oldFile.exists()) await oldFile.delete();
-      } catch (e) {
-        debugPrint('Failed to delete old file at $oldPath: $e');
-      }
-    }
-
-*/
-
-    return path;
-  }
+// REMOVED _saveImageToFile as it is unused
 
   /// Helper: สำหรับบันทึก Byte Array ลงไฟล์ใหม่และคืนค่า Path
   Future<String> _saveImageBytesToNewFile(Uint8List imageBytes) async {
@@ -432,7 +343,7 @@ class ChecksheetImageRepository {
     final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final filePath = '${imageDir.path}/edited_master_$timestamp.jpg';
     final file = File(filePath);
-    debugPrint('filePath ${filePath}: ');
+    debugPrint('filePath $filePath: ');
 
     await file.writeAsBytes(imageBytes);
     return filePath;

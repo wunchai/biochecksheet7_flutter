@@ -63,4 +63,56 @@ class DocumentMachineDao extends DatabaseAccessor<AppDatabase>
 
   // Equivalent to suspend fun deleteAll()
   Future<int> deleteAllDocumentMachines() => delete(documentMachines).go();
+
+  /// NEW: Updates the aggregated status of a machine based on its records.
+  Future<void> updateMachineStatus(String documentId, String machineId) async {
+    // 1. Calculate Aggregates using Custom Query
+    final query = 'SELECT '
+        'COUNT(*) as total, '
+        'SUM(CASE WHEN status >= 1 THEN 1 ELSE 0 END) as saved, '
+        'SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as posted, '
+        'SUM(CASE WHEN syncStatus = 1 THEN 1 ELSE 0 END) as synced '
+        'FROM document_records '
+        'WHERE documentId = ? AND machineId = ?';
+
+    final result = await customSelect(query, variables: [
+      Variable.withString(documentId),
+      Variable.withString(machineId)
+    ]).getSingleOrNull();
+
+    if (result != null) {
+      final total = result.data['total'] as int? ?? 0;
+      final saved = result.data['saved'] as int? ??
+          0; // Using double/int safe cast if needed, but drift usually returns int for Count/Sum
+      final posted = result.data['posted'] as int? ?? 0;
+      final synced = result.data['synced'] as int? ?? 0;
+
+      // 2. Determine Aggregate Status
+      int newStatus = 0; // Default: Pending
+      if (total > 0) {
+        if (synced == total) {
+          newStatus = 4; // Fully Synced
+        } else if (posted == total) {
+          newStatus = 3; // All Posted
+        } else if (saved == total) {
+          newStatus = 2; // All Saved (Completed)
+        } else if (saved > 0) {
+          newStatus = 1; // In Progress
+        }
+      }
+
+      // 3. Update DocumentMachine Table
+      await (update(documentMachines)
+            ..where((tbl) =>
+                tbl.documentId.equals(documentId) &
+                tbl.machineId.equals(machineId)))
+          .write(DocumentMachinesCompanion(
+        totalTags: Value(total),
+        savedTags: Value(saved),
+        postedTags: Value(posted),
+        syncedTags: Value(synced),
+        aggregateStatus: Value(newStatus),
+      ));
+    }
+  }
 }

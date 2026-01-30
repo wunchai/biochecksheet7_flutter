@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart'; // <<< 1. เพิ่ม Import สำหรับ DateFormat
 
-import 'package:biochecksheet7_flutter/presentation/screens/document/document_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/document/document_viewmodel.dart'; // Import DocumentFilter
 import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // สำหรับ DbJob
 //import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // สำหรับ DbDocument
 import 'package:biochecksheet7_flutter/presentation/screens/documentmachine/document_machine_screen.dart'; // สำหรับนำทางไป DocumentMachineScreen
@@ -252,6 +252,30 @@ class _DocumentScreenState extends State<DocumentScreen> {
                   .refreshDocuments(); // เรียก refresh ใน ViewModel
             },
           ),
+          // NEW: Filter Button
+          PopupMenuButton<DocumentFilter>(
+            icon: const Icon(Icons.filter_list),
+            tooltip: 'Filter Documents',
+            onSelected: (DocumentFilter result) {
+              Provider.of<DocumentViewModel>(context, listen: false)
+                  .setFilter(result);
+            },
+            itemBuilder: (BuildContext context) =>
+                <PopupMenuEntry<DocumentFilter>>[
+              const PopupMenuItem<DocumentFilter>(
+                value: DocumentFilter.all,
+                child: Text('ทั้งหมด (All)'),
+              ),
+              const PopupMenuItem<DocumentFilter>(
+                value: DocumentFilter.active,
+                child: Text('กำลังดำเนินการ (Active)'),
+              ),
+              const PopupMenuItem<DocumentFilter>(
+                value: DocumentFilter.closed,
+                child: Text('เสร็จสิ้น (Closed)'),
+              ),
+            ],
+          ),
           Consumer<DocumentViewModel>(
             // Consumer สำหรับฟังการเปลี่ยนแปลง selectedDocument
             builder: (context, viewModel, child) {
@@ -301,9 +325,17 @@ class _DocumentScreenState extends State<DocumentScreen> {
                       value: 'copy',
                       child: Text('คัดลอกเอกสาร'),
                     ),
-                    const PopupMenuItem<String>(
+                    PopupMenuItem<String>(
                       value: 'delete',
-                      child: Text('ลบเอกสาร'),
+                      enabled: viewModel.selectedDocument?.status ==
+                          0, // NEW: Disable if not 0
+                      child: Text(
+                        'ลบเอกสาร',
+                        style: TextStyle(
+                            color: viewModel.selectedDocument?.status == 0
+                                ? null
+                                : Colors.grey),
+                      ),
                     ),
                   ],
                   icon: const Icon(Icons.more_vert), // ไอคอนสามจุดแนวตั้ง
@@ -362,117 +394,37 @@ class _DocumentScreenState extends State<DocumentScreen> {
                         } else if (!snapshot.hasData ||
                             snapshot.data!.isEmpty) {
                           // แสดงข้อความถ้าไม่พบเอกสาร
-                          return const Center(child: Text('ไม่พบเอกสาร.'));
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.folder_open,
+                                    size: 80, color: Colors.grey[300]),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'ไม่พบเอกสาร (No Documents Found)',
+                                  style: TextStyle(
+                                      fontSize: 18, color: Colors.grey[600]),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'กดปุ่ม + เพื่อสร้างเอกสารใหม่',
+                                  style: TextStyle(color: Colors.grey[500]),
+                                ),
+                              ],
+                            ),
+                          );
                         } else {
                           // ถ้ามีข้อมูล, สร้างรายการเอกสาร
                           final documents = snapshot.data!;
                           return ListView.builder(
-                            itemCount: documents.length, // จำนวนเอกสารในรายการ
+                            itemCount: documents.length,
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                                vertical: 4.0), // Padding สำหรับทั้งรายการ
+                                horizontal: 16.0, vertical: 12.0),
                             itemBuilder: (context, index) {
-                              final document = documents[
-                                  index]; // ได้รับรายการเอกสารปัจจุบัน
-                              // แสดงแต่ละเอกสารเป็น Card คล้ายกับ document_fragment_item.xml
-                              return Card(
-                                // ไฮไลต์เอกสารที่ถูกเลือก
-                                color: viewModel.selectedDocument == document
-                                    ? Theme.of(context)
-                                        .colorScheme
-                                        .secondary
-                                        .withOpacity(0.2) // สีไฮไลต์
-                                    : null, // ไม่มีไฮไลต์
-                                margin: const EdgeInsets.symmetric(
-                                    vertical:
-                                        8.0), // ระยะห่างแนวตั้งระหว่าง Card
-                                elevation: 4.0, // เพิ่มเงาให้กับ Card
-                                child: InkWell(
-                                  // InkWell ให้ผลตอบรับด้วยภาพเมื่อแตะ Card
-                                  onTap: () {
-                                    // เมื่อแตะ, เลือกเอกสาร (ถ้ายังไม่ได้เลือก) หรือไปยังรายละเอียด
-                                    if (viewModel.selectedDocument ==
-                                        document) {
-                                      // ถ้าถูกเลือกอยู่แล้ว, นำทางไปยังหน้ารายละเอียด (DocumentRecordScreen)
-                                      print(
-                                          'นำทางไปยังรายละเอียดของ: ${document.documentName}');
-                                      viewModel
-                                          .clearSelection(); // ล้างการเลือกหลังจากการนำทาง
-
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              DocumentMachineScreen(
-                                            // นำทางไป DocumentMachineScreen
-                                            title:
-                                                'เครื่องจักรสำหรับ ${document.documentName ?? 'N/A'}',
-                                            jobId: document.jobId ??
-                                                '', // ส่ง jobId
-                                            documentId: document.documentId ??
-                                                '', // ส่ง documentId
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      viewModel.selectDocument(
-                                          document); // เลือกเอกสาร
-                                    }
-                                  },
-                                  onLongPress: () {
-                                    // เมื่อกดค้าง, เลือกเอกสารเพื่อแสดงเมนูตัวเลือก
-                                    viewModel.selectDocument(document);
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(
-                                        16.0), // Padding ภายในเนื้อหา Card
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment
-                                          .start, // จัดข้อความชิดซ้าย
-                                      children: [
-                                        Text(
-                                          document.documentName ??
-                                              'N/A', // แสดงชื่อเอกสาร
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium
-                                              ?.copyWith(
-                                                  fontWeight: FontWeight
-                                                      .bold), // ชื่อตัวหนา
-                                        ),
-                                        const SizedBox(
-                                            height:
-                                                4.0), // ช่องว่างแนวตั้งเล็กน้อย
-                                        Text(
-                                            'รหัสเอกสาร: ${document.documentId ?? 'N/A'}',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall), // แสดงรหัสเอกสาร
-                                        Text(
-                                            'รหัส Job: ${document.jobId ?? 'N/A'}',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall), // แสดงรหัส Job ที่เกี่ยวข้อง
-                                        Text(
-                                            'รหัสผู้ใช้: ${document.userId ?? 'N/A'}',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall), // แสดงรหัสผู้ใช้
-                                        Text(
-                                            'วันที่สร้าง: ${document.createDate ?? 'N/A'}',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall), // แสดงวันที่สร้าง
-                                        Text(
-                                            'สถานะ: ${document.status ?? 'N/A'}',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall), // แสดงสถานะเอกสาร
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
+                              final document = documents[index];
+                              return _buildDocumentCard(
+                                  context, document, viewModel);
                             },
                           );
                         }
@@ -481,30 +433,158 @@ class _DocumentScreenState extends State<DocumentScreen> {
                   ),
                 ],
               ),
-              // Loading overlay ที่ปรากฏทับเนื้อหาเมื่อ isLoading เป็น true
+              // Loading overlay
               if (viewModel.isLoading)
                 Container(
-                  color: Colors.black.withOpacity(0.5), // พื้นหลังสีดำโปร่งแสง
-                  alignment: Alignment
-                      .center, // จัดวาง CircularProgressIndicator ตรงกลาง
-                  child: const CircularProgressIndicator(), // Loading spinner
+                  color: Colors.black.withOpacity(0.5),
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(),
                 ),
             ],
           );
         },
       ),
-      // Floating Action Button สำหรับสร้างเอกสารใหม่
       floatingActionButton: Consumer<DocumentViewModel>(
         builder: (context, viewModel, child) {
-          return FloatingActionButton(
+          return FloatingActionButton.extended(
             onPressed: viewModel.isLoading
-                ? null // ปิดการใช้งานปุ่มถ้ากำลังโหลด
-                : () => _showCreateNewDocumentDialog(
-                    context, viewModel), // แสดง Dialog สร้างเอกสารใหม่
-            child: const Icon(Icons.add), // ไอคอนเพิ่ม
+                ? null
+                : () => _showCreateNewDocumentDialog(context, viewModel),
+            label: const Text('New Document'),
+            icon: const Icon(Icons.add),
           );
         },
       ),
     );
+  }
+
+  Widget _buildDocumentCard(
+      BuildContext context, DbDocument document, DocumentViewModel viewModel) {
+    bool isSelected = viewModel.selectedDocument == document;
+    bool isClosed = document.status >= 2;
+    Color statusColor = isClosed ? Colors.grey : Colors.green;
+    String statusText = isClosed ? "Closed" : "Active";
+
+    return Card(
+      elevation: isSelected ? 8.0 : 2.0,
+      margin: const EdgeInsets.only(bottom: 12.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        side: isSelected
+            ? BorderSide(color: Theme.of(context).primaryColor, width: 2.0)
+            : BorderSide.none,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          if (viewModel.selectedDocument == document) {
+            viewModel.clearSelection();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DocumentMachineScreen(
+                  title: 'Machines: ${document.documentName ?? 'N/A'}',
+                  jobId: document.jobId ?? '',
+                  documentId: document.documentId ?? '',
+                ),
+              ),
+            );
+          } else {
+            viewModel.selectDocument(document);
+          }
+        },
+        onLongPress: () {
+          viewModel.selectDocument(document);
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(color: statusColor, width: 6.0),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        document.documentName ?? 'Untitled Document',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0, vertical: 4.0),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(color: statusColor.withOpacity(0.5)),
+                      ),
+                      child: Text(
+                        statusText,
+                        style: TextStyle(
+                            color: statusColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12.0),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8.0),
+                Divider(color: Colors.grey.withOpacity(0.2)),
+                const SizedBox(height: 8.0),
+                _buildInfoRow(
+                    Icons.event,
+                    "Created: ${_formatDate(document.createDate)}",
+                    Colors.grey[700]),
+                const SizedBox(height: 4.0),
+                _buildInfoRow(Icons.work_outline,
+                    "Job ID: ${document.jobId ?? '-'}", Colors.grey[700]),
+                const SizedBox(height: 4.0),
+                if (document.userId != null)
+                  _buildInfoRow(Icons.person_outline,
+                      "User: ${document.userId}", Colors.grey[600]),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String text, Color? color) {
+    return Row(
+      children: [
+        Icon(icon, size: 16.0, color: color ?? Colors.grey),
+        const SizedBox(width: 8.0),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(color: color, fontSize: 13.0),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDate(String? isoDate) {
+    if (isoDate == null) return "Unknown Date";
+    try {
+      final dt = DateTime.parse(isoDate);
+      return DateFormat('dd MMM yyyy, HH:mm').format(dt);
+    } catch (e) {
+      return isoDate;
+    }
   }
 }

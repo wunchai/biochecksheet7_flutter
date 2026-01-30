@@ -17,6 +17,7 @@ import 'package:biochecksheet7_flutter/data/network/document_record_api_service.
 import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart'; // <<< NEW: Import DocumentDao
 //import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // <<< NEW: Import DbDocument
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< CRUCIAL FIX: Add this import for UploadRecordResult
+import 'package:biochecksheet7_flutter/data/database/daos/document_machine_dao.dart'; // <<< NEW: Import DocumentMachineDao
 
 import 'dart:math'; // <<< NEW: Import for atan and pow
 
@@ -29,6 +30,8 @@ class DocumentRecordRepository {
       _documentRecordApiService; // <<< เพิ่ม Dependency นี้
   final AppDatabase _appDatabase; // NEW: Add AppDatabase to access raw queries
   final DocumentDao _documentDao; // <<< CRUCIAL FIX: Declare DocumentDao here
+  final DocumentMachineDao
+      _documentMachineDao; // NEW: For machine status updates
 
   DocumentRecordRepository({required AppDatabase appDatabase})
       : _documentRecordDao = appDatabase.documentRecordDao,
@@ -37,7 +40,8 @@ class DocumentRecordRepository {
             DocumentRecordApiService(), // <<< สร้าง instance
         _appDatabase = appDatabase, // <<< Initialize AppDatabase
         _documentDao =
-            appDatabase.documentDao; // <<< Initialize DocumentDao here
+            appDatabase.documentDao, // <<< Initialize DocumentDao here
+        _documentMachineDao = appDatabase.documentMachineDao; // NEW
   /// Loads document records for a specific document and machine,
   /// joined with their corresponding job tags and problems.
   /// This provides data for the DocumentRecordScreen.
@@ -250,6 +254,15 @@ class DocumentRecordRepository {
     try {
       print(
           'DocumentRecordRepository: Initializing records for JobID=$jobId, DocID=$documentId, MachineID=$machineId'); // <<< Debugging
+
+      // NEW: Check Document Status first. If Closed (2) or Posted, DO NOT initialize new tags.
+      final doc = await _documentDao.getDocument(documentId);
+      if (doc != null && doc.status >= 2) {
+        print(
+            'Document $documentId is Closed (Status ${doc.status}). Skipping record initialization.');
+        return;
+      }
+
       // 1. Get relevant job tags for this jobId and machineId
       final List<DbJobTag> jobTags = await _jobTagDao.getJobTagsByJobAndMachine(
           jobId, machineId); // Assuming you add this method to JobTagDao
@@ -305,6 +318,9 @@ class DocumentRecordRepository {
       }
       print(
           'Records initialization complete for Doc: $documentId, Machine: $machineId');
+
+      // Update machine status aggregation
+      await _documentMachineDao.updateMachineStatus(documentId, machineId);
     } catch (e) {
       print('Error initializing records from JobTags: $e');
       throw Exception('Failed to initialize records: $e');
@@ -371,6 +387,14 @@ class DocumentRecordRepository {
           'UnReadable=${newUnReadable ?? existingRecord.unReadable}, '
           'CreateBy=${userId ?? existingRecord.createBy}, '
           'Status=$finalStatus'); // <<< Add Status to log
+
+      // Update machine status aggregation if we have the record reference
+      if (existingRecord.documentId != null &&
+          existingRecord.machineId != null) {
+        await _documentMachineDao.updateMachineStatus(
+            existingRecord.documentId!, existingRecord.machineId!);
+      }
+
       return success;
     } catch (e) {
       print('Error updating record UID $uid: $e');
@@ -491,6 +515,10 @@ class DocumentRecordRepository {
       }
 
       print('Processed all batches. Overall success: $overallUploadSuccess');
+
+      // Update machine status aggregation after all uploads
+      await _documentMachineDao.updateMachineStatus(documentId, machineId);
+
       return overallUploadSuccess;
     } catch (e) {
       print('Error during records upload to server: $e');

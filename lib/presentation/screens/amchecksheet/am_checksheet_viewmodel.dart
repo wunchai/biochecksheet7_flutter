@@ -8,7 +8,7 @@ import 'package:image_picker/image_picker.dart'; // <<< เพิ่ม Import
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/repositories/document_record_repository.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
-import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart';
+// import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart';
 import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
 
 import 'package:biochecksheet7_flutter/data/services/image_processing_service.dart';
@@ -57,10 +57,13 @@ class AMChecksheetViewModel extends ChangeNotifier {
   final ValueNotifier<double?> syncProgressNotifier = ValueNotifier(null);
   final ValueNotifier<String> syncStatusNotifier = ValueNotifier('');
 
+  bool _isDocumentClosed = false;
+  bool get isDocumentClosed => _isDocumentClosed;
+
   // --- ส่วนจัดการ PageView ---
   int _currentPage = 0;
-  int get currentPage => _currentPage;
-  int get totalRecords => _currentRecords.length;
+  int get currentPage => _currentPage; // Restored
+  int get totalRecords => _currentRecords.length; // Restored
   late PageController pageController;
 
   // --- Constructor ---
@@ -123,18 +126,46 @@ class AMChecksheetViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _documentRecordRepository.initializeRecordsFromJobTags(
-        jobId: _jobId!,
-        documentId: _documentId!,
-        machineId: _machineId!,
-      );
+      // NEW: Check global document status
+      final doc = await _appDatabase.documentDao.getDocument(documentId);
+      _isDocumentClosed = (doc != null && doc.status >= 2);
+      print('AMChecksheetViewModel: Document Closed = $_isDocumentClosed');
+
+      // Only initialize if not closed
+      if (!_isDocumentClosed) {
+        await _documentRecordRepository.initializeRecordsFromJobTags(
+          jobId: _jobId!,
+          documentId: _documentId!,
+          machineId: _machineId!,
+        );
+      } else {
+        print(
+            'AMChecksheetViewModel: Skipping initialization because document is closed.');
+      }
 
       _recordsStream = _documentRecordRepository.loadRecordsForDocumentMachine(
         documentId: _documentId!,
         machineId: _machineId!,
       );
 
+      // DEBUG: Verify DB content
+      final allRecs =
+          await _appDatabase.documentRecordDao.getAllDocumentRecords();
+      print("DEBUG: Total records in DB: ${allRecs.length}");
+      for (var r in allRecs) {
+        print(
+            "DEBUG DB ROW: UID=${r.uid}, DocID=${r.documentId}, MachineID=${r.machineId}, TagID=${r.tagId}, Status=${r.status}");
+        if (r.documentId == _documentId && r.machineId == _machineId) {
+          print("MATCH FOUND in DB Dump for current Doc/Machine!");
+        }
+      }
+
       _recordsStream?.listen((data) {
+        print("DEBUG: Stream emitted ${data.length} records");
+        for (var rec in data) {
+          print(
+              "DEBUG: Record UID: ${rec.documentRecord.uid}, DocID: ${rec.documentRecord.documentId}, MachineID: ${rec.documentRecord.machineId}, TagID: ${rec.documentRecord.tagId}, Status: ${rec.documentRecord.status}");
+        }
         _currentRecords = data;
         _statusMessage = "พบข้อมูลทั้งหมด ${_currentRecords.length} รายการ";
         if (data.isEmpty) {
@@ -399,6 +430,13 @@ class AMChecksheetViewModel extends ChangeNotifier {
     _syncMessage = null;
     _statusMessage = "กำลังบันทึกการเปลี่ยนแปลงทั้งหมด...";
     notifyListeners();
+
+    if (_isDocumentClosed) {
+      _isLoading = false;
+      _statusMessage = "ไม่สามารถบันทึกได้: งานนี้ปิดแล้ว";
+      notifyListeners();
+      return false;
+    }
 
     // NEW: เรียกฟังก์ชัน Validate ก่อนบันทึก
     final bool validationPassed = await _validateAllRecordsForValidation(

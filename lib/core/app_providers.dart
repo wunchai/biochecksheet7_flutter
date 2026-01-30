@@ -2,7 +2,6 @@
 //import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart'; // For SingleChildWidget
-import 'package:flutter/foundation.dart';
 
 // Import all necessary services, repositories, viewmodels
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
@@ -25,23 +24,14 @@ import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/am_chec
 
 // CRUCIAL FIX: Conditional Import for ImageProcessor
 import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor.dart';
-import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor_native.dart'; // For Native platforms
-import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor_web.dart'; // For Web platform
-
-// Platform-specific image processor imports
 import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor_native.dart'
     if (dart.library.html) 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor_web.dart';
 
-// Import the abstract ImageProcessor class (still needed for type hinting)
-import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor.dart'; // <<< Make sure this is imported
-
 // NEW: Import DeviceInfo components
-import 'package:biochecksheet7_flutter/presentation/screens/deviceinfo/device_info_viewmodel.dart'; // <<< Import ViewModel
-import 'package:biochecksheet7_flutter/presentation/screens/deviceinfo/device_info_screen.dart'; // <<< Import Screen
+import 'package:biochecksheet7_flutter/presentation/screens/deviceinfo/device_info_viewmodel.dart';
 
 // Import DataSummary components
-import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_viewmodel.dart'; // <<< NEW: Import ViewModel
-import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_screen.dart'; // <<< NEW: Import Screen
+import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_viewmodel.dart';
 
 // --- <<< เพิ่ม Import สำหรับ Image Sync >>> ---
 import 'package:biochecksheet7_flutter/data/network/checksheet_image_api_service.dart';
@@ -54,26 +44,13 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
   final loginRepository = LoginRepository();
   await loginRepository.getLoggedInUserFromLocal();
 
-  final ImageProcessor
-      imageProcessor; // Declare type as abstract ImageProcessor
-  if (kIsWeb) {
-    // Check if running on web
-    imageProcessor =
-        ImageProcessorWeb(); // Now ImageProcessorWeb is defined due to conditional import
-  } else {
-    // Assume native (Android, iOS, Windows, Linux, macOS)
-    imageProcessor =
-        ImageProcessorNative(); // Now ImageProcessorNative is defined
-  }
-  // Create DeviceInfoService instance
-  final DeviceInfoService deviceInfoService = DeviceInfoService();
+  // Use the factory function from the conditionally imported file
+  final ImageProcessor imageProcessor = getPlatformImageProcessor();
 
-  /*
- final DataSyncService dataSyncService =
-      DataSyncService(appDatabase: appDatabase); // Create instance once
-*/
+  // Remove unused local variable if created inside Provider
+  // final DeviceInfoService deviceInfoService = DeviceInfoService();
 
-// --- <<< สร้าง Dependencies สำหรับ Image Sync >>> ---
+  // --- <<< สร้าง Dependencies สำหรับ Image Sync >>> ---
   final checksheetImageApiService = ChecksheetImageApiService();
   final checksheetImageRepository = ChecksheetImageRepository(
     appDatabase: appDatabase,
@@ -118,8 +95,7 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
             deviceInfoService:
                 Provider.of<DeviceInfoService>(context, listen: false),
             dataSyncService: dataSyncService)),
-    Provider<DataSyncService>(
-        create: (_) => DataSyncService(appDatabase: appDatabase)),
+    Provider.value(value: dataSyncService), // Use existing instance
     Provider<DatabaseMaintenanceService>(
         create: (_) => DatabaseMaintenanceService(appDatabase: appDatabase)),
     Provider<DataCleanupService>(

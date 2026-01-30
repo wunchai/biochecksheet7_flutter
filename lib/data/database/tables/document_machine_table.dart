@@ -39,6 +39,18 @@ class DocumentMachines extends Table {
   IntColumn get uiType =>
       integer().named('ui_type').withDefault(const Constant(0))();
 
+  // NEW: Aggregated Status Columns
+  IntColumn get totalTags =>
+      integer().named('totalTags').withDefault(const Constant(0))();
+  IntColumn get savedTags =>
+      integer().named('savedTags').withDefault(const Constant(0))();
+  IntColumn get postedTags =>
+      integer().named('postedTags').withDefault(const Constant(0))();
+  IntColumn get syncedTags =>
+      integer().named('syncedTags').withDefault(const Constant(0))();
+  IntColumn get aggregateStatus =>
+      integer().named('aggregateStatus').withDefault(const Constant(0))();
+
   // NEW: Add fields from API response
   IntColumn get id => integer().named('id')(); // API has 'id' as int
   TextColumn get createDate => text().named('CreateDate').nullable()();

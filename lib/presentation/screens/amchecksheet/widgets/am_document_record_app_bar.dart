@@ -241,7 +241,9 @@ class _AmDocumentRecordAppBarState extends State<AmDocumentRecordAppBar> {
         ),
         IconButton(
           icon: const Icon(Icons.save),
-          onPressed: (viewModel.isLoading || !_canSaveButtonEnabled)
+          onPressed: (viewModel.isLoading ||
+                  !_canSaveButtonEnabled ||
+                  viewModel.isDocumentClosed) // <<< Disable if closed
               ? null
               : widget.onSavePressed,
         ),

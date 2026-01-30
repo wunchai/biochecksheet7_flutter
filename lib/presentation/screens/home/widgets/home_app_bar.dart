@@ -39,23 +39,46 @@ class _HomeAppBarState extends State<HomeAppBar> {
         Provider.of<HomeViewModel>(context); // Listen to ViewModel changes.
 
     return AppBar(
+      backgroundColor: Colors.blue.shade900,
+      elevation: 0,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(24),
+        ),
+      ),
+      iconTheme: const IconThemeData(color: Colors.white),
+      actionsIconTheme: const IconThemeData(color: Colors.white),
       // Conditional title/search bar
       title: _isSearching
           ? TextField(
               controller: widget.searchController,
-              decoration: const InputDecoration(
-                hintText: 'ค้นหา Job ID หรือ Job Name...',
-                border: InputBorder.none,
-                hintStyle: TextStyle(color: Colors.white70),
+              decoration: InputDecoration(
+                hintText: 'ค้นหา...',
+                hintStyle: const TextStyle(color: Colors.white70),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.15),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                isDense: true,
               ),
-              style: const TextStyle(color: Colors.white, fontSize: 18.0),
+              style: const TextStyle(color: Colors.white, fontSize: 16.0),
               onChanged: (value) {
                 viewModel
                     .setSearchQuery(value); // Call ViewModel's setSearchQuery
               },
               autofocus: true,
             )
-          : Text(widget.title),
+          : Text(
+              widget.title,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22),
+            ),
 
       actions: [
         // Search / Close Search Button
@@ -92,9 +115,9 @@ class _HomeAppBarState extends State<HomeAppBar> {
         ),
         // Logout Button
         IconButton(
-          icon: const Icon(Icons.logout),
-          onPressed: widget.onLogoutPressed, // Call the provided callback
-        ),
+            icon: const Icon(Icons.logout),
+            onPressed: widget.onLogoutPressed // Call the provided callback
+            ),
       ],
     );
   }

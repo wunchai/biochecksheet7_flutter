@@ -147,9 +147,8 @@ class _ProblemScreenState extends State<ProblemScreen> {
                   Provider.of<ProblemViewModel>(context, listen: false);
               final SyncStatus syncResult = await viewModel
                   .refreshProblems(); // Await the refresh operation
-              if (mounted) {
-                _showSyncResultFeedback(context, syncResult, 'การซิงค์ปัญหา');
-              }
+              if (!mounted) return;
+              _showSyncResultFeedback(context, syncResult, 'การซิงค์ปัญหา');
             },
           ),
           IconButton(
@@ -171,23 +170,21 @@ class _ProblemScreenState extends State<ProblemScreen> {
                   // needs to be re-evaluated to get the current state of all input fields.
                   // For now, we'll keep the call, but acknowledge it might not save all UI changes.
                   );
-              if (mounted) {
-                if (saveSuccess) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('บันทึกการเปลี่ยนแปลงสำเร็จ!')),
-                  );
-                } else {
-                  await showDialog(
-                    context: context,
-                    builder: (BuildContext dialogContext) {
-                      return const ErrorDialog(
-                        title: 'บันทึกข้อมูลล้มเหลว',
-                        message: 'โปรดตรวจสอบข้อผิดพลาดในแต่ละรายการปัญหา.',
-                      );
-                    },
-                  );
-                }
+              if (!mounted) return;
+              if (saveSuccess) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('บันทึกการเปลี่ยนแปลงสำเร็จ!')),
+                );
+              } else {
+                await showDialog(
+                  context: context,
+                  builder: (BuildContext dialogContext) {
+                    return const ErrorDialog(
+                      title: 'บันทึกข้อมูลล้มเหลว',
+                      message: 'โปรดตรวจสอบข้อผิดพลาดในแต่ละรายการปัญหา.',
+                    );
+                  },
+                );
               }
             },
           ),
@@ -204,24 +201,23 @@ class _ProblemScreenState extends State<ProblemScreen> {
                           // Make onPressed async
                           final bool saveSuccess = await viewModel
                               .uploadAllProblemsToServer(); // Await upload
-                          if (mounted) {
-                            if (saveSuccess) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('การอัปโหลดสำเร็จ!')),
-                              );
-                            } else {
-                              await showDialog(
-                                context: context,
-                                builder: (BuildContext dialogContext) {
-                                  return const ErrorDialog(
-                                    title: 'การอัปโหลดปัญหา',
-                                    message:
-                                        'โปรดตรวจสอบข้อผิดพลาดในแต่ละรายการปัญหา.',
-                                  );
-                                },
-                              );
-                            }
+                          if (!mounted) return;
+                          if (saveSuccess) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('การอัปโหลดสำเร็จ!')),
+                            );
+                          } else {
+                            await showDialog(
+                              context: context,
+                              builder: (BuildContext dialogContext) {
+                                return const ErrorDialog(
+                                  title: 'การอัปโหลดปัญหา',
+                                  message:
+                                      'โปรดตรวจสอบข้อผิดพลาดในแต่ละรายการปัญหา.',
+                                );
+                              },
+                            );
                           }
                         }
                       : null,
@@ -267,9 +263,7 @@ class _ProblemScreenState extends State<ProblemScreen> {
                                 horizontal: 8.0, vertical: 4.0),
                             itemBuilder: (context, index) {
                               final problem = problems[index];
-                              final bool isProblemReadOnly =
-                                  problem.problemStatus == 1 ||
-                                      problem.problemStatus == 2;
+                              // REMOVED unused isProblemReadOnly variable
 
                               return Card(
                                 margin:

@@ -9,6 +9,8 @@ import 'package:biochecksheet7_flutter/data/repositories/document_repository.dar
 import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart'; // To get userId from LoggedInUser
 import 'package:drift/drift.dart' as drift;
 
+enum DocumentFilter { all, active, closed }
+
 class DocumentViewModel extends ChangeNotifier {
   final DocumentDao _documentDao;
   final DataSyncService _dataSyncService;
@@ -20,6 +22,10 @@ class DocumentViewModel extends ChangeNotifier {
 
   String? _searchQuery;
   String? get searchQuery => _searchQuery;
+
+  // NEW: Filter State
+  DocumentFilter _filter = DocumentFilter.all;
+  DocumentFilter get filter => _filter;
 
   Stream<List<DbDocument>>? _documentsStream;
   Stream<List<DbDocument>>? get documentsStream => _documentsStream;
@@ -72,12 +78,35 @@ class DocumentViewModel extends ChangeNotifier {
         baseQuery = _documentDao.select(_documentDao.documents);
       }
 
+      // NEW: Apply Filter
+      switch (_filter) {
+        case DocumentFilter.active:
+          baseQuery = baseQuery
+            ..where((tbl) => tbl.status.isSmallerThanValue(2)); // 0 and 1
+          break;
+        case DocumentFilter.closed:
+          baseQuery = baseQuery
+            ..where((tbl) =>
+                tbl.status.isBiggerOrEqualValue(2)); // 2 (Closed), 3, 4...
+          break;
+        case DocumentFilter.all:
+          // No filter
+          break;
+      }
+
       if (searchQuery != null && searchQuery.isNotEmpty) {
         baseQuery = baseQuery
           ..where((tbl) =>
               tbl.documentName.contains(searchQuery) |
               tbl.documentId.contains(searchQuery));
       }
+
+      // NEW: Sort by Create Date DESC (Newest first)
+      baseQuery = baseQuery
+        ..orderBy([
+          (t) => drift.OrderingTerm(
+              expression: t.createDate, mode: drift.OrderingMode.desc)
+        ]);
 
       _documentsStream = baseQuery.watch();
 
@@ -122,6 +151,14 @@ class DocumentViewModel extends ChangeNotifier {
   void setSearchQuery(String query) {
     if (_searchQuery != query) {
       _searchQuery = query;
+      loadDocuments(_jobId, searchQuery: _searchQuery);
+    }
+  }
+
+  // NEW: Set Filter
+  void setFilter(DocumentFilter newFilter) {
+    if (_filter != newFilter) {
+      _filter = newFilter;
       loadDocuments(_jobId, searchQuery: _searchQuery);
     }
   }
@@ -211,6 +248,14 @@ class DocumentViewModel extends ChangeNotifier {
     try {
       if (_selectedDocument == null) {
         throw Exception("No document selected for deletion.");
+      }
+
+      // NEW: Restrict deletion to only Status 0 (Active/New)
+      // Assuming 0 = New/Draft, 1 = In Progress, 2 = Closed
+      // Requirement: "Delete only status 0"
+      if (_selectedDocument!.status != 0) {
+        throw Exception(
+            "Cannot delete: Document status is ${_selectedDocument!.status} (Only Status 0 allowed).");
       }
 
       await _documentRepository.deleteDocument(

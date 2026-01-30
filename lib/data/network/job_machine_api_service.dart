@@ -10,7 +10,7 @@ import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 final String _baseUrl = AppConfig.baseUrl;
 
 class JobMachineApiService {
-  Future<List<DbDocumentMachine>> syncJobMachines() async {
+  Future<List<DbJobMachine>> syncJobMachines() async {
     final uri = Uri.parse("$_baseUrl/CheckSheet_MasterMachine_Sync");
     print("Syncing job machines with URL: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -35,15 +35,14 @@ class JobMachineApiService {
         final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
         if (responseJson['Table'] != null && responseJson['Table'] is List) {
           final List<dynamic> machineList = responseJson['Table'];
-          final List<DbDocumentMachine> syncedMachines =
+          final List<DbJobMachine> syncedMachines =
               machineList.map((machineData) {
-            return DbDocumentMachine(
+            return DbJobMachine(
               uid: 0,
               id: machineData['id'] ?? 0, // Map 'id' as int
               jobId: machineData['JobId']?.toString() ??
                   '', // Convert int to String
-              documentId: machineData['DocumentId']?.toString() ??
-                  '', // Convert int to String, or handle null
+              // documentId is NOT part of JobMachine (Master Data)
               machineId: machineData['MachineId']?.toString() ??
                   '', // Convert int to String
               machineName: machineData['MachineName'] ?? '',

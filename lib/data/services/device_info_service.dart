@@ -20,16 +20,16 @@ class DeviceInfoService {
       return 'web_device_id';
     } else if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await _deviceInfoPlugin.androidInfo;
-      return androidInfo.id ?? 'unknown_android_id';
+      return androidInfo.id;
     } else if (Platform.isIOS) {
       IosDeviceInfo iosInfo = await _deviceInfoPlugin.iosInfo;
       return iosInfo.identifierForVendor ?? 'unknown_ios_id';
     } else if (Platform.isWindows) {
       WindowsDeviceInfo windowsInfo = await _deviceInfoPlugin.windowsInfo;
-      return windowsInfo.deviceId ?? 'unknown_windows_id';
+      return windowsInfo.deviceId;
     } else if (Platform.isLinux) {
       LinuxDeviceInfo linuxInfo = await _deviceInfoPlugin.linuxInfo;
-      return linuxInfo.id ?? 'unknown_linux_id';
+      return linuxInfo.id;
     } else if (Platform.isMacOS) {
       MacOsDeviceInfo macOsInfo = await _deviceInfoPlugin.macOsInfo;
       return macOsInfo.systemGUID ?? 'unknown_macos_id';
@@ -43,13 +43,13 @@ class DeviceInfoService {
       return 'web_serial_no';
     } else if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await _deviceInfoPlugin.androidInfo;
-      return androidInfo.serialNumber ?? androidInfo.id ?? 'unknown_android_serial';
+      return androidInfo.serialNumber;
     } else if (Platform.isIOS) {
       IosDeviceInfo iosInfo = await _deviceInfoPlugin.iosInfo;
       return iosInfo.identifierForVendor ?? 'unknown_ios_serial';
     } else if (Platform.isWindows) {
       WindowsDeviceInfo windowsInfo = await _deviceInfoPlugin.windowsInfo;
-      return windowsInfo.deviceId ?? 'unknown_windows_serial';
+      return windowsInfo.deviceId;
     } else if (Platform.isLinux) {
       LinuxDeviceInfo linuxInfo = await _deviceInfoPlugin.linuxInfo;
       return linuxInfo.id ?? 'unknown_linux_serial';

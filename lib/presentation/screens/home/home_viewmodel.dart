@@ -174,10 +174,8 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Pass searchQuery to the repository method (if your jobDao supports it)
-      // For now, let's assume watchAllJobs can be filtered by a property in the future.
-      _jobsStream = _jobRepository
-          .watchAllJobs(); // TODO: Modify watchAllJobs to accept search query
+      // Pass searchQuery to the repository method
+      _jobsStream = _jobRepository.watchAllJobs(searchQuery: _searchQuery);
       _statusMessage = "Jobs โหลดแล้ว.";
     } catch (e) {
       _statusMessage = "ไม่สามารถโหลด Jobs ได้: $e";

@@ -1099,6 +1099,46 @@ class $DocumentMachinesTable extends DocumentMachines
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _totalTagsMeta =
+      const VerificationMeta('totalTags');
+  @override
+  late final GeneratedColumn<int> totalTags = GeneratedColumn<int>(
+      'totalTags', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _savedTagsMeta =
+      const VerificationMeta('savedTags');
+  @override
+  late final GeneratedColumn<int> savedTags = GeneratedColumn<int>(
+      'savedTags', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _postedTagsMeta =
+      const VerificationMeta('postedTags');
+  @override
+  late final GeneratedColumn<int> postedTags = GeneratedColumn<int>(
+      'postedTags', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _syncedTagsMeta =
+      const VerificationMeta('syncedTags');
+  @override
+  late final GeneratedColumn<int> syncedTags = GeneratedColumn<int>(
+      'syncedTags', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _aggregateStatusMeta =
+      const VerificationMeta('aggregateStatus');
+  @override
+  late final GeneratedColumn<int> aggregateStatus = GeneratedColumn<int>(
+      'aggregateStatus', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -1135,6 +1175,11 @@ class $DocumentMachinesTable extends DocumentMachines
         status,
         lastSync,
         uiType,
+        totalTags,
+        savedTags,
+        postedTags,
+        syncedTags,
+        aggregateStatus,
         id,
         createDate,
         createBy,
@@ -1204,6 +1249,32 @@ class $DocumentMachinesTable extends DocumentMachines
       context.handle(_uiTypeMeta,
           uiType.isAcceptableOrUnknown(data['ui_type']!, _uiTypeMeta));
     }
+    if (data.containsKey('totalTags')) {
+      context.handle(_totalTagsMeta,
+          totalTags.isAcceptableOrUnknown(data['totalTags']!, _totalTagsMeta));
+    }
+    if (data.containsKey('savedTags')) {
+      context.handle(_savedTagsMeta,
+          savedTags.isAcceptableOrUnknown(data['savedTags']!, _savedTagsMeta));
+    }
+    if (data.containsKey('postedTags')) {
+      context.handle(
+          _postedTagsMeta,
+          postedTags.isAcceptableOrUnknown(
+              data['postedTags']!, _postedTagsMeta));
+    }
+    if (data.containsKey('syncedTags')) {
+      context.handle(
+          _syncedTagsMeta,
+          syncedTags.isAcceptableOrUnknown(
+              data['syncedTags']!, _syncedTagsMeta));
+    }
+    if (data.containsKey('aggregateStatus')) {
+      context.handle(
+          _aggregateStatusMeta,
+          aggregateStatus.isAcceptableOrUnknown(
+              data['aggregateStatus']!, _aggregateStatusMeta));
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -1254,6 +1325,16 @@ class $DocumentMachinesTable extends DocumentMachines
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
       uiType: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}ui_type'])!,
+      totalTags: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}totalTags'])!,
+      savedTags: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}savedTags'])!,
+      postedTags: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}postedTags'])!,
+      syncedTags: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}syncedTags'])!,
+      aggregateStatus: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}aggregateStatus'])!,
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       createDate: attachedDatabase.typeMapping
@@ -1284,6 +1365,11 @@ class DbDocumentMachine extends DataClass
   final int status;
   final String? lastSync;
   final int uiType;
+  final int totalTags;
+  final int savedTags;
+  final int postedTags;
+  final int syncedTags;
+  final int aggregateStatus;
   final int id;
   final String? createDate;
   final String? createBy;
@@ -1300,6 +1386,11 @@ class DbDocumentMachine extends DataClass
       required this.status,
       this.lastSync,
       required this.uiType,
+      required this.totalTags,
+      required this.savedTags,
+      required this.postedTags,
+      required this.syncedTags,
+      required this.aggregateStatus,
       required this.id,
       this.createDate,
       this.createBy,
@@ -1334,6 +1425,11 @@ class DbDocumentMachine extends DataClass
       map['lastSync'] = Variable<String>(lastSync);
     }
     map['ui_type'] = Variable<int>(uiType);
+    map['totalTags'] = Variable<int>(totalTags);
+    map['savedTags'] = Variable<int>(savedTags);
+    map['postedTags'] = Variable<int>(postedTags);
+    map['syncedTags'] = Variable<int>(syncedTags);
+    map['aggregateStatus'] = Variable<int>(aggregateStatus);
     map['id'] = Variable<int>(id);
     if (!nullToAbsent || createDate != null) {
       map['CreateDate'] = Variable<String>(createDate);
@@ -1375,6 +1471,11 @@ class DbDocumentMachine extends DataClass
           ? const Value.absent()
           : Value(lastSync),
       uiType: Value(uiType),
+      totalTags: Value(totalTags),
+      savedTags: Value(savedTags),
+      postedTags: Value(postedTags),
+      syncedTags: Value(syncedTags),
+      aggregateStatus: Value(aggregateStatus),
       id: Value(id),
       createDate: createDate == null && nullToAbsent
           ? const Value.absent()
@@ -1403,6 +1504,11 @@ class DbDocumentMachine extends DataClass
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
       uiType: serializer.fromJson<int>(json['uiType']),
+      totalTags: serializer.fromJson<int>(json['totalTags']),
+      savedTags: serializer.fromJson<int>(json['savedTags']),
+      postedTags: serializer.fromJson<int>(json['postedTags']),
+      syncedTags: serializer.fromJson<int>(json['syncedTags']),
+      aggregateStatus: serializer.fromJson<int>(json['aggregateStatus']),
       id: serializer.fromJson<int>(json['id']),
       createDate: serializer.fromJson<String?>(json['createDate']),
       createBy: serializer.fromJson<String?>(json['createBy']),
@@ -1424,6 +1530,11 @@ class DbDocumentMachine extends DataClass
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
       'uiType': serializer.toJson<int>(uiType),
+      'totalTags': serializer.toJson<int>(totalTags),
+      'savedTags': serializer.toJson<int>(savedTags),
+      'postedTags': serializer.toJson<int>(postedTags),
+      'syncedTags': serializer.toJson<int>(syncedTags),
+      'aggregateStatus': serializer.toJson<int>(aggregateStatus),
       'id': serializer.toJson<int>(id),
       'createDate': serializer.toJson<String?>(createDate),
       'createBy': serializer.toJson<String?>(createBy),
@@ -1443,6 +1554,11 @@ class DbDocumentMachine extends DataClass
           int? status,
           Value<String?> lastSync = const Value.absent(),
           int? uiType,
+          int? totalTags,
+          int? savedTags,
+          int? postedTags,
+          int? syncedTags,
+          int? aggregateStatus,
           int? id,
           Value<String?> createDate = const Value.absent(),
           Value<String?> createBy = const Value.absent(),
@@ -1460,6 +1576,11 @@ class DbDocumentMachine extends DataClass
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
         uiType: uiType ?? this.uiType,
+        totalTags: totalTags ?? this.totalTags,
+        savedTags: savedTags ?? this.savedTags,
+        postedTags: postedTags ?? this.postedTags,
+        syncedTags: syncedTags ?? this.syncedTags,
+        aggregateStatus: aggregateStatus ?? this.aggregateStatus,
         id: id ?? this.id,
         createDate: createDate.present ? createDate.value : this.createDate,
         createBy: createBy.present ? createBy.value : this.createBy,
@@ -1484,6 +1605,15 @@ class DbDocumentMachine extends DataClass
       status: data.status.present ? data.status.value : this.status,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
       uiType: data.uiType.present ? data.uiType.value : this.uiType,
+      totalTags: data.totalTags.present ? data.totalTags.value : this.totalTags,
+      savedTags: data.savedTags.present ? data.savedTags.value : this.savedTags,
+      postedTags:
+          data.postedTags.present ? data.postedTags.value : this.postedTags,
+      syncedTags:
+          data.syncedTags.present ? data.syncedTags.value : this.syncedTags,
+      aggregateStatus: data.aggregateStatus.present
+          ? data.aggregateStatus.value
+          : this.aggregateStatus,
       id: data.id.present ? data.id.value : this.id,
       createDate:
           data.createDate.present ? data.createDate.value : this.createDate,
@@ -1506,6 +1636,11 @@ class DbDocumentMachine extends DataClass
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
           ..write('uiType: $uiType, ')
+          ..write('totalTags: $totalTags, ')
+          ..write('savedTags: $savedTags, ')
+          ..write('postedTags: $postedTags, ')
+          ..write('syncedTags: $syncedTags, ')
+          ..write('aggregateStatus: $aggregateStatus, ')
           ..write('id: $id, ')
           ..write('createDate: $createDate, ')
           ..write('createBy: $createBy, ')
@@ -1527,6 +1662,11 @@ class DbDocumentMachine extends DataClass
       status,
       lastSync,
       uiType,
+      totalTags,
+      savedTags,
+      postedTags,
+      syncedTags,
+      aggregateStatus,
       id,
       createDate,
       createBy,
@@ -1546,6 +1686,11 @@ class DbDocumentMachine extends DataClass
           other.status == this.status &&
           other.lastSync == this.lastSync &&
           other.uiType == this.uiType &&
+          other.totalTags == this.totalTags &&
+          other.savedTags == this.savedTags &&
+          other.postedTags == this.postedTags &&
+          other.syncedTags == this.syncedTags &&
+          other.aggregateStatus == this.aggregateStatus &&
           other.id == this.id &&
           other.createDate == this.createDate &&
           other.createBy == this.createBy &&
@@ -1564,6 +1709,11 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
   final Value<int> status;
   final Value<String?> lastSync;
   final Value<int> uiType;
+  final Value<int> totalTags;
+  final Value<int> savedTags;
+  final Value<int> postedTags;
+  final Value<int> syncedTags;
+  final Value<int> aggregateStatus;
   final Value<int> id;
   final Value<String?> createDate;
   final Value<String?> createBy;
@@ -1580,6 +1730,11 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
     this.uiType = const Value.absent(),
+    this.totalTags = const Value.absent(),
+    this.savedTags = const Value.absent(),
+    this.postedTags = const Value.absent(),
+    this.syncedTags = const Value.absent(),
+    this.aggregateStatus = const Value.absent(),
     this.id = const Value.absent(),
     this.createDate = const Value.absent(),
     this.createBy = const Value.absent(),
@@ -1597,6 +1752,11 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
     this.uiType = const Value.absent(),
+    this.totalTags = const Value.absent(),
+    this.savedTags = const Value.absent(),
+    this.postedTags = const Value.absent(),
+    this.syncedTags = const Value.absent(),
+    this.aggregateStatus = const Value.absent(),
     required int id,
     this.createDate = const Value.absent(),
     this.createBy = const Value.absent(),
@@ -1614,6 +1774,11 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     Expression<int>? status,
     Expression<String>? lastSync,
     Expression<int>? uiType,
+    Expression<int>? totalTags,
+    Expression<int>? savedTags,
+    Expression<int>? postedTags,
+    Expression<int>? syncedTags,
+    Expression<int>? aggregateStatus,
     Expression<int>? id,
     Expression<String>? createDate,
     Expression<String>? createBy,
@@ -1631,6 +1796,11 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
       if (status != null) 'Status': status,
       if (lastSync != null) 'lastSync': lastSync,
       if (uiType != null) 'ui_type': uiType,
+      if (totalTags != null) 'totalTags': totalTags,
+      if (savedTags != null) 'savedTags': savedTags,
+      if (postedTags != null) 'postedTags': postedTags,
+      if (syncedTags != null) 'syncedTags': syncedTags,
+      if (aggregateStatus != null) 'aggregateStatus': aggregateStatus,
       if (id != null) 'id': id,
       if (createDate != null) 'CreateDate': createDate,
       if (createBy != null) 'CreateBy': createBy,
@@ -1650,6 +1820,11 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
       Value<int>? status,
       Value<String?>? lastSync,
       Value<int>? uiType,
+      Value<int>? totalTags,
+      Value<int>? savedTags,
+      Value<int>? postedTags,
+      Value<int>? syncedTags,
+      Value<int>? aggregateStatus,
       Value<int>? id,
       Value<String?>? createDate,
       Value<String?>? createBy,
@@ -1666,6 +1841,11 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
       uiType: uiType ?? this.uiType,
+      totalTags: totalTags ?? this.totalTags,
+      savedTags: savedTags ?? this.savedTags,
+      postedTags: postedTags ?? this.postedTags,
+      syncedTags: syncedTags ?? this.syncedTags,
+      aggregateStatus: aggregateStatus ?? this.aggregateStatus,
       id: id ?? this.id,
       createDate: createDate ?? this.createDate,
       createBy: createBy ?? this.createBy,
@@ -1709,6 +1889,21 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
     if (uiType.present) {
       map['ui_type'] = Variable<int>(uiType.value);
     }
+    if (totalTags.present) {
+      map['totalTags'] = Variable<int>(totalTags.value);
+    }
+    if (savedTags.present) {
+      map['savedTags'] = Variable<int>(savedTags.value);
+    }
+    if (postedTags.present) {
+      map['postedTags'] = Variable<int>(postedTags.value);
+    }
+    if (syncedTags.present) {
+      map['syncedTags'] = Variable<int>(syncedTags.value);
+    }
+    if (aggregateStatus.present) {
+      map['aggregateStatus'] = Variable<int>(aggregateStatus.value);
+    }
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
@@ -1738,6 +1933,11 @@ class DocumentMachinesCompanion extends UpdateCompanion<DbDocumentMachine> {
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
           ..write('uiType: $uiType, ')
+          ..write('totalTags: $totalTags, ')
+          ..write('savedTags: $savedTags, ')
+          ..write('postedTags: $postedTags, ')
+          ..write('syncedTags: $syncedTags, ')
+          ..write('aggregateStatus: $aggregateStatus, ')
           ..write('id: $id, ')
           ..write('createDate: $createDate, ')
           ..write('createBy: $createBy, ')
@@ -3024,6 +3224,30 @@ class $JobMachinesTable extends JobMachines
   late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
       'updatedAt', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _uiTypeMeta = const VerificationMeta('uiType');
+  @override
+  late final GeneratedColumn<int> uiType = GeneratedColumn<int>(
+      'ui_type', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _createDateMeta =
+      const VerificationMeta('createDate');
+  @override
+  late final GeneratedColumn<String> createDate = GeneratedColumn<String>(
+      'CreateDate', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createByMeta =
+      const VerificationMeta('createBy');
+  @override
+  late final GeneratedColumn<String> createBy = GeneratedColumn<String>(
+      'CreateBy', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -3035,7 +3259,11 @@ class $JobMachinesTable extends JobMachines
         specification,
         status,
         lastSync,
-        updatedAt
+        updatedAt,
+        id,
+        uiType,
+        createDate,
+        createBy
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3095,6 +3323,25 @@ class $JobMachinesTable extends JobMachines
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
     }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('ui_type')) {
+      context.handle(_uiTypeMeta,
+          uiType.isAcceptableOrUnknown(data['ui_type']!, _uiTypeMeta));
+    }
+    if (data.containsKey('CreateDate')) {
+      context.handle(
+          _createDateMeta,
+          createDate.isAcceptableOrUnknown(
+              data['CreateDate']!, _createDateMeta));
+    }
+    if (data.containsKey('CreateBy')) {
+      context.handle(_createByMeta,
+          createBy.isAcceptableOrUnknown(data['CreateBy']!, _createByMeta));
+    }
     return context;
   }
 
@@ -3124,6 +3371,14 @@ class $JobMachinesTable extends JobMachines
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      uiType: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}ui_type'])!,
+      createDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}CreateDate']),
+      createBy: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}CreateBy']),
     );
   }
 
@@ -3144,6 +3399,10 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
   final int status;
   final String? lastSync;
   final String? updatedAt;
+  final int id;
+  final int uiType;
+  final String? createDate;
+  final String? createBy;
   const DbJobMachine(
       {required this.uid,
       this.jobId,
@@ -3154,7 +3413,11 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
       this.specification,
       required this.status,
       this.lastSync,
-      this.updatedAt});
+      this.updatedAt,
+      required this.id,
+      required this.uiType,
+      this.createDate,
+      this.createBy});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3183,6 +3446,14 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
     }
     if (!nullToAbsent || updatedAt != null) {
       map['updatedAt'] = Variable<String>(updatedAt);
+    }
+    map['id'] = Variable<int>(id);
+    map['ui_type'] = Variable<int>(uiType);
+    if (!nullToAbsent || createDate != null) {
+      map['CreateDate'] = Variable<String>(createDate);
+    }
+    if (!nullToAbsent || createBy != null) {
+      map['CreateBy'] = Variable<String>(createBy);
     }
     return map;
   }
@@ -3214,6 +3485,14 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
+      id: Value(id),
+      uiType: Value(uiType),
+      createDate: createDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createDate),
+      createBy: createBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createBy),
     );
   }
 
@@ -3231,6 +3510,10 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
       updatedAt: serializer.fromJson<String?>(json['updatedAt']),
+      id: serializer.fromJson<int>(json['id']),
+      uiType: serializer.fromJson<int>(json['uiType']),
+      createDate: serializer.fromJson<String?>(json['createDate']),
+      createBy: serializer.fromJson<String?>(json['createBy']),
     );
   }
   @override
@@ -3247,6 +3530,10 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
       'updatedAt': serializer.toJson<String?>(updatedAt),
+      'id': serializer.toJson<int>(id),
+      'uiType': serializer.toJson<int>(uiType),
+      'createDate': serializer.toJson<String?>(createDate),
+      'createBy': serializer.toJson<String?>(createBy),
     };
   }
 
@@ -3260,7 +3547,11 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
           Value<String?> specification = const Value.absent(),
           int? status,
           Value<String?> lastSync = const Value.absent(),
-          Value<String?> updatedAt = const Value.absent()}) =>
+          Value<String?> updatedAt = const Value.absent(),
+          int? id,
+          int? uiType,
+          Value<String?> createDate = const Value.absent(),
+          Value<String?> createBy = const Value.absent()}) =>
       DbJobMachine(
         uid: uid ?? this.uid,
         jobId: jobId.present ? jobId.value : this.jobId,
@@ -3273,6 +3564,10 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
         updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+        id: id ?? this.id,
+        uiType: uiType ?? this.uiType,
+        createDate: createDate.present ? createDate.value : this.createDate,
+        createBy: createBy.present ? createBy.value : this.createBy,
       );
   DbJobMachine copyWithCompanion(JobMachinesCompanion data) {
     return DbJobMachine(
@@ -3291,6 +3586,11 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
       status: data.status.present ? data.status.value : this.status,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      id: data.id.present ? data.id.value : this.id,
+      uiType: data.uiType.present ? data.uiType.value : this.uiType,
+      createDate:
+          data.createDate.present ? data.createDate.value : this.createDate,
+      createBy: data.createBy.present ? data.createBy.value : this.createBy,
     );
   }
 
@@ -3306,14 +3606,31 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
           ..write('specification: $specification, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('id: $id, ')
+          ..write('uiType: $uiType, ')
+          ..write('createDate: $createDate, ')
+          ..write('createBy: $createBy')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(uid, jobId, machineId, machineName,
-      machineType, description, specification, status, lastSync, updatedAt);
+  int get hashCode => Object.hash(
+      uid,
+      jobId,
+      machineId,
+      machineName,
+      machineType,
+      description,
+      specification,
+      status,
+      lastSync,
+      updatedAt,
+      id,
+      uiType,
+      createDate,
+      createBy);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3327,7 +3644,11 @@ class DbJobMachine extends DataClass implements Insertable<DbJobMachine> {
           other.specification == this.specification &&
           other.status == this.status &&
           other.lastSync == this.lastSync &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.id == this.id &&
+          other.uiType == this.uiType &&
+          other.createDate == this.createDate &&
+          other.createBy == this.createBy);
 }
 
 class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
@@ -3341,6 +3662,10 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
   final Value<int> status;
   final Value<String?> lastSync;
   final Value<String?> updatedAt;
+  final Value<int> id;
+  final Value<int> uiType;
+  final Value<String?> createDate;
+  final Value<String?> createBy;
   const JobMachinesCompanion({
     this.uid = const Value.absent(),
     this.jobId = const Value.absent(),
@@ -3352,6 +3677,10 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.id = const Value.absent(),
+    this.uiType = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.createBy = const Value.absent(),
   });
   JobMachinesCompanion.insert({
     this.uid = const Value.absent(),
@@ -3364,7 +3693,11 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
     this.updatedAt = const Value.absent(),
-  });
+    required int id,
+    this.uiType = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.createBy = const Value.absent(),
+  }) : id = Value(id);
   static Insertable<DbJobMachine> custom({
     Expression<int>? uid,
     Expression<String>? jobId,
@@ -3376,6 +3709,10 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
     Expression<int>? status,
     Expression<String>? lastSync,
     Expression<String>? updatedAt,
+    Expression<int>? id,
+    Expression<int>? uiType,
+    Expression<String>? createDate,
+    Expression<String>? createBy,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -3388,6 +3725,10 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
       if (status != null) 'Status': status,
       if (lastSync != null) 'lastSync': lastSync,
       if (updatedAt != null) 'updatedAt': updatedAt,
+      if (id != null) 'id': id,
+      if (uiType != null) 'ui_type': uiType,
+      if (createDate != null) 'CreateDate': createDate,
+      if (createBy != null) 'CreateBy': createBy,
     });
   }
 
@@ -3401,7 +3742,11 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
       Value<String?>? specification,
       Value<int>? status,
       Value<String?>? lastSync,
-      Value<String?>? updatedAt}) {
+      Value<String?>? updatedAt,
+      Value<int>? id,
+      Value<int>? uiType,
+      Value<String?>? createDate,
+      Value<String?>? createBy}) {
     return JobMachinesCompanion(
       uid: uid ?? this.uid,
       jobId: jobId ?? this.jobId,
@@ -3413,6 +3758,10 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
       updatedAt: updatedAt ?? this.updatedAt,
+      id: id ?? this.id,
+      uiType: uiType ?? this.uiType,
+      createDate: createDate ?? this.createDate,
+      createBy: createBy ?? this.createBy,
     );
   }
 
@@ -3449,6 +3798,18 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
     if (updatedAt.present) {
       map['updatedAt'] = Variable<String>(updatedAt.value);
     }
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (uiType.present) {
+      map['ui_type'] = Variable<int>(uiType.value);
+    }
+    if (createDate.present) {
+      map['CreateDate'] = Variable<String>(createDate.value);
+    }
+    if (createBy.present) {
+      map['CreateBy'] = Variable<String>(createBy.value);
+    }
     return map;
   }
 
@@ -3464,7 +3825,11 @@ class JobMachinesCompanion extends UpdateCompanion<DbJobMachine> {
           ..write('specification: $specification, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('id: $id, ')
+          ..write('uiType: $uiType, ')
+          ..write('createDate: $createDate, ')
+          ..write('createBy: $createBy')
           ..write(')'))
         .toString();
   }
@@ -8616,6 +8981,11 @@ typedef $$DocumentMachinesTableCreateCompanionBuilder
   Value<int> status,
   Value<String?> lastSync,
   Value<int> uiType,
+  Value<int> totalTags,
+  Value<int> savedTags,
+  Value<int> postedTags,
+  Value<int> syncedTags,
+  Value<int> aggregateStatus,
   required int id,
   Value<String?> createDate,
   Value<String?> createBy,
@@ -8634,6 +9004,11 @@ typedef $$DocumentMachinesTableUpdateCompanionBuilder
   Value<int> status,
   Value<String?> lastSync,
   Value<int> uiType,
+  Value<int> totalTags,
+  Value<int> savedTags,
+  Value<int> postedTags,
+  Value<int> syncedTags,
+  Value<int> aggregateStatus,
   Value<int> id,
   Value<String?> createDate,
   Value<String?> createBy,
@@ -8681,6 +9056,22 @@ class $$DocumentMachinesTableFilterComposer
 
   ColumnFilters<int> get uiType => $composableBuilder(
       column: $table.uiType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get totalTags => $composableBuilder(
+      column: $table.totalTags, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get savedTags => $composableBuilder(
+      column: $table.savedTags, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get postedTags => $composableBuilder(
+      column: $table.postedTags, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get syncedTags => $composableBuilder(
+      column: $table.syncedTags, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get aggregateStatus => $composableBuilder(
+      column: $table.aggregateStatus,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
@@ -8738,6 +9129,22 @@ class $$DocumentMachinesTableOrderingComposer
   ColumnOrderings<int> get uiType => $composableBuilder(
       column: $table.uiType, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get totalTags => $composableBuilder(
+      column: $table.totalTags, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get savedTags => $composableBuilder(
+      column: $table.savedTags, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get postedTags => $composableBuilder(
+      column: $table.postedTags, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get syncedTags => $composableBuilder(
+      column: $table.syncedTags, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get aggregateStatus => $composableBuilder(
+      column: $table.aggregateStatus,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
@@ -8793,6 +9200,21 @@ class $$DocumentMachinesTableAnnotationComposer
   GeneratedColumn<int> get uiType =>
       $composableBuilder(column: $table.uiType, builder: (column) => column);
 
+  GeneratedColumn<int> get totalTags =>
+      $composableBuilder(column: $table.totalTags, builder: (column) => column);
+
+  GeneratedColumn<int> get savedTags =>
+      $composableBuilder(column: $table.savedTags, builder: (column) => column);
+
+  GeneratedColumn<int> get postedTags => $composableBuilder(
+      column: $table.postedTags, builder: (column) => column);
+
+  GeneratedColumn<int> get syncedTags => $composableBuilder(
+      column: $table.syncedTags, builder: (column) => column);
+
+  GeneratedColumn<int> get aggregateStatus => $composableBuilder(
+      column: $table.aggregateStatus, builder: (column) => column);
+
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -8844,6 +9266,11 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
             Value<int> uiType = const Value.absent(),
+            Value<int> totalTags = const Value.absent(),
+            Value<int> savedTags = const Value.absent(),
+            Value<int> postedTags = const Value.absent(),
+            Value<int> syncedTags = const Value.absent(),
+            Value<int> aggregateStatus = const Value.absent(),
             Value<int> id = const Value.absent(),
             Value<String?> createDate = const Value.absent(),
             Value<String?> createBy = const Value.absent(),
@@ -8861,6 +9288,11 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             status: status,
             lastSync: lastSync,
             uiType: uiType,
+            totalTags: totalTags,
+            savedTags: savedTags,
+            postedTags: postedTags,
+            syncedTags: syncedTags,
+            aggregateStatus: aggregateStatus,
             id: id,
             createDate: createDate,
             createBy: createBy,
@@ -8878,6 +9310,11 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
             Value<int> uiType = const Value.absent(),
+            Value<int> totalTags = const Value.absent(),
+            Value<int> savedTags = const Value.absent(),
+            Value<int> postedTags = const Value.absent(),
+            Value<int> syncedTags = const Value.absent(),
+            Value<int> aggregateStatus = const Value.absent(),
             required int id,
             Value<String?> createDate = const Value.absent(),
             Value<String?> createBy = const Value.absent(),
@@ -8895,6 +9332,11 @@ class $$DocumentMachinesTableTableManager extends RootTableManager<
             status: status,
             lastSync: lastSync,
             uiType: uiType,
+            totalTags: totalTags,
+            savedTags: savedTags,
+            postedTags: postedTags,
+            syncedTags: syncedTags,
+            aggregateStatus: aggregateStatus,
             id: id,
             createDate: createDate,
             createBy: createBy,
@@ -9436,6 +9878,10 @@ typedef $$JobMachinesTableCreateCompanionBuilder = JobMachinesCompanion
   Value<int> status,
   Value<String?> lastSync,
   Value<String?> updatedAt,
+  required int id,
+  Value<int> uiType,
+  Value<String?> createDate,
+  Value<String?> createBy,
 });
 typedef $$JobMachinesTableUpdateCompanionBuilder = JobMachinesCompanion
     Function({
@@ -9449,6 +9895,10 @@ typedef $$JobMachinesTableUpdateCompanionBuilder = JobMachinesCompanion
   Value<int> status,
   Value<String?> lastSync,
   Value<String?> updatedAt,
+  Value<int> id,
+  Value<int> uiType,
+  Value<String?> createDate,
+  Value<String?> createBy,
 });
 
 class $$JobMachinesTableFilterComposer
@@ -9489,6 +9939,18 @@ class $$JobMachinesTableFilterComposer
 
   ColumnFilters<String> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get uiType => $composableBuilder(
+      column: $table.uiType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createBy => $composableBuilder(
+      column: $table.createBy, builder: (column) => ColumnFilters(column));
 }
 
 class $$JobMachinesTableOrderingComposer
@@ -9530,6 +9992,18 @@ class $$JobMachinesTableOrderingComposer
 
   ColumnOrderings<String> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get uiType => $composableBuilder(
+      column: $table.uiType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createBy => $composableBuilder(
+      column: $table.createBy, builder: (column) => ColumnOrderings(column));
 }
 
 class $$JobMachinesTableAnnotationComposer
@@ -9570,6 +10044,18 @@ class $$JobMachinesTableAnnotationComposer
 
   GeneratedColumn<String> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get uiType =>
+      $composableBuilder(column: $table.uiType, builder: (column) => column);
+
+  GeneratedColumn<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => column);
+
+  GeneratedColumn<String> get createBy =>
+      $composableBuilder(column: $table.createBy, builder: (column) => column);
 }
 
 class $$JobMachinesTableTableManager extends RootTableManager<
@@ -9608,6 +10094,10 @@ class $$JobMachinesTableTableManager extends RootTableManager<
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
             Value<String?> updatedAt = const Value.absent(),
+            Value<int> id = const Value.absent(),
+            Value<int> uiType = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<String?> createBy = const Value.absent(),
           }) =>
               JobMachinesCompanion(
             uid: uid,
@@ -9620,6 +10110,10 @@ class $$JobMachinesTableTableManager extends RootTableManager<
             status: status,
             lastSync: lastSync,
             updatedAt: updatedAt,
+            id: id,
+            uiType: uiType,
+            createDate: createDate,
+            createBy: createBy,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -9632,6 +10126,10 @@ class $$JobMachinesTableTableManager extends RootTableManager<
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
             Value<String?> updatedAt = const Value.absent(),
+            required int id,
+            Value<int> uiType = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<String?> createBy = const Value.absent(),
           }) =>
               JobMachinesCompanion.insert(
             uid: uid,
@@ -9644,6 +10142,10 @@ class $$JobMachinesTableTableManager extends RootTableManager<
             status: status,
             lastSync: lastSync,
             updatedAt: updatedAt,
+            id: id,
+            uiType: uiType,
+            createDate: createDate,
+            createBy: createBy,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

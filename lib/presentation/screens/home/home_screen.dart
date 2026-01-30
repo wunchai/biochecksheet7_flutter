@@ -98,33 +98,27 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        // NEW: Use HomeAppBar
+        backgroundColor: Colors.grey[100], // New light background
         appBar: HomeAppBar(
           title: widget.title,
-          searchController:
-              TextEditingController(), // Pass a new controller for HomeAppBar
+          searchController: TextEditingController(),
           onRefreshPressed: () async {
             final viewModel =
                 Provider.of<HomeViewModel>(context, listen: false);
-            final syncResult =
-                await viewModel.refreshJobs(); // Await the refresh operation
-            if (mounted) {
-              _showSyncResultFeedback(context, syncResult, 'การซิงค์ปัญหา');
-            }
+            final syncResult = await viewModel.refreshJobs();
+            if (!mounted) return;
+            _showSyncResultFeedback(context, syncResult, 'การซิงค์ปัญหา');
           },
           onImagePressed: () async {
             _onSyncMasterImagesPressed(
                 context, Provider.of<HomeViewModel>(context, listen: false));
           },
-
           onUploadPressed: () async {
             final viewModel =
                 Provider.of<HomeViewModel>(context, listen: false);
-            final uploadResult = await viewModel
-                .uploadAllDocumentRecords(); // Await the upload operation
-            if (mounted) {
-              _showSyncResultFeedback(context, uploadResult, 'การซิงค์ปัญหา');
-            }
+            final uploadResult = await viewModel.uploadAllDocumentRecords();
+            if (!mounted) return;
+            _showSyncResultFeedback(context, uploadResult, 'การซิงค์ปัญหา');
           },
           onLogoutPressed: () {
             Provider.of<HomeViewModel>(context, listen: false).logout(context);
@@ -132,169 +126,76 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: SafeArea(
           child: Consumer<HomeViewModel>(
-            // Consumer rebuilds its child when HomeViewModel changes.
             builder: (context, viewModel, child) {
-              // CRUCIAL FIX: Handle sync messages after the dialog/snackbar is closed.
-              // This ensures viewModel.syncMessage is not null when accessed by the builder.
-              /*   if (viewModel.syncMessage != null) {
-            final String currentSyncMessage =
-                viewModel.syncMessage!; // Capture message
-            final bool isError =
-                currentSyncMessage.toLowerCase().contains('ล้มเหลว') ||
-                    currentSyncMessage.toLowerCase().contains('ข้อผิดพลาด') ||
-                    currentSyncMessage.toLowerCase().contains('failed') ||
-                    currentSyncMessage.toLowerCase().contains('error') ||
-                    currentSyncMessage.toLowerCase().contains('exception') ||
-                    currentSyncMessage.toLowerCase().contains('timed out');
-            WidgetsBinding.instance.addPostFrameCallback((_) async {
-              // Make callback async
-              if (mounted) {
-                if (isError) {
-                  await showDialog(
-                    // Await the dialog to close
-                    context: context,
-                    builder: (BuildContext dialogContext) {
-                      return ErrorDialog(
-                        title: 'ข้อผิดพลาดในการซิงค์/อัปโหลด',
-                        message: currentSyncMessage, // Use captured message
-                      );
-                    },
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content:
-                            Text(currentSyncMessage)), // Use captured message
-                  );
-                  // For SnackBar, it's generally safe to clear after showing,
-                  // but awaiting showSnackBar is not common.
-                  // The key is that the message is captured *before* the async dialog/snackbar call.
-                }
-                // CRUCIAL FIX: Clear the message AFTER the dialog/snackbar has been shown and potentially closed.
-                viewModel.syncMessage = null;
-              }
-            });
-          } */
               return Stack(
-                // Stack allows placing widgets on top of each other, used for the loading overlay.
                 children: [
                   Column(
-                    // Main column to arrange UI elements vertically.
                     children: [
-                      // --- First Search/Filter Row (Equivalent to linearLayout3 in fragment_home.xml) ---
-                      Padding(
-                        padding: const EdgeInsets.all(
-                            8.0), // <<< Changed padding to 8.0
-                        child: Text(
-                          viewModel.statusMessage,
-                          style: const TextStyle(
-                              fontSize: 12.0,
-                              color: Colors.black), // <<< Changed text style
-                          textAlign: TextAlign.center,
+                      // Status Message
+                      if (viewModel.statusMessage.isNotEmpty)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16.0),
+                          color: Colors.blue.shade50,
+                          child: Text(
+                            viewModel.statusMessage,
+                            style: TextStyle(
+                                fontSize: 13.0, color: Colors.blue.shade900),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                      ),
-                      // --- Job List (Equivalent to homelist RecyclerView in XML) ---
 
+                      // Job List
                       Expanded(
-                        // Takes up the remaining vertical space.
                         child: StreamBuilder<List<DbJob>>(
-                          // Listens to the stream of job data from the ViewModel.
                           stream: viewModel.jobsStream,
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                     ConnectionState.waiting &&
                                 !viewModel.isLoading) {
-                              // Show a circular progress indicator only for the initial load,
-                              // subsequent filter changes will use the overlay ProgressBar.
                               return const Center(
                                   child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
-                              // Displays an error message if the stream encounters an error.
                               return Center(
-                                  child: Text('Error: ${snapshot.error}'));
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.error_outline,
+                                        size: 48, color: Colors.red),
+                                    const SizedBox(height: 16),
+                                    Text('Error: ${snapshot.error}'),
+                                  ],
+                                ),
+                              );
                             } else if (!snapshot.hasData ||
                                 snapshot.data!.isEmpty) {
-                              // Displays a message if no job data is available.
-                              return const Center(
-                                  child: Text('No jobs found.'));
-                            } else {
-                              // If data is available, build the list of jobs.
-                              final jobs = snapshot.data!;
-                              return ListView.builder(
-                                itemCount: jobs.length,
-                                // Adjust padding to match layout_marginLeft/Right from XML.
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 5.0, vertical: 8.0),
-                                itemBuilder: (context, index) {
-                                  final job = jobs[index];
-                                  return Card(
-                                    // Adjusted card margins for better visual spacing.
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 4.0, vertical: 6.0),
-                                    elevation: 4.0, // Adds a shadow effect.
-                                    child: InkWell(
-                                      // Provides a visual ripple effect on tap.
-                                      onTap: () {
-                                        // Navigate to DocumentScreen when Job item is tapped
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                DocumentScreen(
-                                              title:
-                                                  'Documents for Job: ${job.jobId ?? ''}', // Dynamic title
-                                              jobId: job
-                                                  .jobId, // Pass jobId to DocumentScreen
-                                            ),
-                                          ),
-                                        );
-                                        print(
-                                            'Job Tapped: ${job.jobName}, Navigating to Documents for Job ID: ${job.jobId}');
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment
-                                              .start, // Aligns text to the start (left).
-                                          children: [
-                                            Text(
-                                              job.jobName ??
-                                                  'N/A', // Displays job name, 'N/A' if null.
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleMedium
-                                                  ?.copyWith(
-                                                      fontWeight: FontWeight
-                                                          .bold), // Bold job name.
-                                            ),
-                                            const SizedBox(
-                                                height:
-                                                    6.0), // Space between job name and details.
-                                            Text(
-                                                'Job ID: ${job.jobId ?? 'N/A'}',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall), // Smaller text for details.
-                                            Text(
-                                                'Machine: ${job.machineName ?? 'N/A'}',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall),
-                                            Text(
-                                                'Location: ${job.location ?? 'N/A'}',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall),
-                                            Text(
-                                                'Status: ${job.jobStatus ?? 'N/A'}',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall),
-                                          ],
-                                        ),
-                                      ),
+                              return Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.work_off_outlined,
+                                        size: 64, color: Colors.grey[400]),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'ไม่พบรายการงาน (No Jobs)',
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          color: Colors.grey[600]),
                                     ),
-                                  );
+                                  ],
+                                ),
+                              );
+                            } else {
+                              final jobs = snapshot.data!;
+                              return ListView.separated(
+                                itemCount: jobs.length,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  return _buildJobCard(context, jobs[index]);
                                 },
                               );
                             }
@@ -303,21 +204,150 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  // --- ProgressBar Overlay (Equivalent to ProgressBar in RelativeLayout in XML) ---
-                  if (viewModel
-                      .isLoading) // Only displayed when the ViewModel's isLoading is true.
+                  if (viewModel.isLoading)
                     Container(
-                      color: Colors.black
-                          .withOpacity(0.5), // Semi-transparent black overlay.
-                      alignment: Alignment
-                          .center, // Centers the CircularProgressIndicator.
-                      child:
-                          const CircularProgressIndicator(), // The actual loading spinner.
+                      color: Colors.black45,
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(),
                     ),
                 ],
               );
             },
           ),
         ));
+  }
+
+  Widget _buildJobCard(BuildContext context, DbJob job) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DocumentScreen(
+                title: 'เอกสารของงาน: ${job.jobName ?? ''}',
+                jobId: job.jobId,
+              ),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          job.jobName ?? 'N/A',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.blue.shade100),
+                          ),
+                          child: Text(
+                            'ID: ${job.jobId ?? 'N/A'}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue.shade800,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _buildStatusBadge(job.jobStatus),
+                ],
+              ),
+              const Divider(height: 24, thickness: 1),
+              _buildInfoRow(
+                  Icons.precision_manufacturing, 'Machine', job.machineName),
+              const SizedBox(height: 8),
+              _buildInfoRow(Icons.location_on, 'Location', job.location),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(dynamic status) {
+    Color bgColor;
+    Color textColor;
+    String text = 'Unknown';
+    String statusStr = status?.toString() ?? '';
+
+    if (statusStr == 'Active' || statusStr == '1') {
+      bgColor = Colors.green.shade50;
+      textColor = Colors.green.shade700;
+      text = 'Active';
+    } else if (statusStr == 'Closed' || statusStr == '2') {
+      bgColor = Colors.grey.shade200;
+      textColor = Colors.grey.shade700;
+      text = 'Closed';
+    } else {
+      bgColor = Colors.orange.shade50;
+      textColor = Colors.orange.shade800;
+      text = statusStr.isEmpty ? 'Unknown' : statusStr;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: textColor,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String? value) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Colors.grey[600]),
+        const SizedBox(width: 8),
+        Text(
+          '$label: ',
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+        ),
+        Expanded(
+          child: Text(
+            value ?? 'N/A',
+            style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black87,
+                fontWeight: FontWeight.w500),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -26,9 +26,18 @@ class JobMachines extends Table {
   TextColumn get specification => text().named('Specification').nullable()();
 
   // @ColumnInfo(name = "Status") var status: Int = 0
-  IntColumn get status => integer().named('Status').withDefault(const Constant(0))();
+  IntColumn get status =>
+      integer().named('Status').withDefault(const Constant(0))();
 
   // @ColumnInfo(name = "lastSync") var lastSync: String? = null
   TextColumn get lastSync => text().named('lastSync').nullable()();
-  TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
+  TextColumn get updatedAt =>
+      text().named('updatedAt').nullable()(); // Stores ISO 8601 string
+
+  // NEW: Add fields matching DocumentMachine for correct data flow
+  IntColumn get id => integer().named('id')(); // API has 'id' as int
+  IntColumn get uiType =>
+      integer().named('ui_type').withDefault(const Constant(0))();
+  TextColumn get createDate => text().named('CreateDate').nullable()();
+  TextColumn get createBy => text().named('CreateBy').nullable()();
 }

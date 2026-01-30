@@ -172,7 +172,7 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase>
     final query = select(documentRecords).join([
       // CRUCIAL FIX: Add more conditions to the INNER JOIN to ensure uniqueness
       // Join on tagId AND jobId AND machineId to precisely match the record to its tag
-      innerJoin(
+      leftOuterJoin(
           jobTags,
           jobTags.tagId.equalsExp(documentRecords.tagId) & // Match by Tag ID
               jobTags.jobId.equalsExp(

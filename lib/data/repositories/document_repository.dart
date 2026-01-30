@@ -6,6 +6,8 @@ import 'package:drift/drift.dart' as drift;
 
 // NEW: Import for DocumentRecordDao and DocumentRecordTable
 import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/document_machine_dao.dart'; // <<< NEW
+import 'package:biochecksheet7_flutter/data/database/daos/job_machine_dao.dart'; // <<< NEW
 //import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart';
 
 /// Repository for managing document data.
@@ -13,12 +15,17 @@ import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.da
 class DocumentRepository {
   final DocumentDao _documentDao;
   final DocumentRecordDao _documentRecordDao;
+  final DocumentMachineDao _documentMachineDao; // <<< NEW
+  final JobMachineDao _jobMachineDao; // <<< NEW
+
   // TODO: หากมี DocumentApiService ก็เพิ่มที่นี่
   // final DocumentApiService _documentApiService;
 
   DocumentRepository({required AppDatabase appDatabase})
       : _documentDao = appDatabase.documentDao,
-        _documentRecordDao = appDatabase.documentRecordDao;
+        _documentRecordDao = appDatabase.documentRecordDao,
+        _documentMachineDao = appDatabase.documentMachineDao, // <<< NEW
+        _jobMachineDao = appDatabase.jobMachineDao; // <<< NEW
   // _documentApiService = documentApiService ?? DocumentApiService(); // หากมี API
   // _documentApiService = documentApiService ?? DocumentApiService(); // หากมี API
 
@@ -44,6 +51,33 @@ class DocumentRepository {
       );
 
       await _documentDao.insertDocument(newDocumentEntry);
+
+      // CRUCIAL: Copy JobMachines (Master) to DocumentMachines (Runtime)
+      final jobMachines = await _jobMachineDao.getJobMachinesByJobId(jobId);
+      if (jobMachines.isNotEmpty) {
+        final runtimeMachines = jobMachines.map((master) {
+          return DocumentMachinesCompanion(
+            id: drift.Value(master.id),
+            jobId: drift.Value(master.jobId!),
+            documentId: drift.Value(newDocId), // New Document ID
+            machineId: drift.Value(master.machineId!),
+            machineName: drift.Value(master.machineName),
+            machineType: drift.Value(master.machineType),
+            description: drift.Value(master.description),
+            specification: drift.Value(master.specification),
+            status: drift.Value(master.status),
+            uiType: drift.Value(master.uiType),
+            createDate: drift.Value(master.createDate),
+            createBy: drift.Value(master.createBy),
+            lastSync: drift.Value(DateTime.now().toIso8601String()),
+            // aggregation columns default to 0
+          );
+        }).toList();
+        await _documentMachineDao.insertAllDocumentMachines(runtimeMachines);
+        print(
+            'Copied ${runtimeMachines.length} machines from Master to Runtime.');
+      }
+
       // TODO: หากมี API สำหรับ Sync เอกสารใหม่ขึ้น Server, ให้เรียกใช้ที่นี่
       // await _documentApiService.uploadNewDocument(newDocumentEntry);
 
@@ -83,6 +117,30 @@ class DocumentRepository {
       );
 
       await _documentDao.insertDocument(copiedDocumentEntry);
+
+      // CRUCIAL: Copy JobMachines (Master) to populate DocumentMachines (Runtime) for the copied document
+      // We copy from Master Data to ensure we have a clean set of machines structure.
+      final jobMachines = await _jobMachineDao.getJobMachinesByJobId(newJobId);
+      if (jobMachines.isNotEmpty) {
+        final runtimeMachines = jobMachines.map((master) {
+          return DocumentMachinesCompanion(
+            id: drift.Value(master.id),
+            jobId: drift.Value(master.jobId!),
+            documentId: drift.Value(newDocId),
+            machineId: drift.Value(master.machineId!),
+            machineName: drift.Value(master.machineName),
+            machineType: drift.Value(master.machineType),
+            description: drift.Value(master.description),
+            specification: drift.Value(master.specification),
+            status: drift.Value(master.status),
+            uiType: drift.Value(master.uiType),
+            createDate: drift.Value(master.createDate),
+            createBy: drift.Value(master.createBy),
+            lastSync: drift.Value(DateTime.now().toIso8601String()),
+          );
+        }).toList();
+        await _documentMachineDao.insertAllDocumentMachines(runtimeMachines);
+      }
 
       // CRUCIAL ADDITION: Copy associated document records
       final originalRecords =
@@ -158,6 +216,83 @@ class DocumentRepository {
       print('Error deleting document: $e');
       throw Exception('Failed to delete document: $e');
     }
+  }
+
+  /// Validates and closes the document (Job).
+  ///
+  /// Validation Logic:
+  /// 1. Iterates through all machines in the document.
+  /// 2. If a machine is "touched" (savedTags > 0), it must be fully completed.
+  ///    - A machine is considered complete if its derived aggregate status is 2 (Saved), 3 (Posted), or 4 (Synced).
+  ///    - If a machine is partially done (In Progress, status 1), validation fails.
+  /// 3. "Untouched" machines (savedTags == 0) are skipped and do not block closing.
+  ///
+  /// Returns `null` if successful, or an error message `String` if validation fails.
+  Future<String?> closeDocument(String documentId) async {
+    try {
+      // 1. Fetch all machines for this document
+      final machines =
+          await _documentMachineDao.getDocumentMachineList(documentId);
+
+      if (machines.isEmpty) {
+        return "ไม่พบข้อมูลเครื่องจักรสำหรับเอกสารนี้";
+      }
+
+      // 2. Validate each machine
+      for (final machine in machines) {
+        final int savedTags = machine.savedTags;
+        final int totalTags = machine.totalTags;
+        final int aggStatus = machine.aggregateStatus;
+
+        // Condition A: Untouched Machine -> Skip
+        if (savedTags == 0) {
+          continue;
+        }
+
+        // Condition B: Touched Machine -> MUST be completed
+        // Aggregate Status: 1=In Progress, 2=Saved, 3=Posted, 4=Synced
+        // We require at least status 2 (Saved all) to consider it "Done" locally.
+        // Or strictly check if savedTags == totalTags
+        if (savedTags < totalTags) {
+          return "เครื่องจักร '${machine.machineName}' ยังตรวจเช็คไม่ครบ ($savedTags/$totalTags รายการ)";
+        }
+
+        // Double check with aggregate status (redundant but safe)
+        if (aggStatus < 2) {
+          return "กรุณาบันทึกข้อมูลเครื่องจักร '${machine.machineName}' ให้ครบถ้วน";
+        }
+      }
+
+      // NEW: Requirement - At least one machine must be fully "Posted" (postedTags == totalTags)
+      // This ensures the job isn't closed without any real work being finalized.
+      bool hasAtLeastOnePostedMachine =
+          machines.any((m) => m.totalTags > 0 && m.postedTags == m.totalTags);
+
+      if (!hasAtLeastOnePostedMachine) {
+        return "ไม่สามารถปิดงานได้: ต้องมีเครื่องจักรที่บันทึกข้อมูลและกดส่ง (Post) ครบถ้วนอย่างน้อย 1 รายการ";
+      }
+
+      // 3. If all validation passes, update Document status to Closed (e.g., 2)
+      // Assuming 2 = Closed/Completed in DbDocument
+      final doc = await _documentDao.getDocument(documentId);
+      if (doc != null) {
+        await _documentDao.updateDocument(doc.copyWith(
+            status: 2,
+            lastSync: drift.Value(DateTime.now().toIso8601String())));
+        print('Document $documentId closed successfully.');
+        return null; // Success
+      } else {
+        return "ไม่พบเอกสารต้นฉบับ";
+      }
+    } catch (e) {
+      print('Error closing document: $e');
+      return "เกิดข้อผิดพลาดในการปิดงาน: $e";
+    }
+  }
+
+  /// NEW: Retrieve a document by its ID.
+  Future<DbDocument?> getDocument(String documentId) {
+    return _documentDao.getDocument(documentId);
   }
 
   // Helper function to generate a unique document ID (example, adjust as needed)
