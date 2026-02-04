@@ -138,4 +138,10 @@ class ChecksheetMasterImageDao extends DatabaseAccessor<AppDatabase>
       syncStatus: Value(1), // ตั้งค่า syncStatus เป็น 1 (ซิงค์แล้ว)
     ));
   }
+
+  /// ลบ record รูปภาพตาม ID (ใช้สำหรับกรณี Upload สำเร็จแล้วต้องการเคลียร์ทิ้ง)
+  Future<int> deleteImage(int id) {
+    return (delete(checkSheetMasterImages)..where((tbl) => tbl.id.equals(id)))
+        .go();
+  }
 }

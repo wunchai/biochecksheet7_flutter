@@ -97,7 +97,10 @@ class ChecksheetImageApiService {
   /// === ฟังก์ชันใหม่: อัปโหลดรูปภาพใหม่ขึ้น Server ===
   /// ใช้ multipart/form-data เพื่อส่งไฟล์ Binary และข้อมูล Text
   Future<bool> uploadNewMasterImage(
-      DbCheckSheetMasterImage imageRecord, File imageFile) async {
+    DbCheckSheetMasterImage imageRecord, {
+    File? imageFile,
+    Uint8List? imageBytes,
+  }) async {
     final uri = Uri.parse(
         '$_baseUrl/api/CheckSheet_MasterImage_Upload'); // <<< Endpoint ใหม่สำหรับ Upload
     debugPrint("Uploading new master image for TagId: ${imageRecord.tagId}");
@@ -117,12 +120,40 @@ class ChecksheetImageApiService {
               DateTime.now().toIso8601String();
 
       // 3. เพิ่มไฟล์รูปภาพ
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'image', // ชื่อ field ของไฟล์ (คุยกับฝั่ง Server)
-          imageFile.path,
-        ),
-      );
+      if (kIsWeb) {
+        // กรณี Web: ใช้ imageBytes
+        if (imageBytes != null) {
+          request.files.add(
+            http.MultipartFile.fromBytes(
+              'image',
+              imageBytes,
+              filename: 'upload_image.jpg', // ตั้งชื่อไฟล์หลอกๆ
+            ),
+          );
+        } else {
+          throw Exception("Image bytes are required for Web upload");
+        }
+      } else {
+        // กรณี Native: ใช้ imageFile หรือ imageBytes ก็ได้
+        if (imageFile != null) {
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'image', // ชื่อ field ของไฟล์ (คุยกับฝั่ง Server)
+              imageFile.path,
+            ),
+          );
+        } else if (imageBytes != null) {
+          request.files.add(
+            http.MultipartFile.fromBytes(
+              'image',
+              imageBytes,
+              filename: 'upload_image.jpg',
+            ),
+          );
+        } else {
+          throw Exception("Image file or bytes are required for upload");
+        }
+      }
 
       // 4. ส่ง Request
       var response = await request.send();

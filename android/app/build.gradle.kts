@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 // android/app/build.gradle.kts
 plugins {
     id("com.android.application")
@@ -6,10 +9,18 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
+
 android {
     namespace = "com.biolab.checksheet"
     compileSdk = 36 // หรือเวอร์ชันที่สูงกว่าที่คุณใช้
     ndkVersion = "28.1.13356709" // <<< เพิ่มบรรทัดนี้ (ถ้าจำเป็น)
+
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -29,9 +40,19 @@ android {
         multiDexEnabled = true
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String?
+            keyPassword = keystoreProperties["keyPassword"] as String?
+            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String?
+        }
+    }
+
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+            // signingConfig = signingConfigs.getByName("debug")
         }
     }
 }

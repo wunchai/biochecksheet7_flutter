@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-//import 'dart:typed_data';
+import 'dart:typed_data';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -202,20 +202,22 @@ class ChecksheetImageRepository {
         tagId: tagId,
       );
 // 2. ถ้ามี record เก่า และมี path ของไฟล์อยู่ ให้ทำการลบไฟล์นั้นทิ้ง
-      if (existingRecord != null &&
-          existingRecord.path != null &&
-          existingRecord.path!.isNotEmpty) {
-        try {
-          final oldFile = File(existingRecord.path!);
-          if (await oldFile.exists()) {
-            await oldFile.delete();
+      if (!kIsWeb) {
+        if (existingRecord != null &&
+            existingRecord.path != null &&
+            existingRecord.path!.isNotEmpty) {
+          try {
+            final oldFile = File(existingRecord.path!);
+            if (await oldFile.exists()) {
+              await oldFile.delete();
+              debugPrint(
+                  'Successfully deleted old image file: ${existingRecord.path}');
+            }
+          } catch (e) {
+            // ถ้าลบไฟล์เก่าไม่สำเร็จ ก็ไม่เป็นไร ให้ดำเนินการต่อ แต่ให้แสดง log ไว้
             debugPrint(
-                'Successfully deleted old image file: ${existingRecord.path}');
+                'Could not delete old image file at ${existingRecord.path}. Error: $e');
           }
-        } catch (e) {
-          // ถ้าลบไฟล์เก่าไม่สำเร็จ ก็ไม่เป็นไร ให้ดำเนินการต่อ แต่ให้แสดง log ไว้
-          debugPrint(
-              'Could not delete old image file at ${existingRecord.path}. Error: $e');
         }
       }
       // --- <<< สิ้นสุดการแก้ไข >>> ---
@@ -414,18 +416,47 @@ class ChecksheetImageRepository {
 
         try {
           if (imageRecord.path == null || imageRecord.path!.isEmpty) continue;
-          final imageFile = File(imageRecord.path!);
-          if (!await imageFile.exists()) continue;
 
-          final success =
-              await _apiService.uploadNewMasterImage(imageRecord, imageFile);
+          bool success;
+          if (kIsWeb) {
+            // บน Web Path เก็บ Base64 String
+            final bytes = base64Decode(imageRecord.path!);
+            success = await _apiService.uploadNewMasterImage(
+              imageRecord,
+              imageBytes: bytes,
+            );
+          } else {
+            // บน Native Path เก็บ File Path
+            final imageFile = File(imageRecord.path!);
+            if (!await imageFile.exists()) continue;
+
+            success = await _apiService.uploadNewMasterImage(
+              imageRecord,
+              imageFile: imageFile,
+            );
+          }
 
           if (success) {
-            // --- <<< อัปเดตสถานะใน Local DB หลังจาก Upload สำเร็จ >>> ---
+            // --- <<< Strategy Changed: Delete Local Record on Success >>> ---
+            // เพื่อป้องกันปัญหา ID ชนกัน (Local ID vs Server ID)
+            // ให้ลบ Record ใน Local DB ทิ้งไปเลย
             await _appDatabase.checksheetMasterImageDao
-                .updateStatusAfterUpload(imageRecord.id);
+                .deleteImage(imageRecord.id);
             debugPrint(
-                'Successfully uploaded and updated status for image ID ${imageRecord.id}');
+                'Successfully uploaded and deleted local record for image ID ${imageRecord.id}');
+
+            // ลบไฟล์ Local ทิ้งด้วย (เฉพาะ Native) เพื่อไม่ให้รกพื้นที่
+            if (!kIsWeb) {
+              try {
+                final file = File(imageRecord.path!);
+                if (await file.exists()) {
+                  await file.delete();
+                  debugPrint('Deleted local file: ${imageRecord.path}');
+                }
+              } catch (e) {
+                debugPrint('Error deleting local file after upload: $e');
+              }
+            }
           }
         } catch (e) {
           debugPrint('Failed to upload image ID ${imageRecord.id}. Error: $e');
