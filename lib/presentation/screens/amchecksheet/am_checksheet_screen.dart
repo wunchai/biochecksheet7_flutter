@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 // ViewModel and Models
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/am_checksheet_viewmodel.dart';
-import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
+// import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/widgets/am_document_record_app_bar.dart';
 import 'package:biochecksheet7_flutter/presentation/widgets/sync_progress_dialog.dart';
 
@@ -107,24 +107,26 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
             onImagePressed: () {
               _onSyncMasterImagesPressed(context, viewModel);
             },
+            // NEW: Filter Button Action
+            onFilterPressed: () => _showFilterDialog(context, viewModel),
           ),
           body: Stack(
             children: [
-              StreamBuilder<List<DocumentRecordWithTagAndProblem>>(
-                stream: viewModel.recordsStream,
-                builder: (context, snapshot) {
-                  if (viewModel.isLoading && !snapshot.hasData) {
+              // Removes StreamBuilder, use viewModel.records directly (Consumer is already above)
+              Builder(
+                builder: (context) {
+                  // Logic moved from StreamBuilder
+                  if (viewModel.isLoading && viewModel.records.isEmpty) {
+                    // Show loading only if no records are loaded yet
                     return const Center(child: CircularProgressIndicator());
                   }
-                  if (snapshot.hasError) {
-                    return Center(
-                        child: Text('เกิดข้อผิดพลาด: ${snapshot.error}'));
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('ไม่พบรายการตรวจเช็ค'));
-                  }
 
-                  final records = snapshot.data!;
+                  // Checks moved to here
+                  final records = viewModel.records;
+
+                  if (records.isEmpty) {
+                    return Center(child: Text(viewModel.statusMessage));
+                  }
 
                   return Column(
                     children: [
@@ -198,7 +200,8 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
                           color: Colors.white,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black
+                                  .withValues(alpha: 0.05), // Fixed deprecation
                               offset: const Offset(0, -2),
                               blurRadius: 10,
                             ),
@@ -306,11 +309,176 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
               ),
               if (viewModel.isLoading)
                 Container(
-                  color: Colors.black.withOpacity(0.5),
+                  color:
+                      Colors.black.withValues(alpha: 0.5), // Fixed deprecation
                   child: const Center(child: CircularProgressIndicator()),
                 ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showFilterDialog(
+      BuildContext context, AMChecksheetViewModel viewModel) {
+    String tempTagName = '';
+    String? tempGroupName;
+    bool tempUnfilled = false; // Initialize
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            // Get preview of records based on current temporary filters
+            final previewRecords = viewModel.getFilteredPreview(
+              tagName: tempTagName,
+              groupName: tempGroupName,
+              unfilled: tempUnfilled,
+            );
+
+            return AlertDialog(
+              title: const Text('กรองข้อมูล (Filter)'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // --- Filter Inputs ---
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'ชื่อ Tag (บางส่วน)',
+                        prefixIcon: Icon(Icons.search),
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          tempTagName = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: 'กลุ่ม Tag',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.category),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      value: tempGroupName,
+                      items: [
+                        const DropdownMenuItem<String>(
+                          value: null,
+                          child: Text('ทั้งหมด'),
+                        ),
+                        ...viewModel.availableTagGroups.map((group) {
+                          return DropdownMenuItem<String>(
+                            value: group,
+                            child: Text(group, overflow: TextOverflow.ellipsis),
+                          );
+                        }),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          tempGroupName = value;
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: const Text('แสดงเฉพาะที่ยังไม่ระบุค่า'),
+                      value: tempUnfilled,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          tempUnfilled = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    const Divider(),
+                    // --- Filtered List Preview ---
+                    Text(
+                      'พบข้อมูล ${previewRecords.length} รายการ',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: previewRecords.isEmpty
+                          ? const Center(
+                              child: Text('ไม่พบข้อมูล',
+                                  style: TextStyle(color: Colors.grey)))
+                          : ListView.separated(
+                              shrinkWrap: true,
+                              itemCount: previewRecords.length,
+                              separatorBuilder: (context, index) =>
+                                  const Divider(height: 1),
+                              itemBuilder: (context, index) {
+                                final record = previewRecords[index];
+                                final isValueEmpty =
+                                    record.documentRecord.value == null ||
+                                        record.documentRecord.value!.isEmpty;
+                                return ListTile(
+                                  dense: true,
+                                  title: Text(
+                                    record.jobTag?.tagName ?? '-',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  subtitle: Text(
+                                    '${record.jobTag?.tagGroupName ?? '-'} | ${isValueEmpty ? "ยังไม่ระบุ" : record.documentRecord.value}',
+                                    style: TextStyle(
+                                      color: isValueEmpty
+                                          ? Colors.red
+                                          : Colors.black54,
+                                    ),
+                                  ),
+                                  onTap: () {
+                                    // Apply filters and jump to this record
+                                    viewModel.setFilters(
+                                        tagName: tempTagName,
+                                        groupName: tempGroupName,
+                                        unfilled: tempUnfilled);
+
+                                    // Wait a bit for list to filter, then jump
+                                    Future.delayed(
+                                        const Duration(milliseconds: 100), () {
+                                      viewModel.jumpToRecord(
+                                          record.documentRecord.uid);
+                                    });
+
+                                    Navigator.pop(context);
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    viewModel.clearFilters();
+                    Navigator.pop(context);
+                  },
+                  child: const Text('ล้างตัวกรอง',
+                      style: TextStyle(color: Colors.red)),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    viewModel.setFilters(
+                        tagName: tempTagName,
+                        groupName: tempGroupName,
+                        unfilled: tempUnfilled);
+                    Navigator.pop(context);
+                  },
+                  child: const Text('ตกลง'),
+                ),
+              ],
+            );
+          },
         );
       },
     );

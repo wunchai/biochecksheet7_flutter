@@ -50,8 +50,7 @@ class _AMRecordTextInputFieldState extends State<AmRecordTextInputField> {
 
   @override
   Widget build(BuildContext context) {
-    print(
-        'RecordTextInputField UID: ${widget.record.uid}, TagName: ${widget.jobTag?.tagName}, Enabled: ${!widget.isReadOnly}, ReadOnly: ${widget.isReadOnly}, Controller text: "${widget.controller.text}"'); // <<< Debugging
+    // print('RecordTextInputField UID: ${widget.record.uid}...');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: TextField(

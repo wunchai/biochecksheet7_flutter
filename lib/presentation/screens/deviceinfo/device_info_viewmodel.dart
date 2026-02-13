@@ -41,6 +41,9 @@ class DeviceInfoViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  int _masterImageCount = 0;
+  int get masterImageCount => _masterImageCount;
+
   DeviceInfoViewModel(
       {required DeviceInfoService deviceInfoService,
       required DataSyncService
@@ -62,6 +65,9 @@ class DeviceInfoViewModel extends ChangeNotifier {
       _appVersion = await _deviceInfoService.getAppVersion();
       _ipAddress = await _deviceInfoService.getIpAddress();
       _wifiStrength = await _deviceInfoService.getWifiStrength();
+
+      await fetchMasterImageCount(); // <<< NEW: Fetch image count
+
       _statusMessage = "ข้อมูลอุปกรณ์โหลดแล้ว."; // Set status message
       _syncMessage = "โหลดข้อมูลอุปกรณ์สำเร็จ!"; // Set success message for UI
     } catch (e) {
@@ -146,6 +152,34 @@ class DeviceInfoViewModel extends ChangeNotifier {
       _syncMessage = "ข้อผิดพลาดในการซิงค์ Metadata: $e";
       _statusMessage = "ซิงค์ Metadata ล้มเหลว: $e";
       print("Error performing manual metadata sync: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Fetches the count of master images.
+  Future<void> fetchMasterImageCount() async {
+    try {
+      _masterImageCount = await _dataSyncService.checksheetImageRepository
+          .getMasterImageCount();
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching master image count: $e');
+    }
+  }
+
+  /// Deletes all master images and refreshes the count.
+  Future<void> deleteMasterImages() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _dataSyncService.checksheetImageRepository.deleteAllMasterImages();
+      _syncMessage = "ลบรูปภาพ Master ทั้งหมดสำเร็จ";
+      await fetchMasterImageCount(); // Refresh count
+    } catch (e) {
+      _errorMessage = "ลบรูปภาพไม่สำเร็จ: $e";
+      _syncMessage = "ลบรูปภาพไม่สำเร็จ: $e";
     } finally {
       _isLoading = false;
       notifyListeners();

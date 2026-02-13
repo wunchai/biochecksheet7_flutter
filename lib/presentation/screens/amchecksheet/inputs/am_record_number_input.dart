@@ -79,8 +79,7 @@ class _AmRecordNumberInputFieldState extends State<AmRecordNumberInputField> {
     final bool isEnabled = !widget.isReadOnly && !_isUnReadableChecked;
     final bool isReallyReadOnly = widget.isReadOnly || _isUnReadableChecked;
 
-    print(
-        'RecordNumberInputField UID: ${widget.record.uid}, TagName: ${widget.jobTag?.tagName}, Enabled: $isEnabled, ReadOnlyProp: $isReallyReadOnly, widget.isReadOnly: ${widget.isReadOnly}, _isUnReadableChecked: $_isUnReadableChecked, Controller text: "${widget.controller.text}"'); // <<< Debugging
+    // print('RecordNumberInputField UID: ${widget.record.uid}...');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Column(

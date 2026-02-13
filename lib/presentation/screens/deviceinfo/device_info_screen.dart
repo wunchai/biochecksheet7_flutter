@@ -17,6 +17,16 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
   bool _isShowingDialog = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Schedule the fetch for after the first frame to avoid build errors
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<DeviceInfoViewModel>(context, listen: false)
+          .fetchDeviceInfo();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -120,6 +130,33 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
                       const Divider(),
                       _buildInfoRow(Icons.signal_wifi_4_bar, 'Wi-Fi Strength',
                           viewModel.wifiStrength),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Master Images Card (Storage)
+                  _buildInfoCard(
+                    context,
+                    title: 'พื้นที่จัดเก็บ (Storage)',
+                    children: [
+                      _buildInfoRow(Icons.image, 'Master Images',
+                          '${viewModel.masterImageCount} รูป'),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: viewModel.masterImageCount > 0
+                              ? () => _confirmDeleteImages(context, viewModel)
+                              : null,
+                          icon: const Icon(Icons.delete_forever,
+                              color: Colors.white),
+                          label: const Text('ลบรูปภาพ Master ทั้งหมด',
+                              style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            disabledBackgroundColor: Colors.red.shade200,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -258,6 +295,33 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteImages(
+      BuildContext context, DeviceInfoViewModel viewModel) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('ยืนยันการลบ'),
+        content: const Text(
+            'คุณต้องการลบรูปภาพ Master ทั้งหมดออกจากเครื่องใช่หรือไม่?\n(รูปภาพจะถูกดาวน์โหลดใหม่เมื่อทำการ Sync)'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('ยกเลิก', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              viewModel.deleteMasterImages();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child:
+                const Text('ลบข้อมูล', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

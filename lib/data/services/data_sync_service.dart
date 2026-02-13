@@ -88,6 +88,8 @@ class DataSyncService {
   final ImageRepository _imageRepository; // <<< NEW: Declare here
   final ProblemRepository _problemRepositoryInstance; // Now correctly named
   final ChecksheetImageRepository _checksheetImageRepository;
+  ChecksheetImageRepository get checksheetImageRepository =>
+      _checksheetImageRepository; // <<< NEW GETTER
   // Constructor now takes a resolved AppDatabase instance
   DataSyncService({
     required AppDatabase appDatabase, // <<< Change to AppDatabase

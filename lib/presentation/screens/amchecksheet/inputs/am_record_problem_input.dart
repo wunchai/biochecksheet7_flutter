@@ -76,8 +76,7 @@ class _AmRecordProblemInputFieldState extends State<AmRecordProblemInputField> {
                 : () {
                     // <<< Disable button when read-only
                     // TODO: Implement logic to open a dialog or navigate to a screen to select a problem
-                    print(
-                        'Open problem picker for record UID: ${widget.record.uid}');
+                    // print('Open problem picker for record UID: ${widget.record.uid}');
                     // After selection, you would update the ViewModel with the selected Problem ID (e.g., viewModel.updateRecordValue(record.uid, selectedProblemId, record.remark))
                   },
           ),

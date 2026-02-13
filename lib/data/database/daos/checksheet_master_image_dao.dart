@@ -73,14 +73,7 @@ class ChecksheetMasterImageDao extends DatabaseAccessor<AppDatabase>
     required String localPath,
     required String createBy,
   }) async {
-    // 1. ค้นหา record ที่มีอยู่เดิมด้วย key ที่ไม่ซ้ำกัน
-    final existingRecord = await getImageForTag(
-      jobId: jobId,
-      machineId: machineId,
-      tagId: tagId,
-    );
-
-    // 2. เตรียมข้อมูลที่จะบันทึก (Companion)
+    // 1. เตรียมข้อมูลที่จะบันทึก (Companion)
     final companion = CheckSheetMasterImagesCompanion(
       jobId: Value(jobId),
       machineId: Value(machineId),
@@ -93,17 +86,8 @@ class ChecksheetMasterImageDao extends DatabaseAccessor<AppDatabase>
       status: const Value(1), // สถานะ Active
     );
 
-    if (existingRecord != null) {
-      // --- กรณี UPDATE ---
-      // ถ้ามี record อยู่แล้ว ให้อัปเดตทับโดยใช้ id เดิม
-      await (update(checkSheetMasterImages)
-            ..where((tbl) => tbl.id.equals(existingRecord.id)))
-          .write(companion);
-    } else {
-      // --- กรณี INSERT ---
-      // ถ้ายังไม่มี ให้สร้าง record ใหม่
-      await into(checkSheetMasterImages).insert(companion);
-    }
+    // 2. บันทึกข้อมูลใหม่ (Insert Always) เพื่อรองรับหลายรูปภาพต่อ 1 Tag
+    await into(checkSheetMasterImages).insert(companion);
   }
 
   /// ค้นหารูปภาพใหม่ทั้งหมดที่ต้องอัปโหลด (newImage = 1)
@@ -116,6 +100,19 @@ class ChecksheetMasterImageDao extends DatabaseAccessor<AppDatabase>
   // --- <<< จุดที่แก้ไขสำคัญ >>> ---
   /// เปลี่ยนชื่อฟังก์ชันเป็น watch... และเปลี่ยน Furture เป็น Stream
   /// โดยเปลี่ยน .getSingleOrNull() เป็น .watchSingleOrNull()
+  Stream<List<DbCheckSheetMasterImage>> watchImagesForTag({
+    required int jobId,
+    required int machineId,
+    required int tagId,
+  }) {
+    return (select(checkSheetMasterImages)
+          ..where((tbl) =>
+              tbl.jobId.equals(jobId) &
+              tbl.machineId.equals(machineId) &
+              tbl.tagId.equals(tagId)))
+        .watch();
+  }
+
   Stream<DbCheckSheetMasterImage?> watchImageForTag({
     required int jobId,
     required int machineId,
@@ -126,7 +123,7 @@ class ChecksheetMasterImageDao extends DatabaseAccessor<AppDatabase>
               tbl.jobId.equals(jobId) &
               tbl.machineId.equals(machineId) &
               tbl.tagId.equals(tagId)))
-        .watchSingleOrNull(); // <<< เปลี่ยนจาก .get... เป็น .watch...
+        .watchSingleOrNull();
   }
 
   // --- <<< ฟังก์ชันใหม่ที่เพิ่มเข้ามา >>> ---

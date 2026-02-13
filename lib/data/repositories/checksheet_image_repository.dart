@@ -51,6 +51,32 @@ class ChecksheetImageRepository {
         final localRecord = localImageMap[dto.id];
 
         // 3. ตรวจสอบเงื่อนไข:
+        //    - ถ้า status == 4 (Deleted) -> ให้ลบข้อมูลในเครื่องทิ้ง และไม่ต้อง Insert/Update
+        if (dto.status == 4) {
+          debugPrint(
+              'Image ID ${dto.id} has status 4 (Deleted). Removing local data...');
+          if (localRecord != null) {
+            // ลบไฟล์ (ถ้ามี)
+            if (!kIsWeb &&
+                localRecord.path != null &&
+                localRecord.path!.isNotEmpty) {
+              try {
+                final file = File(localRecord.path!);
+                if (await file.exists()) {
+                  await file.delete();
+                  debugPrint('Deleted local file: ${localRecord.path}');
+                }
+              } catch (e) {
+                debugPrint('Error deleting local file: $e');
+              }
+            }
+            // ลบ Record
+            await _appDatabase.checksheetMasterImageDao.deleteImage(dto.id);
+            debugPrint('Deleted local record ID ${dto.id}');
+          }
+          continue; // ข้ามไปรายการถัดไป ไม่ต้องทำอะไรต่อ
+        }
+
         //    - ถ้าไม่เจอ record ในเครื่องเลย (localRecord == null) -> เป็นข้อมูลใหม่ ให้เพิ่มเข้าไป
         //    - หรือ ถ้าเจอ record แต่ newImage ไม่ใช่ 1 -> เป็นข้อมูลเก่าที่ปลอดภัย สามารถอัปเดตได้
         if (localRecord == null || localRecord.newImage != 1) {
@@ -193,34 +219,7 @@ class ChecksheetImageRepository {
         throw Exception("ไม่พบข้อมูลผู้ใช้, ไม่สามารถบันทึกรูปภาพได้");
       }
 
-      // --- <<< จุดที่แก้ไขสำคัญ >>> ---
-      // 1. ค้นหา record เก่าก่อน เพื่อเอา path ของไฟล์เก่ามาลบ
-      final existingRecord =
-          await _appDatabase.checksheetMasterImageDao.getImageForTag(
-        jobId: jobId,
-        machineId: machineId,
-        tagId: tagId,
-      );
-// 2. ถ้ามี record เก่า และมี path ของไฟล์อยู่ ให้ทำการลบไฟล์นั้นทิ้ง
-      if (!kIsWeb) {
-        if (existingRecord != null &&
-            existingRecord.path != null &&
-            existingRecord.path!.isNotEmpty) {
-          try {
-            final oldFile = File(existingRecord.path!);
-            if (await oldFile.exists()) {
-              await oldFile.delete();
-              debugPrint(
-                  'Successfully deleted old image file: ${existingRecord.path}');
-            }
-          } catch (e) {
-            // ถ้าลบไฟล์เก่าไม่สำเร็จ ก็ไม่เป็นไร ให้ดำเนินการต่อ แต่ให้แสดง log ไว้
-            debugPrint(
-                'Could not delete old image file at ${existingRecord.path}. Error: $e');
-          }
-        }
-      }
-      // --- <<< สิ้นสุดการแก้ไข >>> ---
+      // (Logic for deleting old file removed to support multiple images)
 
       // เรียกใช้ฟังก์ชัน saveNewLocalImage จาก DAO
       // ซึ่ง DAO จะจัดการเองว่าจะ Insert หรือ Update
@@ -490,5 +489,46 @@ class ChecksheetImageRepository {
     await file.writeAsBytes(imageBytes);
 
     return filePath;
+  }
+
+  /// Returns the total number of master images in the local database.
+  Future<int> getMasterImageCount() async {
+    final images = await _appDatabase.checksheetMasterImageDao.getAllImages();
+    return images.length;
+  }
+
+  /// Deletes all master images from both the local filesystem and the database.
+  Future<void> deleteAllMasterImages() async {
+    try {
+      debugPrint('Deleting all master images...');
+      // 1. Get all images to find their paths
+      final allImages =
+          await _appDatabase.checksheetMasterImageDao.getAllImages();
+
+      // 2. Delete files from filesystem (if not Web)
+      if (!kIsWeb) {
+        for (final image in allImages) {
+          if (image.path != null && image.path!.isNotEmpty) {
+            try {
+              final file = File(image.path!);
+              if (await file.exists()) {
+                await file.delete();
+                debugPrint('Deleted file: ${image.path}');
+              }
+            } catch (e) {
+              debugPrint('Error deleting file ${image.path}: $e');
+              // Continue deleting other files even if one fails
+            }
+          }
+        }
+      }
+
+      // 3. Clear all records from the database
+      await _appDatabase.checksheetMasterImageDao.clearAll();
+      debugPrint('All master image records deleted from DB.');
+    } catch (e) {
+      debugPrint('Error deleting all master images: $e');
+      rethrow;
+    }
   }
 }

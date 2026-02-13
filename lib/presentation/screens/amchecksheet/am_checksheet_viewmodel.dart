@@ -31,11 +31,21 @@ class AMChecksheetViewModel extends ChangeNotifier {
   String? _machineId;
   String? _jobId;
 
-  Stream<List<DocumentRecordWithTagAndProblem>>? _recordsStream;
-  Stream<List<DocumentRecordWithTagAndProblem>>? get recordsStream =>
-      _recordsStream;
+  // Stream Subscription เก็บไว้เพื่อ cancel เมื่อ dispos
+  StreamSubscription<List<DocumentRecordWithTagAndProblem>>?
+      _recordsSubscription;
 
-  List<DocumentRecordWithTagAndProblem> _currentRecords = [];
+  // เก็บข้อมูลทั้งหมดจาก DB (Raw Data)
+  List<DocumentRecordWithTagAndProblem> _allRecords = [];
+
+  // เก็บข้อมูลที่ผ่านการกรองแล้ว (สำหรับแสดงผล)
+  List<DocumentRecordWithTagAndProblem> _filteredRecords = [];
+  List<DocumentRecordWithTagAndProblem> get records => _filteredRecords;
+
+  // ตัวแปรสำหรับ Filter
+  String _filterTagName = '';
+  String? _filterTagGroup;
+  bool _filterUnfilled = false; // New filter state
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -63,7 +73,8 @@ class AMChecksheetViewModel extends ChangeNotifier {
   // --- ส่วนจัดการ PageView ---
   int _currentPage = 0;
   int get currentPage => _currentPage; // Restored
-  int get totalRecords => _currentRecords.length; // Restored
+  int get totalRecords =>
+      _filteredRecords.length; // Restored: Use filtered length
   late PageController pageController;
 
   // --- Constructor ---
@@ -108,15 +119,13 @@ class AMChecksheetViewModel extends ChangeNotifier {
 
   Future<void> loadRecords(
       String documentId, String machineId, String jobId) async {
-    // --- *** จุดที่แก้ไข *** ---
-    // 1. รีเซ็ตค่า currentPage กลับไปเป็น 0
+    _recordsSubscription?.cancel(); // Cancel subscription เก่าก่อน
+
+    // รีเซ็ต state
     _currentPage = 0;
-    // 2. สั่งให้ PageController กลับไปที่หน้าแรก (สำคัญมาก)
-    // ใช้ hasClients เพื่อเช็คว่า PageController พร้อมใช้งานหรือยัง
     if (pageController.hasClients) {
       pageController.jumpToPage(0);
     }
-    // --- สิ้นสุดการแก้ไข ---
 
     _isLoading = true;
     _documentId = documentId;
@@ -126,10 +135,10 @@ class AMChecksheetViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // NEW: Check global document status
+      // Check global document status
       final doc = await _appDatabase.documentDao.getDocument(documentId);
       _isDocumentClosed = (doc != null && doc.status >= 2);
-      print('AMChecksheetViewModel: Document Closed = $_isDocumentClosed');
+      // debugPrint('AMChecksheetViewModel: Document Closed = $_isDocumentClosed');
 
       // Only initialize if not closed
       if (!_isDocumentClosed) {
@@ -138,39 +147,18 @@ class AMChecksheetViewModel extends ChangeNotifier {
           documentId: _documentId!,
           machineId: _machineId!,
         );
-      } else {
-        print(
-            'AMChecksheetViewModel: Skipping initialization because document is closed.');
       }
 
-      _recordsStream = _documentRecordRepository.loadRecordsForDocumentMachine(
+      // Subscribe to stream
+      _recordsSubscription = _documentRecordRepository
+          .loadRecordsForDocumentMachine(
         documentId: _documentId!,
         machineId: _machineId!,
-      );
-
-      // DEBUG: Verify DB content
-      final allRecs =
-          await _appDatabase.documentRecordDao.getAllDocumentRecords();
-      print("DEBUG: Total records in DB: ${allRecs.length}");
-      for (var r in allRecs) {
-        print(
-            "DEBUG DB ROW: UID=${r.uid}, DocID=${r.documentId}, MachineID=${r.machineId}, TagID=${r.tagId}, Status=${r.status}");
-        if (r.documentId == _documentId && r.machineId == _machineId) {
-          print("MATCH FOUND in DB Dump for current Doc/Machine!");
-        }
-      }
-
-      _recordsStream?.listen((data) {
-        print("DEBUG: Stream emitted ${data.length} records");
-        for (var rec in data) {
-          print(
-              "DEBUG: Record UID: ${rec.documentRecord.uid}, DocID: ${rec.documentRecord.documentId}, MachineID: ${rec.documentRecord.machineId}, TagID: ${rec.documentRecord.tagId}, Status: ${rec.documentRecord.status}");
-        }
-        _currentRecords = data;
-        _statusMessage = "พบข้อมูลทั้งหมด ${_currentRecords.length} รายการ";
-        if (data.isEmpty) {
-          _statusMessage = "ไม่พบข้อมูลสำหรับ Checksheet นี้";
-        }
+      )
+          .listen((data) {
+        // debugPrint("DEBUG: Stream emitted ${data.length} records");
+        _allRecords = data;
+        _applyFiltersInternal(); // กรองข้อมูลเมื่อมีข้อมูลใหม่มา
         _isLoading = false;
         notifyListeners();
       }, onError: (error) {
@@ -181,6 +169,116 @@ class AMChecksheetViewModel extends ChangeNotifier {
     } catch (e) {
       _statusMessage = "เกิดข้อผิดพลาดในการโหลด: $e";
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // --- Filtering Logic ---
+
+  List<String> get availableTagGroups {
+    final groups = _allRecords
+        .map((r) => r.jobTag?.tagGroupName)
+        .where((g) => g != null && g.isNotEmpty)
+        .cast<String>()
+        .toSet()
+        .toList();
+    groups.sort();
+    return groups;
+  }
+
+  void setFilters(
+      {String tagName = '', String? groupName, bool unfilled = false}) {
+    _filterTagName = tagName;
+    _filterTagGroup = groupName;
+    _filterUnfilled = unfilled;
+    _applyFiltersInternal();
+    // Reset page to 0 after filter change
+    _currentPage = 0;
+    if (pageController.hasClients) {
+      pageController.jumpToPage(0);
+    }
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    setFilters(tagName: '', groupName: null, unfilled: false);
+  }
+
+  void _applyFiltersInternal() {
+    _filteredRecords = _allRecords.where((record) {
+      bool matchesName = true;
+      bool matchesGroup = true;
+      bool matchesUnfilled = true;
+
+      if (_filterTagName.isNotEmpty) {
+        final tagName = record.jobTag?.tagName?.toLowerCase() ?? '';
+        matchesName = tagName.contains(_filterTagName.toLowerCase());
+      }
+
+      if (_filterTagGroup != null && _filterTagGroup!.isNotEmpty) {
+        final groupName = record.jobTag?.tagGroupName;
+        matchesGroup = groupName == _filterTagGroup;
+      }
+
+      if (_filterUnfilled) {
+        // Check if value is null or empty
+        final value = record.documentRecord.value;
+        matchesUnfilled = value == null || value.isEmpty;
+      }
+
+      return matchesName && matchesGroup && matchesUnfilled;
+    }).toList();
+
+    _statusMessage = "พบข้อมูล ${_filteredRecords.length} รายการ";
+    if (_filteredRecords.isEmpty) {
+      if (_allRecords.isNotEmpty) {
+        _statusMessage = "ไม่พบข้อมูลที่ตรงกับเงื่อนไข";
+      } else {
+        _statusMessage = "ไม่พบข้อมูลสำหรับ Checksheet นี้";
+      }
+    }
+  }
+
+  /// NEW: Helper to get a preview of filtered records without applying to main state
+  List<DocumentRecordWithTagAndProblem> getFilteredPreview({
+    String tagName = '',
+    String? groupName,
+    bool unfilled = false,
+  }) {
+    return _allRecords.where((record) {
+      bool matchesName = true;
+      bool matchesGroup = true;
+      bool matchesUnfilled = true;
+
+      if (tagName.isNotEmpty) {
+        final rTagName = record.jobTag?.tagName?.toLowerCase() ?? '';
+        matchesName = rTagName.contains(tagName.toLowerCase());
+      }
+
+      if (groupName != null && groupName.isNotEmpty) {
+        final rGroupName = record.jobTag?.tagGroupName;
+        matchesGroup = rGroupName == groupName;
+      }
+
+      if (unfilled) {
+        final value = record.documentRecord.value;
+        matchesUnfilled = value == null || value.isEmpty;
+      }
+
+      return matchesName && matchesGroup && matchesUnfilled;
+    }).toList();
+  }
+
+  /// NEW: Jump to a specific record by UID
+  void jumpToRecord(int uid) {
+    // Find index in filtered records
+    final index =
+        _filteredRecords.indexWhere((r) => r.documentRecord.uid == uid);
+    if (index != -1) {
+      _currentPage = index;
+      if (pageController.hasClients) {
+        pageController.jumpToPage(index);
+      }
       notifyListeners();
     }
   }
@@ -217,7 +315,8 @@ class AMChecksheetViewModel extends ChangeNotifier {
     notifyListeners();
 
     // ค้นหา record ที่ต้องการอัปเดตเพื่อเอาข้อมูล jobTag มาใช้
-    final recordWithTag = _currentRecords.firstWhere(
+    // ใช้ _allRecords เพราะอาจจะไม่ได้อยู่ใน filtered list ณ ตอนนั้นก็ได้ (แต่จริงๆ ควรอยู่)
+    final recordWithTag = _allRecords.firstWhere(
         (r) => r.documentRecord.uid == uid,
         orElse: () => throw Exception('Record not found'));
     final jobTag = recordWithTag.jobTag;
@@ -248,9 +347,8 @@ class AMChecksheetViewModel extends ChangeNotifier {
     return success;
   }
 
-  /// อัปเดตสถานะ "ไม่อ่านค่า"
   Future<bool> updateUnReadableStatus(int uid, bool isUnReadable) async {
-    final record = _currentRecords
+    final record = _allRecords
         .firstWhere((r) => r.documentRecord.uid == uid)
         .documentRecord;
     return await updateRecordValue(
@@ -308,7 +406,7 @@ class AMChecksheetViewModel extends ChangeNotifier {
   /// รับค่า Search (สำหรับ AppBar)
   void setSearchQuery(String query) {
     // ใน UI แบบ PageView การค้นหาอาจไม่จำเป็น แต่ต้องมีฟังก์ชันนี้ไว้เพื่อไม่ให้ AppBar error
-    print("Search query changed: $query (Not implemented in AM Checksheet)");
+    // debugPrint("Search query changed: $query (Not implemented in AM Checksheet)");
   }
 
   /// NEW: Method เพื่อตรวจสอบและเปลี่ยนสถานะของ Records เป็น 2 (Posted).
@@ -320,8 +418,8 @@ class AMChecksheetViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final List<DocumentRecordWithTagAndProblem> currentRecords =
-          await (_recordsStream?.first ?? Future.value([]));
+      // ใช้ _allRecords ในการตรวจสอบและส่งข้อมูล เพราะเราต้องการส่งข้อมูลทั้งหมดของเอกสาร
+      final List<DocumentRecordWithTagAndProblem> currentRecords = _allRecords;
 
       if (currentRecords.isEmpty) {
         _syncMessage = "ไม่มีบันทึกให้ส่งข้อมูล.";
@@ -389,7 +487,7 @@ class AMChecksheetViewModel extends ChangeNotifier {
     } on Exception catch (e) {
       _syncMessage = "ข้อผิดพลาดในการส่งข้อมูล: $e";
       _statusMessage = "ส่งข้อมูลล้มเหลว.";
-      print("Error posting records: $e");
+      // debugPrint("Error posting records: $e");
       return false;
     } finally {
       _isLoading = false;
@@ -457,9 +555,9 @@ class AMChecksheetViewModel extends ChangeNotifier {
     bool allSucceeded = true;
     final String? currentUserId = _loginRepository.loggedInUser?.userId;
 
-    // ใช้ข้อมูลปัจจุบันจาก _currentRecords
+    // ใช้ข้อมูลปัจจุบันจาก _allRecords
     final List<DocumentRecordWithTagAndProblem> currentRecordsSnapshot =
-        List.from(_currentRecords);
+        List.from(_allRecords);
 
     if (currentRecordsSnapshot.isEmpty) {
       _statusMessage = "ไม่มีบันทึกให้บันทึก.";
@@ -583,9 +681,9 @@ class AMChecksheetViewModel extends ChangeNotifier {
     bool allRecordsValid = true;
     final String? currentUserId = _loginRepository.loggedInUser?.userId;
 
-    // ใช้ข้อมูลจาก _currentRecords
+    // ใช้ข้อมูลปัจจุบันจาก _allRecords
     final List<DocumentRecordWithTagAndProblem> currentRecordsSnapshot =
-        List.from(_currentRecords);
+        List.from(_allRecords);
 
     for (final recordWithTag in currentRecordsSnapshot) {
       final DbDocumentRecord record = recordWithTag.documentRecord;
@@ -710,7 +808,8 @@ class AMChecksheetViewModel extends ChangeNotifier {
 
 // --- <<< จุดที่แก้ไขสำคัญ >>> ---
   /// เปลี่ยนชื่อฟังก์ชันและเปลี่ยน Furture เป็น Stream
-  Stream<DbCheckSheetMasterImage?> watchMasterImageForTag(DbJobTag jobTag) {
+  Stream<List<DbCheckSheetMasterImage>> watchMasterImagesForTag(
+      DbJobTag jobTag) {
     try {
       final jobId = int.tryParse(jobTag.jobId ?? '');
       final machineId = int.tryParse(jobTag.machineId ?? '');
@@ -718,18 +817,18 @@ class AMChecksheetViewModel extends ChangeNotifier {
 
       if (jobId == null || machineId == null || tagId == null) {
         debugPrint("Invalid ID format for watching image.");
-        return Stream.value(null); // คืน Stream ที่มีค่า null ทันที
+        return Stream.value([]); // คืน Stream ที่มีค่า empty list ทันที
       }
 
       // เรียกใช้ฟังก์ชัน watch... ใหม่จาก DAO
-      return _appDatabase.checksheetMasterImageDao.watchImageForTag(
+      return _appDatabase.checksheetMasterImageDao.watchImagesForTag(
         jobId: jobId,
         machineId: machineId,
         tagId: tagId,
       );
     } catch (e) {
       debugPrint("Error watching master image for tag ${jobTag.tagId}: $e");
-      return Stream.error(e); // คืน Stream ที่มี error
+      return Stream.value([]); // คืน Stream empty list on error
     }
   }
 
@@ -886,6 +985,7 @@ class AMChecksheetViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _recordsSubscription?.cancel();
     pageController.dispose();
     super.dispose();
   }

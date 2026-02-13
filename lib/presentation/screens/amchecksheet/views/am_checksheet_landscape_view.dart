@@ -51,76 +51,265 @@ class _AmChecksheetLandscapeViewState extends State<AmChecksheetLandscapeView>
           // --- Left Column: Master Image (40%) ---
           Expanded(
             flex: 4,
-            child: StreamBuilder<DbCheckSheetMasterImage?>(
+            child: StreamBuilder<List<DbCheckSheetMasterImage>>(
               stream: jobTag != null
-                  ? viewModel.watchMasterImageForTag(jobTag)
-                  : Stream.value(null),
+                  ? viewModel.watchMasterImagesForTag(jobTag)
+                  : Stream.value([]),
               builder: (context, snapshot) {
-                Widget imageWidget;
-                DbCheckSheetMasterImage? currentImageRecord;
-                String? pathOrBase64ForDialog;
-
                 if (snapshot.connectionState == ConnectionState.waiting &&
                     !snapshot.hasData) {
-                  imageWidget =
-                      const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasData && snapshot.data?.path != null) {
-                  currentImageRecord = snapshot.data;
-                  pathOrBase64ForDialog = currentImageRecord!.path!;
-                  final uniqueKey =
-                      ValueKey(currentImageRecord.updatedAt.toString());
-
-                  imageWidget = kIsWeb
-                      ? Image.memory(
-                          base64Decode(pathOrBase64ForDialog),
-                          key: uniqueKey,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Center(
-                                  child: Icon(Icons.broken_image,
-                                      size: 60, color: Colors.grey)),
-                        )
-                      : Image.file(
-                          File(pathOrBase64ForDialog),
-                          key: uniqueKey,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Center(
-                                  child: Icon(Icons.broken_image,
-                                      size: 60, color: Colors.grey)),
-                        );
-                } else {
-                  imageWidget = Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.image_not_supported,
-                            size: 60, color: Colors.grey[600]),
-                        const SizedBox(height: 8),
-                        Text('ไม่มีรูปภาพประกอบ',
-                            style: TextStyle(color: Colors.grey[700])),
-                      ],
-                    ),
-                  );
+                  return const Center(child: CircularProgressIndicator());
                 }
+
+                final images = snapshot.data ?? [];
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Expanded(
-                      // Use Expanded to fill height in landscape
-                      child: GestureDetector(
-                        onTap: () =>
-                            showFullScreenImage(context, pathOrBase64ForDialog),
-                        child: Container(
-                          decoration: BoxDecoration(
-                              color: Colors.black12,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade400)),
-                          child: imageWidget,
-                        ),
-                      ),
+                      child: images.isEmpty
+                          ? Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.black12,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border:
+                                      Border.all(color: Colors.grey.shade400)),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.image_not_supported,
+                                        size: 60, color: Colors.grey[600]),
+                                    const SizedBox(height: 8),
+                                    Text('ไม่มีรูปภาพประกอบ',
+                                        style:
+                                            TextStyle(color: Colors.grey[700])),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : images.length == 1
+                              ? Builder(builder: (context) {
+                                  // --- Single Image Display (Full Size) ---
+                                  final currentImageRecord = images.first;
+                                  final path = currentImageRecord.path;
+                                  final uniqueKey = ValueKey(
+                                      currentImageRecord.updatedAt.toString());
+
+                                  Widget imageWidget;
+                                  VoidCallback? onTap;
+
+                                  if (path == null) {
+                                    imageWidget = const Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          CircularProgressIndicator(
+                                              strokeWidth: 2),
+                                          SizedBox(height: 8),
+                                          Text("กำลังโหลด...",
+                                              style: TextStyle(
+                                                  color: Colors.grey)),
+                                        ],
+                                      ),
+                                    );
+                                    onTap = null;
+                                  } else {
+                                    imageWidget = kIsWeb
+                                        ? Image.memory(
+                                            base64Decode(path),
+                                            key: uniqueKey,
+                                            fit: BoxFit
+                                                .contain, // Show full image
+                                            errorBuilder: (context, error,
+                                                    stackTrace) =>
+                                                const Center(
+                                                    child: Icon(
+                                                        Icons.broken_image,
+                                                        size: 60,
+                                                        color: Colors.grey)),
+                                          )
+                                        : Image.file(
+                                            File(path),
+                                            key: uniqueKey,
+                                            fit: BoxFit
+                                                .contain, // Show full image
+                                            errorBuilder: (context, error,
+                                                    stackTrace) =>
+                                                const Center(
+                                                    child: Icon(
+                                                        Icons.broken_image,
+                                                        size: 60,
+                                                        color: Colors.grey)),
+                                          );
+                                    onTap = () =>
+                                        showFullScreenImage(context, path);
+                                  }
+
+                                  return GestureDetector(
+                                    onTap: onTap,
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      decoration: BoxDecoration(
+                                          color: Colors.black12,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: Colors.grey.shade400)),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: Stack(
+                                        children: [
+                                          Positioned.fill(child: imageWidget),
+                                          if (path != null)
+                                            Positioned(
+                                              bottom: 8,
+                                              right: 8,
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black54,
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                                child: IconButton(
+                                                  icon: const Icon(Icons.edit,
+                                                      size: 20,
+                                                      color: Colors.white),
+                                                  constraints:
+                                                      const BoxConstraints(),
+                                                  padding:
+                                                      const EdgeInsets.all(8),
+                                                  tooltip: "แก้ไขรูปภาพ",
+                                                  onPressed: () {
+                                                    openImageEditor(context,
+                                                        currentImageRecord);
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                })
+                              : GridView.builder(
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 8,
+                                    mainAxisSpacing: 8,
+                                    childAspectRatio: 1,
+                                  ),
+                                  itemCount: images.length,
+                                  itemBuilder: (context, index) {
+                                    final currentImageRecord = images[index];
+                                    final path = currentImageRecord.path;
+                                    final uniqueKey = ValueKey(
+                                        currentImageRecord.updatedAt
+                                            .toString());
+
+                                    Widget imageWidget;
+                                    VoidCallback? onTap;
+
+                                    if (path == null) {
+                                      // --- Syncing / Downloading State ---
+                                      imageWidget = const Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            CircularProgressIndicator(
+                                                strokeWidth: 2),
+                                            SizedBox(height: 4),
+                                            Text("กำลังโหลด...",
+                                                style: TextStyle(
+                                                    fontSize: 10,
+                                                    color: Colors.grey)),
+                                          ],
+                                        ),
+                                      );
+                                      onTap = null;
+                                    } else {
+                                      // --- Image Ready State ---
+                                      imageWidget = kIsWeb
+                                          ? Image.memory(
+                                              base64Decode(path),
+                                              key: uniqueKey,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error,
+                                                      stackTrace) =>
+                                                  const Center(
+                                                      child: Icon(
+                                                          Icons.broken_image,
+                                                          size: 40,
+                                                          color: Colors.grey)),
+                                            )
+                                          : Image.file(
+                                              File(path),
+                                              key: uniqueKey,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error,
+                                                      stackTrace) =>
+                                                  const Center(
+                                                      child: Icon(
+                                                          Icons.broken_image,
+                                                          size: 40,
+                                                          color: Colors.grey)),
+                                            );
+                                      onTap = () =>
+                                          showFullScreenImage(context, path);
+                                    }
+
+                                    return GestureDetector(
+                                      onTap: onTap,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            color: Colors.black12,
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            border: Border.all(
+                                                color: Colors.grey.shade400)),
+                                        clipBehavior: Clip.antiAlias,
+                                        child: Stack(
+                                          children: [
+                                            Positioned.fill(child: imageWidget),
+                                            // Edit button overlay (Only show if path is available)
+                                            if (path != null)
+                                              Positioned(
+                                                bottom: 4,
+                                                right: 4,
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black54,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                  ),
+                                                  child: IconButton(
+                                                    icon: const Icon(Icons.edit,
+                                                        size: 16,
+                                                        color: Colors.white),
+                                                    constraints:
+                                                        const BoxConstraints(),
+                                                    padding:
+                                                        const EdgeInsets.all(8),
+                                                    tooltip: "แก้ไขรูปภาพ",
+                                                    onPressed: () {
+                                                      openImageEditor(context,
+                                                          currentImageRecord);
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
                     ),
+                    const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -131,14 +320,6 @@ class _AmChecksheetLandscapeViewState extends State<AmChecksheetLandscapeView>
                             onPressed: isRecordReadOnly
                                 ? null
                                 : () => showImageSourceDialog(context, jobTag),
-                          ),
-                        if (currentImageRecord != null)
-                          TextButton.icon(
-                            icon: const Icon(Icons.edit, size: 18),
-                            label: const Text("แก้ไขรูป"),
-                            onPressed: () {
-                              openImageEditor(context, currentImageRecord!);
-                            },
                           ),
                       ],
                     )

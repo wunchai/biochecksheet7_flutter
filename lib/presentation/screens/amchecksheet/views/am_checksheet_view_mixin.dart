@@ -11,6 +11,7 @@ import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.da
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/inputs/am_record_text_input.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/inputs/am_record_number_input.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/inputs/am_record_combobox_input.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/inputs/am_record_checkbox_input.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/inputs/am_record_problem_input.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/widgets/am_record_detail_dialog.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/widgets/am_remark_input_dialog.dart';
@@ -248,8 +249,23 @@ mixin AmChecksheetViewMixin<T extends StatefulWidget> on State<T> {
           isReadOnly: isRecordReadOnly,
         );
       case 'ComboBox':
-      case 'CheckBox':
         return AmRecordComboBoxInputField(
+          key: ValueKey(record.uid),
+          record: record,
+          jobTag: jobTag,
+          viewModel: viewModel,
+          initialSelectedValue: selectedComboBoxValues.putIfAbsent(
+              record.uid, () => record.value),
+          errorText: viewModel.recordErrors[record.uid],
+          onChangedCallback: (newValue) {
+            setState(() {
+              selectedComboBoxValues[record.uid] = newValue;
+            });
+          },
+          isReadOnly: isRecordReadOnly,
+        );
+      case 'CheckBox':
+        return AmRecordCheckBoxInputField(
           key: ValueKey(record.uid),
           record: record,
           jobTag: jobTag,
