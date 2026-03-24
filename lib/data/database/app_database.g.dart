@@ -1023,6 +1023,478 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
   }
 }
 
+class $DocumentOnlinesTable extends DocumentOnlines
+    with TableInfo<$DocumentOnlinesTable, DbDocumentOnline> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentOnlinesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uidMeta = const VerificationMeta('uid');
+  @override
+  late final GeneratedColumn<int> uid = GeneratedColumn<int>(
+      'uid', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _documentIdMeta =
+      const VerificationMeta('documentId');
+  @override
+  late final GeneratedColumn<String> documentId = GeneratedColumn<String>(
+      'documentId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _jobIdMeta = const VerificationMeta('jobId');
+  @override
+  late final GeneratedColumn<String> jobId = GeneratedColumn<String>(
+      'jobId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _documentNameMeta =
+      const VerificationMeta('documentName');
+  @override
+  late final GeneratedColumn<String> documentName = GeneratedColumn<String>(
+      'documentName', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'userId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createDateMeta =
+      const VerificationMeta('createDate');
+  @override
+  late final GeneratedColumn<String> createDate = GeneratedColumn<String>(
+      'createDate', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+      'status', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _lastSyncMeta =
+      const VerificationMeta('lastSync');
+  @override
+  late final GeneratedColumn<String> lastSync = GeneratedColumn<String>(
+      'lastSync', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        uid,
+        documentId,
+        jobId,
+        documentName,
+        userId,
+        createDate,
+        status,
+        lastSync,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'document_onlines';
+  @override
+  VerificationContext validateIntegrity(Insertable<DbDocumentOnline> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uid')) {
+      context.handle(
+          _uidMeta, uid.isAcceptableOrUnknown(data['uid']!, _uidMeta));
+    }
+    if (data.containsKey('documentId')) {
+      context.handle(
+          _documentIdMeta,
+          documentId.isAcceptableOrUnknown(
+              data['documentId']!, _documentIdMeta));
+    }
+    if (data.containsKey('jobId')) {
+      context.handle(
+          _jobIdMeta, jobId.isAcceptableOrUnknown(data['jobId']!, _jobIdMeta));
+    }
+    if (data.containsKey('documentName')) {
+      context.handle(
+          _documentNameMeta,
+          documentName.isAcceptableOrUnknown(
+              data['documentName']!, _documentNameMeta));
+    }
+    if (data.containsKey('userId')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['userId']!, _userIdMeta));
+    }
+    if (data.containsKey('createDate')) {
+      context.handle(
+          _createDateMeta,
+          createDate.isAcceptableOrUnknown(
+              data['createDate']!, _createDateMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('lastSync')) {
+      context.handle(_lastSyncMeta,
+          lastSync.isAcceptableOrUnknown(data['lastSync']!, _lastSyncMeta));
+    }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uid};
+  @override
+  DbDocumentOnline map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DbDocumentOnline(
+      uid: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}uid'])!,
+      documentId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}documentId']),
+      jobId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}jobId']),
+      documentName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}documentName']),
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}userId']),
+      createDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}createDate']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}status'])!,
+      lastSync: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
+    );
+  }
+
+  @override
+  $DocumentOnlinesTable createAlias(String alias) {
+    return $DocumentOnlinesTable(attachedDatabase, alias);
+  }
+}
+
+class DbDocumentOnline extends DataClass
+    implements Insertable<DbDocumentOnline> {
+  final int uid;
+  final String? documentId;
+  final String? jobId;
+  final String? documentName;
+  final String? userId;
+  final String? createDate;
+  final int status;
+  final String? lastSync;
+  final String? updatedAt;
+  const DbDocumentOnline(
+      {required this.uid,
+      this.documentId,
+      this.jobId,
+      this.documentName,
+      this.userId,
+      this.createDate,
+      required this.status,
+      this.lastSync,
+      this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uid'] = Variable<int>(uid);
+    if (!nullToAbsent || documentId != null) {
+      map['documentId'] = Variable<String>(documentId);
+    }
+    if (!nullToAbsent || jobId != null) {
+      map['jobId'] = Variable<String>(jobId);
+    }
+    if (!nullToAbsent || documentName != null) {
+      map['documentName'] = Variable<String>(documentName);
+    }
+    if (!nullToAbsent || userId != null) {
+      map['userId'] = Variable<String>(userId);
+    }
+    if (!nullToAbsent || createDate != null) {
+      map['createDate'] = Variable<String>(createDate);
+    }
+    map['status'] = Variable<int>(status);
+    if (!nullToAbsent || lastSync != null) {
+      map['lastSync'] = Variable<String>(lastSync);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
+    }
+    return map;
+  }
+
+  DocumentOnlinesCompanion toCompanion(bool nullToAbsent) {
+    return DocumentOnlinesCompanion(
+      uid: Value(uid),
+      documentId: documentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(documentId),
+      jobId:
+          jobId == null && nullToAbsent ? const Value.absent() : Value(jobId),
+      documentName: documentName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(documentName),
+      userId:
+          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
+      createDate: createDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createDate),
+      status: Value(status),
+      lastSync: lastSync == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSync),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory DbDocumentOnline.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DbDocumentOnline(
+      uid: serializer.fromJson<int>(json['uid']),
+      documentId: serializer.fromJson<String?>(json['documentId']),
+      jobId: serializer.fromJson<String?>(json['jobId']),
+      documentName: serializer.fromJson<String?>(json['documentName']),
+      userId: serializer.fromJson<String?>(json['userId']),
+      createDate: serializer.fromJson<String?>(json['createDate']),
+      status: serializer.fromJson<int>(json['status']),
+      lastSync: serializer.fromJson<String?>(json['lastSync']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uid': serializer.toJson<int>(uid),
+      'documentId': serializer.toJson<String?>(documentId),
+      'jobId': serializer.toJson<String?>(jobId),
+      'documentName': serializer.toJson<String?>(documentName),
+      'userId': serializer.toJson<String?>(userId),
+      'createDate': serializer.toJson<String?>(createDate),
+      'status': serializer.toJson<int>(status),
+      'lastSync': serializer.toJson<String?>(lastSync),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
+    };
+  }
+
+  DbDocumentOnline copyWith(
+          {int? uid,
+          Value<String?> documentId = const Value.absent(),
+          Value<String?> jobId = const Value.absent(),
+          Value<String?> documentName = const Value.absent(),
+          Value<String?> userId = const Value.absent(),
+          Value<String?> createDate = const Value.absent(),
+          int? status,
+          Value<String?> lastSync = const Value.absent(),
+          Value<String?> updatedAt = const Value.absent()}) =>
+      DbDocumentOnline(
+        uid: uid ?? this.uid,
+        documentId: documentId.present ? documentId.value : this.documentId,
+        jobId: jobId.present ? jobId.value : this.jobId,
+        documentName:
+            documentName.present ? documentName.value : this.documentName,
+        userId: userId.present ? userId.value : this.userId,
+        createDate: createDate.present ? createDate.value : this.createDate,
+        status: status ?? this.status,
+        lastSync: lastSync.present ? lastSync.value : this.lastSync,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+      );
+  DbDocumentOnline copyWithCompanion(DocumentOnlinesCompanion data) {
+    return DbDocumentOnline(
+      uid: data.uid.present ? data.uid.value : this.uid,
+      documentId:
+          data.documentId.present ? data.documentId.value : this.documentId,
+      jobId: data.jobId.present ? data.jobId.value : this.jobId,
+      documentName: data.documentName.present
+          ? data.documentName.value
+          : this.documentName,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      createDate:
+          data.createDate.present ? data.createDate.value : this.createDate,
+      status: data.status.present ? data.status.value : this.status,
+      lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DbDocumentOnline(')
+          ..write('uid: $uid, ')
+          ..write('documentId: $documentId, ')
+          ..write('jobId: $jobId, ')
+          ..write('documentName: $documentName, ')
+          ..write('userId: $userId, ')
+          ..write('createDate: $createDate, ')
+          ..write('status: $status, ')
+          ..write('lastSync: $lastSync, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(uid, documentId, jobId, documentName, userId,
+      createDate, status, lastSync, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DbDocumentOnline &&
+          other.uid == this.uid &&
+          other.documentId == this.documentId &&
+          other.jobId == this.jobId &&
+          other.documentName == this.documentName &&
+          other.userId == this.userId &&
+          other.createDate == this.createDate &&
+          other.status == this.status &&
+          other.lastSync == this.lastSync &&
+          other.updatedAt == this.updatedAt);
+}
+
+class DocumentOnlinesCompanion extends UpdateCompanion<DbDocumentOnline> {
+  final Value<int> uid;
+  final Value<String?> documentId;
+  final Value<String?> jobId;
+  final Value<String?> documentName;
+  final Value<String?> userId;
+  final Value<String?> createDate;
+  final Value<int> status;
+  final Value<String?> lastSync;
+  final Value<String?> updatedAt;
+  const DocumentOnlinesCompanion({
+    this.uid = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.documentName = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.status = const Value.absent(),
+    this.lastSync = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  DocumentOnlinesCompanion.insert({
+    this.uid = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.documentName = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.status = const Value.absent(),
+    this.lastSync = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  static Insertable<DbDocumentOnline> custom({
+    Expression<int>? uid,
+    Expression<String>? documentId,
+    Expression<String>? jobId,
+    Expression<String>? documentName,
+    Expression<String>? userId,
+    Expression<String>? createDate,
+    Expression<int>? status,
+    Expression<String>? lastSync,
+    Expression<String>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (uid != null) 'uid': uid,
+      if (documentId != null) 'documentId': documentId,
+      if (jobId != null) 'jobId': jobId,
+      if (documentName != null) 'documentName': documentName,
+      if (userId != null) 'userId': userId,
+      if (createDate != null) 'createDate': createDate,
+      if (status != null) 'status': status,
+      if (lastSync != null) 'lastSync': lastSync,
+      if (updatedAt != null) 'updatedAt': updatedAt,
+    });
+  }
+
+  DocumentOnlinesCompanion copyWith(
+      {Value<int>? uid,
+      Value<String?>? documentId,
+      Value<String?>? jobId,
+      Value<String?>? documentName,
+      Value<String?>? userId,
+      Value<String?>? createDate,
+      Value<int>? status,
+      Value<String?>? lastSync,
+      Value<String?>? updatedAt}) {
+    return DocumentOnlinesCompanion(
+      uid: uid ?? this.uid,
+      documentId: documentId ?? this.documentId,
+      jobId: jobId ?? this.jobId,
+      documentName: documentName ?? this.documentName,
+      userId: userId ?? this.userId,
+      createDate: createDate ?? this.createDate,
+      status: status ?? this.status,
+      lastSync: lastSync ?? this.lastSync,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uid.present) {
+      map['uid'] = Variable<int>(uid.value);
+    }
+    if (documentId.present) {
+      map['documentId'] = Variable<String>(documentId.value);
+    }
+    if (jobId.present) {
+      map['jobId'] = Variable<String>(jobId.value);
+    }
+    if (documentName.present) {
+      map['documentName'] = Variable<String>(documentName.value);
+    }
+    if (userId.present) {
+      map['userId'] = Variable<String>(userId.value);
+    }
+    if (createDate.present) {
+      map['createDate'] = Variable<String>(createDate.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (lastSync.present) {
+      map['lastSync'] = Variable<String>(lastSync.value);
+    }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentOnlinesCompanion(')
+          ..write('uid: $uid, ')
+          ..write('documentId: $documentId, ')
+          ..write('jobId: $jobId, ')
+          ..write('documentName: $documentName, ')
+          ..write('userId: $userId, ')
+          ..write('createDate: $createDate, ')
+          ..write('status: $status, ')
+          ..write('lastSync: $lastSync, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $DocumentMachinesTable extends DocumentMachines
     with TableInfo<$DocumentMachinesTable, DbDocumentMachine> {
   @override
@@ -8456,6 +8928,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $JobsTable jobs = $JobsTable(this);
   late final $DocumentsTable documents = $DocumentsTable(this);
+  late final $DocumentOnlinesTable documentOnlines =
+      $DocumentOnlinesTable(this);
   late final $DocumentMachinesTable documentMachines =
       $DocumentMachinesTable(this);
   late final $DocumentRecordsTable documentRecords =
@@ -8470,6 +8944,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $CheckSheetMasterImagesTable(this);
   late final JobDao jobDao = JobDao(this as AppDatabase);
   late final DocumentDao documentDao = DocumentDao(this as AppDatabase);
+  late final DocumentOnlineDao documentOnlineDao =
+      DocumentOnlineDao(this as AppDatabase);
   late final DocumentMachineDao documentMachineDao =
       DocumentMachineDao(this as AppDatabase);
   late final DocumentRecordDao documentRecordDao =
@@ -8489,6 +8965,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
         jobs,
         documents,
+        documentOnlines,
         documentMachines,
         documentRecords,
         jobMachines,
@@ -8967,6 +9444,235 @@ typedef $$DocumentsTableProcessedTableManager = ProcessedTableManager<
     $$DocumentsTableUpdateCompanionBuilder,
     (DbDocument, BaseReferences<_$AppDatabase, $DocumentsTable, DbDocument>),
     DbDocument,
+    PrefetchHooks Function()>;
+typedef $$DocumentOnlinesTableCreateCompanionBuilder = DocumentOnlinesCompanion
+    Function({
+  Value<int> uid,
+  Value<String?> documentId,
+  Value<String?> jobId,
+  Value<String?> documentName,
+  Value<String?> userId,
+  Value<String?> createDate,
+  Value<int> status,
+  Value<String?> lastSync,
+  Value<String?> updatedAt,
+});
+typedef $$DocumentOnlinesTableUpdateCompanionBuilder = DocumentOnlinesCompanion
+    Function({
+  Value<int> uid,
+  Value<String?> documentId,
+  Value<String?> jobId,
+  Value<String?> documentName,
+  Value<String?> userId,
+  Value<String?> createDate,
+  Value<int> status,
+  Value<String?> lastSync,
+  Value<String?> updatedAt,
+});
+
+class $$DocumentOnlinesTableFilterComposer
+    extends Composer<_$AppDatabase, $DocumentOnlinesTable> {
+  $$DocumentOnlinesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get jobId => $composableBuilder(
+      column: $table.jobId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get documentName => $composableBuilder(
+      column: $table.documentName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lastSync => $composableBuilder(
+      column: $table.lastSync, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$DocumentOnlinesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DocumentOnlinesTable> {
+  $$DocumentOnlinesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get jobId => $composableBuilder(
+      column: $table.jobId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get documentName => $composableBuilder(
+      column: $table.documentName,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get lastSync => $composableBuilder(
+      column: $table.lastSync, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DocumentOnlinesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DocumentOnlinesTable> {
+  $$DocumentOnlinesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get uid =>
+      $composableBuilder(column: $table.uid, builder: (column) => column);
+
+  GeneratedColumn<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => column);
+
+  GeneratedColumn<String> get jobId =>
+      $composableBuilder(column: $table.jobId, builder: (column) => column);
+
+  GeneratedColumn<String> get documentName => $composableBuilder(
+      column: $table.documentName, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get lastSync =>
+      $composableBuilder(column: $table.lastSync, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$DocumentOnlinesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DocumentOnlinesTable,
+    DbDocumentOnline,
+    $$DocumentOnlinesTableFilterComposer,
+    $$DocumentOnlinesTableOrderingComposer,
+    $$DocumentOnlinesTableAnnotationComposer,
+    $$DocumentOnlinesTableCreateCompanionBuilder,
+    $$DocumentOnlinesTableUpdateCompanionBuilder,
+    (
+      DbDocumentOnline,
+      BaseReferences<_$AppDatabase, $DocumentOnlinesTable, DbDocumentOnline>
+    ),
+    DbDocumentOnline,
+    PrefetchHooks Function()> {
+  $$DocumentOnlinesTableTableManager(
+      _$AppDatabase db, $DocumentOnlinesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DocumentOnlinesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DocumentOnlinesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DocumentOnlinesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            Value<String?> documentId = const Value.absent(),
+            Value<String?> jobId = const Value.absent(),
+            Value<String?> documentName = const Value.absent(),
+            Value<String?> userId = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<String?> lastSync = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
+          }) =>
+              DocumentOnlinesCompanion(
+            uid: uid,
+            documentId: documentId,
+            jobId: jobId,
+            documentName: documentName,
+            userId: userId,
+            createDate: createDate,
+            status: status,
+            lastSync: lastSync,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            Value<String?> documentId = const Value.absent(),
+            Value<String?> jobId = const Value.absent(),
+            Value<String?> documentName = const Value.absent(),
+            Value<String?> userId = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<String?> lastSync = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
+          }) =>
+              DocumentOnlinesCompanion.insert(
+            uid: uid,
+            documentId: documentId,
+            jobId: jobId,
+            documentName: documentName,
+            userId: userId,
+            createDate: createDate,
+            status: status,
+            lastSync: lastSync,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DocumentOnlinesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DocumentOnlinesTable,
+    DbDocumentOnline,
+    $$DocumentOnlinesTableFilterComposer,
+    $$DocumentOnlinesTableOrderingComposer,
+    $$DocumentOnlinesTableAnnotationComposer,
+    $$DocumentOnlinesTableCreateCompanionBuilder,
+    $$DocumentOnlinesTableUpdateCompanionBuilder,
+    (
+      DbDocumentOnline,
+      BaseReferences<_$AppDatabase, $DocumentOnlinesTable, DbDocumentOnline>
+    ),
+    DbDocumentOnline,
     PrefetchHooks Function()>;
 typedef $$DocumentMachinesTableCreateCompanionBuilder
     = DocumentMachinesCompanion Function({
@@ -12178,6 +12884,8 @@ class $AppDatabaseManager {
   $$JobsTableTableManager get jobs => $$JobsTableTableManager(_db, _db.jobs);
   $$DocumentsTableTableManager get documents =>
       $$DocumentsTableTableManager(_db, _db.documents);
+  $$DocumentOnlinesTableTableManager get documentOnlines =>
+      $$DocumentOnlinesTableTableManager(_db, _db.documentOnlines);
   $$DocumentMachinesTableTableManager get documentMachines =>
       $$DocumentMachinesTableTableManager(_db, _db.documentMachines);
   $$DocumentRecordsTableTableManager get documentRecords =>

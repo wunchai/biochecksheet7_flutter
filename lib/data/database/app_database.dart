@@ -10,6 +10,7 @@ import 'package:biochecksheet7_flutter/data/database/connection/connection.dart'
 // Import all table definitions (should be present from previous steps)
 import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart';
+import 'package:biochecksheet7_flutter/data/database/tables/document_online_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_machine_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/job_machine_table.dart';
@@ -23,6 +24,7 @@ import 'package:biochecksheet7_flutter/data/database/tables/checksheet_master_im
 // Import DAO definitions
 import 'package:biochecksheet7_flutter/data/database/daos/job_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/document_online_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_machine_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/job_machine_dao.dart';
@@ -40,6 +42,7 @@ part 'app_database.g.dart';
   tables: [
     Jobs,
     Documents,
+    DocumentOnlines,
     DocumentMachines,
     DocumentRecords,
     JobMachines,
@@ -53,6 +56,7 @@ part 'app_database.g.dart';
   daos: [
     JobDao,
     DocumentDao,
+    DocumentOnlineDao,
     DocumentMachineDao,
     DocumentRecordDao,
     JobMachineDao,
@@ -74,13 +78,16 @@ class AppDatabase extends _$AppDatabase {
     return _instance!;
   }
 
+  // Define DAOs
+  DocumentOnlineDao get documentOnlineDao => DocumentOnlineDao(this);
+
   // NEW: Add getter for ImageDao
   ImageDao get imageDao => ImageDao(this); // <<< NEW: Add ImageDao getter
   ChecksheetMasterImageDao get checksheetMasterImageDao =>
       ChecksheetMasterImageDao(this);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   // Define the migration strategy.
   @override
@@ -134,6 +141,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 8) {
             await m.addColumn(
                 checkSheetMasterImages, checkSheetMasterImages.newImage);
+          }
+          if (from < 9) {
+            await m.createTable(documentOnlines);
+            await _createUpdatedAtTrigger(m, 'document_onlines', 'updatedAt');
           }
         },
       );
@@ -206,6 +217,7 @@ class AppDatabase extends _$AppDatabase {
   Future<void> _createAllUpdatedAtTriggers(Migrator m) async {
     await _createUpdatedAtTrigger(m, 'jobs', 'updatedAt');
     await _createUpdatedAtTrigger(m, 'documents', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'document_onlines', 'updatedAt');
     await _createUpdatedAtTrigger(m, 'document_machines', 'updatedAt');
     await _createUpdatedAtTrigger(m, 'document_records', 'updatedAt');
     await _createUpdatedAtTrigger(m, 'job_machines', 'updatedAt');

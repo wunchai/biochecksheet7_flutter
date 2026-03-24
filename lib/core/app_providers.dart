@@ -21,6 +21,8 @@ import 'package:biochecksheet7_flutter/presentation/screens/documentrecord/docum
 import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_viewmodel.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/problem/problem_viewmodel.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/am_checksheet_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_online_viewmodel.dart';
+import 'package:biochecksheet7_flutter/data/repositories/document_online_repository.dart';
 
 // CRUCIAL FIX: Conditional Import for ImageProcessor
 import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor.dart';
@@ -62,6 +64,8 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
     // --- <<< ส่ง Repository ของรูปภาพเข้าไปใน DataSyncService >>> ---
     checksheetImageRepository: checksheetImageRepository,
   );
+
+  final documentOnlineRepository = DocumentOnlineRepository(appDatabase: appDatabase);
 
   return [
     // Repositories (provided as value as they are singletons)
@@ -106,5 +110,7 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
             appDatabase: appDatabase)), // <<< NEW: Provide DataSummaryViewModel
     ChangeNotifierProvider(
         create: (_) => AMChecksheetViewModel(appDatabase: appDatabase)),
+    ChangeNotifierProvider(
+        create: (_) => DocumentOnlineViewModel(repository: documentOnlineRepository)),
   ];
 }

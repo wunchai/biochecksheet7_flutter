@@ -92,7 +92,7 @@ class DocumentRecordApiService {
       {String? documentCreateDate,
       String? documentUserId}) async {
     final uri = Uri.parse(
-        "$_baseUrl/CHECKSHEET_DOCUMENTRECORD_SYNC"); // Assumed API Endpoint
+        "$_baseUrl/CHECKSHEET_SYNC_DOCUMENTRECORD"); // Assumed API Endpoint
     print("Uploading records to API: $uri");
     final headers = {"Content-Type": "application/json"};
 
@@ -108,9 +108,12 @@ class DocumentRecordApiService {
         "tagId": record.tagId,
         "tagName": record.tagName,
         "tagType": record.tagType,
+        "TagGroupId": record.tagGroupId,
+        "TagGroupName": record.tagGroupName,
         "tagSelectionValue": record.tagSelectionValue,
         "queryStr": record.queryStr,
         "description": record.description,
+        "Note": record.note,
         "specification": record.specification,
         "specMin": record.specMin,
         "specMax": record.specMax,
@@ -119,7 +122,9 @@ class DocumentRecordApiService {
         "ValueType": record.valueType,
         "Status": record.status,
         "UnReadable": record.unReadable,
-        "Remark": record.remark
+        "Remark": record.remark,
+        "CreateBy": record.createBy,
+        "OrderId": record.orderId
       };
     }).toList();
 
@@ -131,7 +136,7 @@ class DocumentRecordApiService {
       //ord: "your_password"
     };
     final body = jsonEncode({
-      "ServiceName": "CHECKSHEET_DOCUMENTRECORD_SYNC",
+      "ServiceName": "CHECKSHEET_SYNC_DOCUMENTRECORD",
       "Paremeter": jsonEncode(parameterObject)
     });
     print("Request body for record upload: $body");
@@ -190,9 +195,12 @@ class DocumentRecordApiService {
         "tagId": record.tagId,
         "tagName": record.tagName,
         "tagType": record.tagType,
+        "TagGroupId": record.tagGroupId,
+        "TagGroupName": record.tagGroupName,
         "tagSelectionValue": record.tagSelectionValue,
         "queryStr": record.queryStr,
         "description": record.description,
+        "Note": record.note,
         "specification": record.specification,
         "specMin": record.specMin,
         "specMax": record.specMax,
@@ -201,7 +209,9 @@ class DocumentRecordApiService {
         "ValueType": record.valueType,
         "Status": record.status,
         "UnReadable": record.unReadable,
-        "Remark": record.remark
+        "Remark": record.remark,
+        "CreateBy": record.createBy,
+        "OrderId": record.orderId
       };
     }).toList();
 

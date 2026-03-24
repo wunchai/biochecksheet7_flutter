@@ -7,6 +7,7 @@ import 'package:biochecksheet7_flutter/presentation/screens/document/document_vi
 import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // สำหรับ DbJob
 //import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart'; // สำหรับ DbDocument
 import 'package:biochecksheet7_flutter/presentation/screens/documentmachine/document_machine_screen.dart'; // สำหรับนำทางไป DocumentMachineScreen
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_online_screen.dart'; // สำหรับหน้าออนไลน์
 
 /// หน้าจอนี้แสดงรายการเอกสาร จัดการโดย DocumentViewModel.
 /// เทียบเท่ากับ DocumentActivity.kt ในโปรเจกต์ Kotlin เดิม
@@ -250,6 +251,21 @@ class _DocumentScreenState extends State<DocumentScreen> {
             onPressed: () {
               Provider.of<DocumentViewModel>(context, listen: false)
                   .refreshDocuments(); // เรียก refresh ใน ViewModel
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.cloud_download),
+            tooltip: 'ออนไลน์ (Online)',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DocumentOnlineScreen(
+                    title: 'ออนไลน์: ${widget.title}',
+                    jobId: widget.jobId,
+                  ),
+                ),
+              );
             },
           ),
           // NEW: Filter Button
