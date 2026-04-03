@@ -200,12 +200,25 @@ class _DocumentOnlineScreenState extends State<DocumentOnlineScreen> {
         borderRadius: BorderRadius.circular(12.0),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            left: BorderSide(color: statusColor, width: 6.0),
+      child: InkWell(
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            '/document_machine_online',
+            arguments: {
+              'title': document.documentName ?? 'Machines',
+              'documentId': document.documentId ?? '',
+              'jobId': document.jobId ?? '',
+              'userId': widget.userId ?? '600201', // Should ideally use actual logged in user
+            },
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(color: statusColor, width: 6.0),
+            ),
           ),
-        ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
           child: Column(
@@ -252,6 +265,7 @@ class _DocumentOnlineScreenState extends State<DocumentOnlineScreen> {
           ),
         ),
       ),
+      ), // Closing InkWell
     );
   }
 

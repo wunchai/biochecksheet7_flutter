@@ -148,19 +148,28 @@ class DocumentRecordApiService {
       print("Record Upload API Response body: $decodedBody");
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
-        if (responseJson['Table1'] != null && responseJson['Table1'] is List) {
-          final List<dynamic> resultsList = responseJson['Table1'];
-          return resultsList
-              .map((item) => UploadRecordResult.fromJson(item))
-              .toList();
-        } else {
-          throw Exception(
-              "Record Upload API response format invalid (missing 'Table' key or not a list).");
+        final dynamic responseJson = jsonDecode(decodedBody);
+        
+        if (responseJson is Map<String, dynamic>) {
+          if (responseJson.containsKey('ExecResult') && responseJson['ExecResult'] != null) {
+            // New format: {"ExecResult": "[...]"} where the value is a stringified JSON array
+            final String execResultStr = responseJson['ExecResult'].toString();
+            final dynamic execResultList = jsonDecode(execResultStr);
+            
+            if (execResultList is List && execResultList.isNotEmpty) {
+               // Map success (3) to all records we attempted to upload.
+               return recordsToUpload.map((record) => UploadRecordResult(uid: record.uid, result: 3)).toList();
+            }
+          } else if (responseJson['Table1'] != null && responseJson['Table1'] is List) {
+            // Fallback just in case it returns the old format
+            final List<dynamic> resultsList = responseJson['Table1'];
+            return resultsList.map((item) => UploadRecordResult.fromJson(item)).toList();
+          }
         }
+        
+        throw Exception("Record Upload API response format invalid: $decodedBody");
       } else {
-        throw Exception(
-            "Record Upload API failed: Status code ${response.statusCode}");
+        throw Exception("Record Upload API failed: Status code ${response.statusCode}");
       }
     } on http.ClientException catch (e) {
       print("Network error uploading records: ${e.message}");
@@ -237,19 +246,28 @@ class DocumentRecordApiService {
       print("Document Record Upload API Response body: $decodedBody");
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
-        if (responseJson['Table1'] != null && responseJson['Table1'] is List) {
-          final List<dynamic> resultsList = responseJson['Table1'];
-          return resultsList
-              .map((item) => UploadRecordResult.fromJson(item))
-              .toList();
-        } else {
-          throw Exception(
-              "Document Record Upload API response format invalid (missing 'Table' key or not a list).");
+        final dynamic responseJson = jsonDecode(decodedBody);
+        
+        if (responseJson is Map<String, dynamic>) {
+          if (responseJson.containsKey('ExecResult') && responseJson['ExecResult'] != null) {
+            // New format: {"ExecResult": "[...]"} where the value is a stringified JSON array
+            final String execResultStr = responseJson['ExecResult'].toString();
+            final dynamic execResultList = jsonDecode(execResultStr);
+            
+            if (execResultList is List && execResultList.isNotEmpty) {
+               // Map success (3) to all records we attempted to upload.
+               return recordsToUpload.map((record) => UploadRecordResult(uid: record.uid, result: 3)).toList();
+            }
+          } else if (responseJson['Table1'] != null && responseJson['Table1'] is List) {
+            // Fallback just in case it returns the old format
+            final List<dynamic> resultsList = responseJson['Table1'];
+            return resultsList.map((item) => UploadRecordResult.fromJson(item)).toList();
+          }
         }
+        
+        throw Exception("Document Record Upload API response format invalid: $decodedBody");
       } else {
-        throw Exception(
-            "Document Record Upload API failed: Status code ${response.statusCode}");
+        throw Exception("Document Record Upload API failed: Status code ${response.statusCode}");
       }
     } on http.ClientException catch (e) {
       print("Network error uploading document records: ${e.message}");

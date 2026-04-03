@@ -11,6 +11,7 @@ class HomeAppBar extends StatefulWidget implements PreferredSizeWidget {
   final VoidCallback onImagePressed;
   final VoidCallback onUploadPressed;
   final VoidCallback onLogoutPressed;
+  final VoidCallback onCustomJobPressed;
 
   const HomeAppBar({
     super.key,
@@ -20,6 +21,7 @@ class HomeAppBar extends StatefulWidget implements PreferredSizeWidget {
     required this.onImagePressed,
     required this.onUploadPressed,
     required this.onLogoutPressed,
+    required this.onCustomJobPressed,
   });
 
   @override
@@ -99,6 +101,12 @@ class _HomeAppBarState extends State<HomeAppBar> {
         IconButton(
           icon: const Icon(Icons.refresh),
           onPressed: widget.onRefreshPressed,
+        ),
+        // Custom Job Button
+        IconButton(
+          icon: const Icon(Icons.add_task),
+          tooltip: 'Custom Job',
+          onPressed: widget.onCustomJobPressed,
         ),
         // Sync Master Images Button
         IconButton(

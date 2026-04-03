@@ -26,6 +26,10 @@ class DataSummary {
       pendingProblemImageUploadCount; // Images tied to Problems (problemId is not null), status 2 or 3, syncStatus 0
   final String? lastSyncPendingProblemImageUpload;
 
+  // NEW: Custom Jobs Summary
+  final int pendingDraftJobsCount; // Status 0
+  final int submittedDraftJobsCount; // Status 1
+
   DataSummary({
     this.lastSyncUser,
     this.lastSyncJob,
@@ -40,6 +44,8 @@ class DataSummary {
     this.lastSyncPendingDocumentImageUpload, // NEW
     this.pendingProblemImageUploadCount = 0, // NEW
     this.lastSyncPendingProblemImageUpload, // NEW
+    this.pendingDraftJobsCount = 0, // NEW Custom Jobs
+    this.submittedDraftJobsCount = 0, // NEW Custom Jobs
   });
 
   // Helper method to format DateTime for display

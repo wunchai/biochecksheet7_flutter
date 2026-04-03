@@ -123,6 +123,9 @@ class _HomeScreenState extends State<HomeScreen> {
           onLogoutPressed: () {
             Provider.of<HomeViewModel>(context, listen: false).logout(context);
           },
+          onCustomJobPressed: () {
+            Navigator.pushNamed(context, '/draft_job_list');
+          },
         ),
         body: SafeArea(
           child: Consumer<HomeViewModel>(
@@ -214,7 +217,8 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
-        ));
+        ),
+      );
   }
 
   Widget _buildJobCard(BuildContext context, DbJob job) {

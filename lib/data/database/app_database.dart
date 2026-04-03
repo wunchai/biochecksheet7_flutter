@@ -11,6 +11,7 @@ import 'package:biochecksheet7_flutter/data/database/connection/connection.dart'
 import 'package:biochecksheet7_flutter/data/database/tables/job_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_online_table.dart';
+import 'package:biochecksheet7_flutter/data/database/tables/document_record_online_table.dart'; // <<< NEW
 import 'package:biochecksheet7_flutter/data/database/tables/document_machine_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/job_machine_table.dart';
@@ -20,11 +21,15 @@ import 'package:biochecksheet7_flutter/data/database/tables/sync_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/user_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/image_table.dart'; // <<< NEW: Import Image table
 import 'package:biochecksheet7_flutter/data/database/tables/checksheet_master_image_table.dart';
+import 'package:biochecksheet7_flutter/data/database/tables/draft_job_table.dart';
+import 'package:biochecksheet7_flutter/data/database/tables/draft_machine_table.dart';
+import 'package:biochecksheet7_flutter/data/database/tables/draft_tag_table.dart';
 
 // Import DAO definitions
 import 'package:biochecksheet7_flutter/data/database/daos/job_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_online_dao.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/document_record_online_dao.dart'; // <<< NEW
 import 'package:biochecksheet7_flutter/data/database/daos/document_machine_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/job_machine_dao.dart';
@@ -34,6 +39,7 @@ import 'package:biochecksheet7_flutter/data/database/daos/sync_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/user_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart'; // <<< NEW: Import ImageDao
 import 'package:biochecksheet7_flutter/data/database/daos/checksheet_master_image_dao.dart'; // <<< NEW: Import ImageDao
+import 'package:biochecksheet7_flutter/data/database/daos/draft_job_dao.dart';
 
 // This line tells drift to generate a file named app_database.g.dart
 part 'app_database.g.dart';
@@ -43,6 +49,7 @@ part 'app_database.g.dart';
     Jobs,
     Documents,
     DocumentOnlines,
+    DocumentRecordOnlines, // <<< NEW
     DocumentMachines,
     DocumentRecords,
     JobMachines,
@@ -52,11 +59,15 @@ part 'app_database.g.dart';
     Users,
     Images, // <<< NEW: Add Images table
     CheckSheetMasterImages,
+    DraftJobs,
+    DraftMachines,
+    DraftTags,
   ],
   daos: [
     JobDao,
     DocumentDao,
     DocumentOnlineDao,
+    DocumentRecordOnlineDao, // <<< NEW
     DocumentMachineDao,
     DocumentRecordDao,
     JobMachineDao,
@@ -66,6 +77,7 @@ part 'app_database.g.dart';
     UserDao,
     ImageDao,
     ChecksheetMasterImageDao, // <<< NEW: Add ImageDao
+    DraftJobDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -80,14 +92,16 @@ class AppDatabase extends _$AppDatabase {
 
   // Define DAOs
   DocumentOnlineDao get documentOnlineDao => DocumentOnlineDao(this);
+  DocumentRecordOnlineDao get documentRecordOnlineDao => DocumentRecordOnlineDao(this); // <<< NEW
 
   // NEW: Add getter for ImageDao
   ImageDao get imageDao => ImageDao(this); // <<< NEW: Add ImageDao getter
   ChecksheetMasterImageDao get checksheetMasterImageDao =>
       ChecksheetMasterImageDao(this);
+  DraftJobDao get draftJobDao => DraftJobDao(this);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 13;
 
   // Define the migration strategy.
   @override
@@ -145,6 +159,26 @@ class AppDatabase extends _$AppDatabase {
           if (from < 9) {
             await m.createTable(documentOnlines);
             await _createUpdatedAtTrigger(m, 'document_onlines', 'updatedAt');
+          }
+          if (from < 10) {
+            await m.createTable(documentRecordOnlines);
+            await _createUpdatedAtTrigger(m, 'document_record_onlines', 'updatedAt');
+          }
+          if (from < 11) {
+            await m.createTable(draftJobs);
+            await _createUpdatedAtTrigger(m, 'draft_jobs', 'updatedAt');
+            await m.createTable(draftMachines);
+            await m.createTable(draftTags);
+          }
+          if (from < 12) {
+            // Added documentId and machineName, made jobName and location non-nullable
+            await m.addColumn(draftJobs, draftJobs.machineName);
+            await m.addColumn(draftJobs, draftJobs.documentId);
+            await m.alterTable(TableMigration(draftJobs)); 
+          }
+          if (from < 13) {
+            // Added description to draftTags
+            await m.addColumn(draftTags, draftTags.description);
           }
         },
       );
@@ -218,6 +252,7 @@ class AppDatabase extends _$AppDatabase {
     await _createUpdatedAtTrigger(m, 'jobs', 'updatedAt');
     await _createUpdatedAtTrigger(m, 'documents', 'updatedAt');
     await _createUpdatedAtTrigger(m, 'document_onlines', 'updatedAt');
+    await _createUpdatedAtTrigger(m, 'document_record_onlines', 'updatedAt'); // <<< NEW
     await _createUpdatedAtTrigger(m, 'document_machines', 'updatedAt');
     await _createUpdatedAtTrigger(m, 'document_records', 'updatedAt');
     await _createUpdatedAtTrigger(m, 'job_machines', 'updatedAt');

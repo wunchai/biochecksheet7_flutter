@@ -11,6 +11,7 @@ import 'package:biochecksheet7_flutter/data/database/daos/job_tag_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/problem_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/draft_job_dao.dart';
 
 // Import table models for checking status
 //import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart'; // For DbDocumentRecord
@@ -24,6 +25,7 @@ class DataSummaryViewModel extends ChangeNotifier {
   final ProblemDao _problemDao;
   final DocumentRecordDao _documentRecordDao;
   final ImageDao _imageDao;
+  final DraftJobDao _draftJobDao;
 
   DataSummary _summary = DataSummary(); // Initial empty summary
   DataSummary get summary => _summary;
@@ -45,7 +47,8 @@ class DataSummaryViewModel extends ChangeNotifier {
         _jobTagDao = appDatabase.jobTagDao,
         _problemDao = appDatabase.problemDao,
         _documentRecordDao = appDatabase.documentRecordDao,
-        _imageDao = appDatabase.imageDao;
+        _imageDao = appDatabase.imageDao,
+        _draftJobDao = appDatabase.draftJobDao;
 
   /// Fetches all summary data from local database.
   Future<void> fetchSummaryData() async {
@@ -124,6 +127,10 @@ class DataSummaryViewModel extends ChangeNotifier {
         // or parent status is not 2/3), it's not counted in pending uploads.
       }
 
+      // 4. Fetch Custom Jobs summary
+      final pendingDraftJobs = await _draftJobDao.countDraftJobsByStatus(0);
+      final submittedDraftJobs = await _draftJobDao.countDraftJobsByStatus(1);
+
       _summary = DataSummary(
         lastSyncUser: lastSyncUser,
         lastSyncJob: lastSyncJob,
@@ -132,12 +139,12 @@ class DataSummaryViewModel extends ChangeNotifier {
         lastSyncProblem: lastSyncProblem,
         pendingDocumentRecordsCount: pendingDocRecordsCount,
         lastSyncPendingDocumentRecords: lastSyncPendingDocRecords,
-        pendingDocumentImageUploadCount: pendingDocumentImageUploadCount, // NEW
-        lastSyncPendingDocumentImageUpload:
-            lastSyncPendingDocumentImageUpload, // NEW
-        pendingProblemImageUploadCount: pendingProblemImageUploadCount, // NEW
-        lastSyncPendingProblemImageUpload:
-            lastSyncPendingProblemImageUpload, // NEW
+        pendingDocumentImageUploadCount: pendingDocumentImageUploadCount,
+        lastSyncPendingDocumentImageUpload: lastSyncPendingDocumentImageUpload,
+        pendingProblemImageUploadCount: pendingProblemImageUploadCount,
+        lastSyncPendingProblemImageUpload: lastSyncPendingProblemImageUpload,
+        pendingDraftJobsCount: pendingDraftJobs,
+        submittedDraftJobsCount: submittedDraftJobs,
       );
     } catch (e) {
       _errorMessage = 'ข้อผิดพลาดในการโหลดข้อมูลสรุป: $e';

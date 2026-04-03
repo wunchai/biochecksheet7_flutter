@@ -15,6 +15,12 @@ import 'package:biochecksheet7_flutter/presentation/screens/problem/problem_scre
 import 'package:biochecksheet7_flutter/presentation/screens/deviceinfo/device_info_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_screen.dart'; // <<< NEW: Import Screen
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/am_checksheet_screen.dart'; // <<< เพิ่ม Import
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_machine_online_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_record_online_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/am_checksheet_online_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/draft_job/draft_job_list_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/draft_job/draft_machine_list_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/draft_job/draft_tag_list_screen.dart';
 
 // Define all application routes
 Map<String, WidgetBuilder> appRoutes() {
@@ -73,5 +79,46 @@ Map<String, WidgetBuilder> appRoutes() {
         title: 'สรุปข้อมูล'), // <<< CHANGED: Notifications to DataSummary
     '/data_summary': (context) => const DataSummaryScreen(
         title: 'สรุปข้อมูล'), // <<< NEW: Add explicit route
+    '/document_machine_online': (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      return DocumentMachineOnlineScreen(
+        title: args?['title'] ?? 'Machines (Online)',
+        documentId: args?['documentId'] ?? '',
+        jobId: args?['jobId'] ?? '',
+        userId: args?['userId'] ?? '',
+      );
+    },
+    '/document_record_online': (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      return DocumentRecordOnlineScreen(
+        title: args?['title'] ?? 'Record (Online)',
+        documentId: args?['documentId'] ?? '',
+        machineId: args?['machineId'] ?? '',
+      );
+    },
+    '/am_checksheet_online': (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      return AMChecksheetOnlineScreen(
+        title: args?['title'] ?? 'AM Checksheet (Online)',
+        documentId: args?['documentId'] ?? '',
+        machineId: args?['machineId'] ?? '',
+      );
+    },
+    '/draft_job_list': (context) => const DraftJobListScreen(),
+    '/draft_machine_list': (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      return DraftMachineListScreen(
+        jobId: args?['jobId'] ?? 0,
+        jobName: args?['jobName'] ?? 'Untitled',
+      );
+    },
+    '/draft_tag_list': (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      return DraftTagListScreen(
+        jobId: args?['jobId'] ?? 0,
+        machineId: args?['machineId'] ?? 0,
+        machineName: args?['machineName'] ?? 'Unnamed',
+      );
+    },
   };
 }

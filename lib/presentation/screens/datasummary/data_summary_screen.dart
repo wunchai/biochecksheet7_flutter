@@ -153,6 +153,8 @@ class _DataSummaryScreenState extends State<DataSummaryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildPendingActionCard(totalPending, context),
+                  const SizedBox(height: 12),
+                  _buildCustomJobsSummary(summary, context),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -302,6 +304,68 @@ class _DataSummaryScreenState extends State<DataSummaryScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCustomJobsSummary(DataSummary summary, BuildContext context) {
+    if (summary.pendingDraftJobsCount == 0 && summary.submittedDraftJobsCount == 0) {
+      return const SizedBox.shrink(); // ซ่อนถ้าไม่มีเลย หรืออาจจะโชว์ว่า "ไม่มี Custom Job" แทนก็ได้
+    }
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.blue.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.edit_document, color: Colors.blue.shade800),
+                const SizedBox(width: 8),
+                Text(
+                  'Custom Jobs / งานที่สร้างเอง',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade900,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildCountItem(summary.pendingDraftJobsCount.toString(), 'รออัปโหลด (Draft)', Colors.orange),
+                Container(width: 1, height: 40, color: Colors.blue.shade200),
+                _buildCountItem(summary.submittedDraftJobsCount.toString(), 'อัปโหลดแล้ว', Colors.green),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCountItem(String count, String label, Color color) {
+    return Column(
+      children: [
+        Text(
+          count,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+        )
+      ],
     );
   }
 

@@ -1495,6 +1495,1151 @@ class DocumentOnlinesCompanion extends UpdateCompanion<DbDocumentOnline> {
   }
 }
 
+class $DocumentRecordOnlinesTable extends DocumentRecordOnlines
+    with TableInfo<$DocumentRecordOnlinesTable, DbDocumentRecordOnline> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentRecordOnlinesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uidMeta = const VerificationMeta('uid');
+  @override
+  late final GeneratedColumn<int> uid = GeneratedColumn<int>(
+      'uid', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _documentIdMeta =
+      const VerificationMeta('documentId');
+  @override
+  late final GeneratedColumn<String> documentId = GeneratedColumn<String>(
+      'documentId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _documentCreateDateMeta =
+      const VerificationMeta('documentCreateDate');
+  @override
+  late final GeneratedColumn<String> documentCreateDate =
+      GeneratedColumn<String>('documentCreateDate', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _documentCreateUserMeta =
+      const VerificationMeta('documentCreateUser');
+  @override
+  late final GeneratedColumn<String> documentCreateUser =
+      GeneratedColumn<String>('documentCreateUser', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _machineIdMeta =
+      const VerificationMeta('machineId');
+  @override
+  late final GeneratedColumn<String> machineId = GeneratedColumn<String>(
+      'machineId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _jobIdMeta = const VerificationMeta('jobId');
+  @override
+  late final GeneratedColumn<String> jobId = GeneratedColumn<String>(
+      'jobId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
+  @override
+  late final GeneratedColumn<String> tagId = GeneratedColumn<String>(
+      'tagId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagNameMeta =
+      const VerificationMeta('tagName');
+  @override
+  late final GeneratedColumn<String> tagName = GeneratedColumn<String>(
+      'tagName', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagGroupIdMeta =
+      const VerificationMeta('tagGroupId');
+  @override
+  late final GeneratedColumn<String> tagGroupId = GeneratedColumn<String>(
+      'tagGroupId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagGroupNameMeta =
+      const VerificationMeta('tagGroupName');
+  @override
+  late final GeneratedColumn<String> tagGroupName = GeneratedColumn<String>(
+      'tagGroupName', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagTypeMeta =
+      const VerificationMeta('tagType');
+  @override
+  late final GeneratedColumn<String> tagType = GeneratedColumn<String>(
+      'tagType', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagSelectionValueMeta =
+      const VerificationMeta('tagSelectionValue');
+  @override
+  late final GeneratedColumn<String> tagSelectionValue =
+      GeneratedColumn<String>('tagSelectionValue', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _specificationMeta =
+      const VerificationMeta('specification');
+  @override
+  late final GeneratedColumn<String> specification = GeneratedColumn<String>(
+      'specification', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _specMinMeta =
+      const VerificationMeta('specMin');
+  @override
+  late final GeneratedColumn<String> specMin = GeneratedColumn<String>(
+      'specMin', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _specMaxMeta =
+      const VerificationMeta('specMax');
+  @override
+  late final GeneratedColumn<String> specMax = GeneratedColumn<String>(
+      'specMax', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+      'unit', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _valueTypeMeta =
+      const VerificationMeta('valueType');
+  @override
+  late final GeneratedColumn<String> valueType = GeneratedColumn<String>(
+      'valueType', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+      'value', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+      'status', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _unReadableMeta =
+      const VerificationMeta('unReadable');
+  @override
+  late final GeneratedColumn<String> unReadable = GeneratedColumn<String>(
+      'unReadable', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('false'));
+  static const VerificationMeta _remarkMeta = const VerificationMeta('remark');
+  @override
+  late final GeneratedColumn<String> remark = GeneratedColumn<String>(
+      'remark', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _syncDateMeta =
+      const VerificationMeta('syncDate');
+  @override
+  late final GeneratedColumn<String> syncDate = GeneratedColumn<String>(
+      'syncDate', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _uiTypeMeta = const VerificationMeta('uiType');
+  @override
+  late final GeneratedColumn<int> uiType = GeneratedColumn<int>(
+      'uiType', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        uid,
+        documentId,
+        documentCreateDate,
+        documentCreateUser,
+        machineId,
+        jobId,
+        tagId,
+        tagName,
+        tagGroupId,
+        tagGroupName,
+        tagType,
+        tagSelectionValue,
+        description,
+        specification,
+        specMin,
+        specMax,
+        unit,
+        valueType,
+        value,
+        status,
+        unReadable,
+        remark,
+        syncDate,
+        uiType,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'document_record_onlines';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<DbDocumentRecordOnline> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uid')) {
+      context.handle(
+          _uidMeta, uid.isAcceptableOrUnknown(data['uid']!, _uidMeta));
+    }
+    if (data.containsKey('documentId')) {
+      context.handle(
+          _documentIdMeta,
+          documentId.isAcceptableOrUnknown(
+              data['documentId']!, _documentIdMeta));
+    }
+    if (data.containsKey('documentCreateDate')) {
+      context.handle(
+          _documentCreateDateMeta,
+          documentCreateDate.isAcceptableOrUnknown(
+              data['documentCreateDate']!, _documentCreateDateMeta));
+    }
+    if (data.containsKey('documentCreateUser')) {
+      context.handle(
+          _documentCreateUserMeta,
+          documentCreateUser.isAcceptableOrUnknown(
+              data['documentCreateUser']!, _documentCreateUserMeta));
+    }
+    if (data.containsKey('machineId')) {
+      context.handle(_machineIdMeta,
+          machineId.isAcceptableOrUnknown(data['machineId']!, _machineIdMeta));
+    }
+    if (data.containsKey('jobId')) {
+      context.handle(
+          _jobIdMeta, jobId.isAcceptableOrUnknown(data['jobId']!, _jobIdMeta));
+    }
+    if (data.containsKey('tagId')) {
+      context.handle(
+          _tagIdMeta, tagId.isAcceptableOrUnknown(data['tagId']!, _tagIdMeta));
+    }
+    if (data.containsKey('tagName')) {
+      context.handle(_tagNameMeta,
+          tagName.isAcceptableOrUnknown(data['tagName']!, _tagNameMeta));
+    }
+    if (data.containsKey('tagGroupId')) {
+      context.handle(
+          _tagGroupIdMeta,
+          tagGroupId.isAcceptableOrUnknown(
+              data['tagGroupId']!, _tagGroupIdMeta));
+    }
+    if (data.containsKey('tagGroupName')) {
+      context.handle(
+          _tagGroupNameMeta,
+          tagGroupName.isAcceptableOrUnknown(
+              data['tagGroupName']!, _tagGroupNameMeta));
+    }
+    if (data.containsKey('tagType')) {
+      context.handle(_tagTypeMeta,
+          tagType.isAcceptableOrUnknown(data['tagType']!, _tagTypeMeta));
+    }
+    if (data.containsKey('tagSelectionValue')) {
+      context.handle(
+          _tagSelectionValueMeta,
+          tagSelectionValue.isAcceptableOrUnknown(
+              data['tagSelectionValue']!, _tagSelectionValueMeta));
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('specification')) {
+      context.handle(
+          _specificationMeta,
+          specification.isAcceptableOrUnknown(
+              data['specification']!, _specificationMeta));
+    }
+    if (data.containsKey('specMin')) {
+      context.handle(_specMinMeta,
+          specMin.isAcceptableOrUnknown(data['specMin']!, _specMinMeta));
+    }
+    if (data.containsKey('specMax')) {
+      context.handle(_specMaxMeta,
+          specMax.isAcceptableOrUnknown(data['specMax']!, _specMaxMeta));
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+          _unitMeta, unit.isAcceptableOrUnknown(data['unit']!, _unitMeta));
+    }
+    if (data.containsKey('valueType')) {
+      context.handle(_valueTypeMeta,
+          valueType.isAcceptableOrUnknown(data['valueType']!, _valueTypeMeta));
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+          _valueMeta, value.isAcceptableOrUnknown(data['value']!, _valueMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('unReadable')) {
+      context.handle(
+          _unReadableMeta,
+          unReadable.isAcceptableOrUnknown(
+              data['unReadable']!, _unReadableMeta));
+    }
+    if (data.containsKey('remark')) {
+      context.handle(_remarkMeta,
+          remark.isAcceptableOrUnknown(data['remark']!, _remarkMeta));
+    }
+    if (data.containsKey('syncDate')) {
+      context.handle(_syncDateMeta,
+          syncDate.isAcceptableOrUnknown(data['syncDate']!, _syncDateMeta));
+    }
+    if (data.containsKey('uiType')) {
+      context.handle(_uiTypeMeta,
+          uiType.isAcceptableOrUnknown(data['uiType']!, _uiTypeMeta));
+    }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uid};
+  @override
+  DbDocumentRecordOnline map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DbDocumentRecordOnline(
+      uid: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}uid'])!,
+      documentId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}documentId']),
+      documentCreateDate: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}documentCreateDate']),
+      documentCreateUser: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}documentCreateUser']),
+      machineId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}machineId']),
+      jobId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}jobId']),
+      tagId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagId']),
+      tagName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagName']),
+      tagGroupId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagGroupId']),
+      tagGroupName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagGroupName']),
+      tagType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagType']),
+      tagSelectionValue: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}tagSelectionValue']),
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      specification: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}specification']),
+      specMin: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}specMin']),
+      specMax: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}specMax']),
+      unit: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}unit']),
+      valueType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}valueType']),
+      value: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}value']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}status'])!,
+      unReadable: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}unReadable'])!,
+      remark: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}remark']),
+      syncDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}syncDate']),
+      uiType: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}uiType']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
+    );
+  }
+
+  @override
+  $DocumentRecordOnlinesTable createAlias(String alias) {
+    return $DocumentRecordOnlinesTable(attachedDatabase, alias);
+  }
+}
+
+class DbDocumentRecordOnline extends DataClass
+    implements Insertable<DbDocumentRecordOnline> {
+  final int uid;
+  final String? documentId;
+  final String? documentCreateDate;
+  final String? documentCreateUser;
+  final String? machineId;
+  final String? jobId;
+  final String? tagId;
+  final String? tagName;
+  final String? tagGroupId;
+  final String? tagGroupName;
+  final String? tagType;
+  final String? tagSelectionValue;
+  final String? description;
+  final String? specification;
+  final String? specMin;
+  final String? specMax;
+  final String? unit;
+  final String? valueType;
+  final String? value;
+  final int status;
+  final String unReadable;
+  final String? remark;
+  final String? syncDate;
+  final int? uiType;
+  final String? updatedAt;
+  const DbDocumentRecordOnline(
+      {required this.uid,
+      this.documentId,
+      this.documentCreateDate,
+      this.documentCreateUser,
+      this.machineId,
+      this.jobId,
+      this.tagId,
+      this.tagName,
+      this.tagGroupId,
+      this.tagGroupName,
+      this.tagType,
+      this.tagSelectionValue,
+      this.description,
+      this.specification,
+      this.specMin,
+      this.specMax,
+      this.unit,
+      this.valueType,
+      this.value,
+      required this.status,
+      required this.unReadable,
+      this.remark,
+      this.syncDate,
+      this.uiType,
+      this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uid'] = Variable<int>(uid);
+    if (!nullToAbsent || documentId != null) {
+      map['documentId'] = Variable<String>(documentId);
+    }
+    if (!nullToAbsent || documentCreateDate != null) {
+      map['documentCreateDate'] = Variable<String>(documentCreateDate);
+    }
+    if (!nullToAbsent || documentCreateUser != null) {
+      map['documentCreateUser'] = Variable<String>(documentCreateUser);
+    }
+    if (!nullToAbsent || machineId != null) {
+      map['machineId'] = Variable<String>(machineId);
+    }
+    if (!nullToAbsent || jobId != null) {
+      map['jobId'] = Variable<String>(jobId);
+    }
+    if (!nullToAbsent || tagId != null) {
+      map['tagId'] = Variable<String>(tagId);
+    }
+    if (!nullToAbsent || tagName != null) {
+      map['tagName'] = Variable<String>(tagName);
+    }
+    if (!nullToAbsent || tagGroupId != null) {
+      map['tagGroupId'] = Variable<String>(tagGroupId);
+    }
+    if (!nullToAbsent || tagGroupName != null) {
+      map['tagGroupName'] = Variable<String>(tagGroupName);
+    }
+    if (!nullToAbsent || tagType != null) {
+      map['tagType'] = Variable<String>(tagType);
+    }
+    if (!nullToAbsent || tagSelectionValue != null) {
+      map['tagSelectionValue'] = Variable<String>(tagSelectionValue);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || specification != null) {
+      map['specification'] = Variable<String>(specification);
+    }
+    if (!nullToAbsent || specMin != null) {
+      map['specMin'] = Variable<String>(specMin);
+    }
+    if (!nullToAbsent || specMax != null) {
+      map['specMax'] = Variable<String>(specMax);
+    }
+    if (!nullToAbsent || unit != null) {
+      map['unit'] = Variable<String>(unit);
+    }
+    if (!nullToAbsent || valueType != null) {
+      map['valueType'] = Variable<String>(valueType);
+    }
+    if (!nullToAbsent || value != null) {
+      map['value'] = Variable<String>(value);
+    }
+    map['status'] = Variable<int>(status);
+    map['unReadable'] = Variable<String>(unReadable);
+    if (!nullToAbsent || remark != null) {
+      map['remark'] = Variable<String>(remark);
+    }
+    if (!nullToAbsent || syncDate != null) {
+      map['syncDate'] = Variable<String>(syncDate);
+    }
+    if (!nullToAbsent || uiType != null) {
+      map['uiType'] = Variable<int>(uiType);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
+    }
+    return map;
+  }
+
+  DocumentRecordOnlinesCompanion toCompanion(bool nullToAbsent) {
+    return DocumentRecordOnlinesCompanion(
+      uid: Value(uid),
+      documentId: documentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(documentId),
+      documentCreateDate: documentCreateDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(documentCreateDate),
+      documentCreateUser: documentCreateUser == null && nullToAbsent
+          ? const Value.absent()
+          : Value(documentCreateUser),
+      machineId: machineId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(machineId),
+      jobId:
+          jobId == null && nullToAbsent ? const Value.absent() : Value(jobId),
+      tagId:
+          tagId == null && nullToAbsent ? const Value.absent() : Value(tagId),
+      tagName: tagName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagName),
+      tagGroupId: tagGroupId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagGroupId),
+      tagGroupName: tagGroupName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagGroupName),
+      tagType: tagType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagType),
+      tagSelectionValue: tagSelectionValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagSelectionValue),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      specification: specification == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specification),
+      specMin: specMin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specMin),
+      specMax: specMax == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specMax),
+      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      valueType: valueType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(valueType),
+      value:
+          value == null && nullToAbsent ? const Value.absent() : Value(value),
+      status: Value(status),
+      unReadable: Value(unReadable),
+      remark:
+          remark == null && nullToAbsent ? const Value.absent() : Value(remark),
+      syncDate: syncDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncDate),
+      uiType:
+          uiType == null && nullToAbsent ? const Value.absent() : Value(uiType),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory DbDocumentRecordOnline.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DbDocumentRecordOnline(
+      uid: serializer.fromJson<int>(json['uid']),
+      documentId: serializer.fromJson<String?>(json['documentId']),
+      documentCreateDate:
+          serializer.fromJson<String?>(json['documentCreateDate']),
+      documentCreateUser:
+          serializer.fromJson<String?>(json['documentCreateUser']),
+      machineId: serializer.fromJson<String?>(json['machineId']),
+      jobId: serializer.fromJson<String?>(json['jobId']),
+      tagId: serializer.fromJson<String?>(json['tagId']),
+      tagName: serializer.fromJson<String?>(json['tagName']),
+      tagGroupId: serializer.fromJson<String?>(json['tagGroupId']),
+      tagGroupName: serializer.fromJson<String?>(json['tagGroupName']),
+      tagType: serializer.fromJson<String?>(json['tagType']),
+      tagSelectionValue:
+          serializer.fromJson<String?>(json['tagSelectionValue']),
+      description: serializer.fromJson<String?>(json['description']),
+      specification: serializer.fromJson<String?>(json['specification']),
+      specMin: serializer.fromJson<String?>(json['specMin']),
+      specMax: serializer.fromJson<String?>(json['specMax']),
+      unit: serializer.fromJson<String?>(json['unit']),
+      valueType: serializer.fromJson<String?>(json['valueType']),
+      value: serializer.fromJson<String?>(json['value']),
+      status: serializer.fromJson<int>(json['status']),
+      unReadable: serializer.fromJson<String>(json['unReadable']),
+      remark: serializer.fromJson<String?>(json['remark']),
+      syncDate: serializer.fromJson<String?>(json['syncDate']),
+      uiType: serializer.fromJson<int?>(json['uiType']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uid': serializer.toJson<int>(uid),
+      'documentId': serializer.toJson<String?>(documentId),
+      'documentCreateDate': serializer.toJson<String?>(documentCreateDate),
+      'documentCreateUser': serializer.toJson<String?>(documentCreateUser),
+      'machineId': serializer.toJson<String?>(machineId),
+      'jobId': serializer.toJson<String?>(jobId),
+      'tagId': serializer.toJson<String?>(tagId),
+      'tagName': serializer.toJson<String?>(tagName),
+      'tagGroupId': serializer.toJson<String?>(tagGroupId),
+      'tagGroupName': serializer.toJson<String?>(tagGroupName),
+      'tagType': serializer.toJson<String?>(tagType),
+      'tagSelectionValue': serializer.toJson<String?>(tagSelectionValue),
+      'description': serializer.toJson<String?>(description),
+      'specification': serializer.toJson<String?>(specification),
+      'specMin': serializer.toJson<String?>(specMin),
+      'specMax': serializer.toJson<String?>(specMax),
+      'unit': serializer.toJson<String?>(unit),
+      'valueType': serializer.toJson<String?>(valueType),
+      'value': serializer.toJson<String?>(value),
+      'status': serializer.toJson<int>(status),
+      'unReadable': serializer.toJson<String>(unReadable),
+      'remark': serializer.toJson<String?>(remark),
+      'syncDate': serializer.toJson<String?>(syncDate),
+      'uiType': serializer.toJson<int?>(uiType),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
+    };
+  }
+
+  DbDocumentRecordOnline copyWith(
+          {int? uid,
+          Value<String?> documentId = const Value.absent(),
+          Value<String?> documentCreateDate = const Value.absent(),
+          Value<String?> documentCreateUser = const Value.absent(),
+          Value<String?> machineId = const Value.absent(),
+          Value<String?> jobId = const Value.absent(),
+          Value<String?> tagId = const Value.absent(),
+          Value<String?> tagName = const Value.absent(),
+          Value<String?> tagGroupId = const Value.absent(),
+          Value<String?> tagGroupName = const Value.absent(),
+          Value<String?> tagType = const Value.absent(),
+          Value<String?> tagSelectionValue = const Value.absent(),
+          Value<String?> description = const Value.absent(),
+          Value<String?> specification = const Value.absent(),
+          Value<String?> specMin = const Value.absent(),
+          Value<String?> specMax = const Value.absent(),
+          Value<String?> unit = const Value.absent(),
+          Value<String?> valueType = const Value.absent(),
+          Value<String?> value = const Value.absent(),
+          int? status,
+          String? unReadable,
+          Value<String?> remark = const Value.absent(),
+          Value<String?> syncDate = const Value.absent(),
+          Value<int?> uiType = const Value.absent(),
+          Value<String?> updatedAt = const Value.absent()}) =>
+      DbDocumentRecordOnline(
+        uid: uid ?? this.uid,
+        documentId: documentId.present ? documentId.value : this.documentId,
+        documentCreateDate: documentCreateDate.present
+            ? documentCreateDate.value
+            : this.documentCreateDate,
+        documentCreateUser: documentCreateUser.present
+            ? documentCreateUser.value
+            : this.documentCreateUser,
+        machineId: machineId.present ? machineId.value : this.machineId,
+        jobId: jobId.present ? jobId.value : this.jobId,
+        tagId: tagId.present ? tagId.value : this.tagId,
+        tagName: tagName.present ? tagName.value : this.tagName,
+        tagGroupId: tagGroupId.present ? tagGroupId.value : this.tagGroupId,
+        tagGroupName:
+            tagGroupName.present ? tagGroupName.value : this.tagGroupName,
+        tagType: tagType.present ? tagType.value : this.tagType,
+        tagSelectionValue: tagSelectionValue.present
+            ? tagSelectionValue.value
+            : this.tagSelectionValue,
+        description: description.present ? description.value : this.description,
+        specification:
+            specification.present ? specification.value : this.specification,
+        specMin: specMin.present ? specMin.value : this.specMin,
+        specMax: specMax.present ? specMax.value : this.specMax,
+        unit: unit.present ? unit.value : this.unit,
+        valueType: valueType.present ? valueType.value : this.valueType,
+        value: value.present ? value.value : this.value,
+        status: status ?? this.status,
+        unReadable: unReadable ?? this.unReadable,
+        remark: remark.present ? remark.value : this.remark,
+        syncDate: syncDate.present ? syncDate.value : this.syncDate,
+        uiType: uiType.present ? uiType.value : this.uiType,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+      );
+  DbDocumentRecordOnline copyWithCompanion(
+      DocumentRecordOnlinesCompanion data) {
+    return DbDocumentRecordOnline(
+      uid: data.uid.present ? data.uid.value : this.uid,
+      documentId:
+          data.documentId.present ? data.documentId.value : this.documentId,
+      documentCreateDate: data.documentCreateDate.present
+          ? data.documentCreateDate.value
+          : this.documentCreateDate,
+      documentCreateUser: data.documentCreateUser.present
+          ? data.documentCreateUser.value
+          : this.documentCreateUser,
+      machineId: data.machineId.present ? data.machineId.value : this.machineId,
+      jobId: data.jobId.present ? data.jobId.value : this.jobId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+      tagName: data.tagName.present ? data.tagName.value : this.tagName,
+      tagGroupId:
+          data.tagGroupId.present ? data.tagGroupId.value : this.tagGroupId,
+      tagGroupName: data.tagGroupName.present
+          ? data.tagGroupName.value
+          : this.tagGroupName,
+      tagType: data.tagType.present ? data.tagType.value : this.tagType,
+      tagSelectionValue: data.tagSelectionValue.present
+          ? data.tagSelectionValue.value
+          : this.tagSelectionValue,
+      description:
+          data.description.present ? data.description.value : this.description,
+      specification: data.specification.present
+          ? data.specification.value
+          : this.specification,
+      specMin: data.specMin.present ? data.specMin.value : this.specMin,
+      specMax: data.specMax.present ? data.specMax.value : this.specMax,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      valueType: data.valueType.present ? data.valueType.value : this.valueType,
+      value: data.value.present ? data.value.value : this.value,
+      status: data.status.present ? data.status.value : this.status,
+      unReadable:
+          data.unReadable.present ? data.unReadable.value : this.unReadable,
+      remark: data.remark.present ? data.remark.value : this.remark,
+      syncDate: data.syncDate.present ? data.syncDate.value : this.syncDate,
+      uiType: data.uiType.present ? data.uiType.value : this.uiType,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DbDocumentRecordOnline(')
+          ..write('uid: $uid, ')
+          ..write('documentId: $documentId, ')
+          ..write('documentCreateDate: $documentCreateDate, ')
+          ..write('documentCreateUser: $documentCreateUser, ')
+          ..write('machineId: $machineId, ')
+          ..write('jobId: $jobId, ')
+          ..write('tagId: $tagId, ')
+          ..write('tagName: $tagName, ')
+          ..write('tagGroupId: $tagGroupId, ')
+          ..write('tagGroupName: $tagGroupName, ')
+          ..write('tagType: $tagType, ')
+          ..write('tagSelectionValue: $tagSelectionValue, ')
+          ..write('description: $description, ')
+          ..write('specification: $specification, ')
+          ..write('specMin: $specMin, ')
+          ..write('specMax: $specMax, ')
+          ..write('unit: $unit, ')
+          ..write('valueType: $valueType, ')
+          ..write('value: $value, ')
+          ..write('status: $status, ')
+          ..write('unReadable: $unReadable, ')
+          ..write('remark: $remark, ')
+          ..write('syncDate: $syncDate, ')
+          ..write('uiType: $uiType, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+        uid,
+        documentId,
+        documentCreateDate,
+        documentCreateUser,
+        machineId,
+        jobId,
+        tagId,
+        tagName,
+        tagGroupId,
+        tagGroupName,
+        tagType,
+        tagSelectionValue,
+        description,
+        specification,
+        specMin,
+        specMax,
+        unit,
+        valueType,
+        value,
+        status,
+        unReadable,
+        remark,
+        syncDate,
+        uiType,
+        updatedAt
+      ]);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DbDocumentRecordOnline &&
+          other.uid == this.uid &&
+          other.documentId == this.documentId &&
+          other.documentCreateDate == this.documentCreateDate &&
+          other.documentCreateUser == this.documentCreateUser &&
+          other.machineId == this.machineId &&
+          other.jobId == this.jobId &&
+          other.tagId == this.tagId &&
+          other.tagName == this.tagName &&
+          other.tagGroupId == this.tagGroupId &&
+          other.tagGroupName == this.tagGroupName &&
+          other.tagType == this.tagType &&
+          other.tagSelectionValue == this.tagSelectionValue &&
+          other.description == this.description &&
+          other.specification == this.specification &&
+          other.specMin == this.specMin &&
+          other.specMax == this.specMax &&
+          other.unit == this.unit &&
+          other.valueType == this.valueType &&
+          other.value == this.value &&
+          other.status == this.status &&
+          other.unReadable == this.unReadable &&
+          other.remark == this.remark &&
+          other.syncDate == this.syncDate &&
+          other.uiType == this.uiType &&
+          other.updatedAt == this.updatedAt);
+}
+
+class DocumentRecordOnlinesCompanion
+    extends UpdateCompanion<DbDocumentRecordOnline> {
+  final Value<int> uid;
+  final Value<String?> documentId;
+  final Value<String?> documentCreateDate;
+  final Value<String?> documentCreateUser;
+  final Value<String?> machineId;
+  final Value<String?> jobId;
+  final Value<String?> tagId;
+  final Value<String?> tagName;
+  final Value<String?> tagGroupId;
+  final Value<String?> tagGroupName;
+  final Value<String?> tagType;
+  final Value<String?> tagSelectionValue;
+  final Value<String?> description;
+  final Value<String?> specification;
+  final Value<String?> specMin;
+  final Value<String?> specMax;
+  final Value<String?> unit;
+  final Value<String?> valueType;
+  final Value<String?> value;
+  final Value<int> status;
+  final Value<String> unReadable;
+  final Value<String?> remark;
+  final Value<String?> syncDate;
+  final Value<int?> uiType;
+  final Value<String?> updatedAt;
+  const DocumentRecordOnlinesCompanion({
+    this.uid = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.documentCreateDate = const Value.absent(),
+    this.documentCreateUser = const Value.absent(),
+    this.machineId = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.tagName = const Value.absent(),
+    this.tagGroupId = const Value.absent(),
+    this.tagGroupName = const Value.absent(),
+    this.tagType = const Value.absent(),
+    this.tagSelectionValue = const Value.absent(),
+    this.description = const Value.absent(),
+    this.specification = const Value.absent(),
+    this.specMin = const Value.absent(),
+    this.specMax = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.valueType = const Value.absent(),
+    this.value = const Value.absent(),
+    this.status = const Value.absent(),
+    this.unReadable = const Value.absent(),
+    this.remark = const Value.absent(),
+    this.syncDate = const Value.absent(),
+    this.uiType = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  DocumentRecordOnlinesCompanion.insert({
+    this.uid = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.documentCreateDate = const Value.absent(),
+    this.documentCreateUser = const Value.absent(),
+    this.machineId = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.tagName = const Value.absent(),
+    this.tagGroupId = const Value.absent(),
+    this.tagGroupName = const Value.absent(),
+    this.tagType = const Value.absent(),
+    this.tagSelectionValue = const Value.absent(),
+    this.description = const Value.absent(),
+    this.specification = const Value.absent(),
+    this.specMin = const Value.absent(),
+    this.specMax = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.valueType = const Value.absent(),
+    this.value = const Value.absent(),
+    this.status = const Value.absent(),
+    this.unReadable = const Value.absent(),
+    this.remark = const Value.absent(),
+    this.syncDate = const Value.absent(),
+    this.uiType = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  static Insertable<DbDocumentRecordOnline> custom({
+    Expression<int>? uid,
+    Expression<String>? documentId,
+    Expression<String>? documentCreateDate,
+    Expression<String>? documentCreateUser,
+    Expression<String>? machineId,
+    Expression<String>? jobId,
+    Expression<String>? tagId,
+    Expression<String>? tagName,
+    Expression<String>? tagGroupId,
+    Expression<String>? tagGroupName,
+    Expression<String>? tagType,
+    Expression<String>? tagSelectionValue,
+    Expression<String>? description,
+    Expression<String>? specification,
+    Expression<String>? specMin,
+    Expression<String>? specMax,
+    Expression<String>? unit,
+    Expression<String>? valueType,
+    Expression<String>? value,
+    Expression<int>? status,
+    Expression<String>? unReadable,
+    Expression<String>? remark,
+    Expression<String>? syncDate,
+    Expression<int>? uiType,
+    Expression<String>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (uid != null) 'uid': uid,
+      if (documentId != null) 'documentId': documentId,
+      if (documentCreateDate != null) 'documentCreateDate': documentCreateDate,
+      if (documentCreateUser != null) 'documentCreateUser': documentCreateUser,
+      if (machineId != null) 'machineId': machineId,
+      if (jobId != null) 'jobId': jobId,
+      if (tagId != null) 'tagId': tagId,
+      if (tagName != null) 'tagName': tagName,
+      if (tagGroupId != null) 'tagGroupId': tagGroupId,
+      if (tagGroupName != null) 'tagGroupName': tagGroupName,
+      if (tagType != null) 'tagType': tagType,
+      if (tagSelectionValue != null) 'tagSelectionValue': tagSelectionValue,
+      if (description != null) 'description': description,
+      if (specification != null) 'specification': specification,
+      if (specMin != null) 'specMin': specMin,
+      if (specMax != null) 'specMax': specMax,
+      if (unit != null) 'unit': unit,
+      if (valueType != null) 'valueType': valueType,
+      if (value != null) 'value': value,
+      if (status != null) 'status': status,
+      if (unReadable != null) 'unReadable': unReadable,
+      if (remark != null) 'remark': remark,
+      if (syncDate != null) 'syncDate': syncDate,
+      if (uiType != null) 'uiType': uiType,
+      if (updatedAt != null) 'updatedAt': updatedAt,
+    });
+  }
+
+  DocumentRecordOnlinesCompanion copyWith(
+      {Value<int>? uid,
+      Value<String?>? documentId,
+      Value<String?>? documentCreateDate,
+      Value<String?>? documentCreateUser,
+      Value<String?>? machineId,
+      Value<String?>? jobId,
+      Value<String?>? tagId,
+      Value<String?>? tagName,
+      Value<String?>? tagGroupId,
+      Value<String?>? tagGroupName,
+      Value<String?>? tagType,
+      Value<String?>? tagSelectionValue,
+      Value<String?>? description,
+      Value<String?>? specification,
+      Value<String?>? specMin,
+      Value<String?>? specMax,
+      Value<String?>? unit,
+      Value<String?>? valueType,
+      Value<String?>? value,
+      Value<int>? status,
+      Value<String>? unReadable,
+      Value<String?>? remark,
+      Value<String?>? syncDate,
+      Value<int?>? uiType,
+      Value<String?>? updatedAt}) {
+    return DocumentRecordOnlinesCompanion(
+      uid: uid ?? this.uid,
+      documentId: documentId ?? this.documentId,
+      documentCreateDate: documentCreateDate ?? this.documentCreateDate,
+      documentCreateUser: documentCreateUser ?? this.documentCreateUser,
+      machineId: machineId ?? this.machineId,
+      jobId: jobId ?? this.jobId,
+      tagId: tagId ?? this.tagId,
+      tagName: tagName ?? this.tagName,
+      tagGroupId: tagGroupId ?? this.tagGroupId,
+      tagGroupName: tagGroupName ?? this.tagGroupName,
+      tagType: tagType ?? this.tagType,
+      tagSelectionValue: tagSelectionValue ?? this.tagSelectionValue,
+      description: description ?? this.description,
+      specification: specification ?? this.specification,
+      specMin: specMin ?? this.specMin,
+      specMax: specMax ?? this.specMax,
+      unit: unit ?? this.unit,
+      valueType: valueType ?? this.valueType,
+      value: value ?? this.value,
+      status: status ?? this.status,
+      unReadable: unReadable ?? this.unReadable,
+      remark: remark ?? this.remark,
+      syncDate: syncDate ?? this.syncDate,
+      uiType: uiType ?? this.uiType,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uid.present) {
+      map['uid'] = Variable<int>(uid.value);
+    }
+    if (documentId.present) {
+      map['documentId'] = Variable<String>(documentId.value);
+    }
+    if (documentCreateDate.present) {
+      map['documentCreateDate'] = Variable<String>(documentCreateDate.value);
+    }
+    if (documentCreateUser.present) {
+      map['documentCreateUser'] = Variable<String>(documentCreateUser.value);
+    }
+    if (machineId.present) {
+      map['machineId'] = Variable<String>(machineId.value);
+    }
+    if (jobId.present) {
+      map['jobId'] = Variable<String>(jobId.value);
+    }
+    if (tagId.present) {
+      map['tagId'] = Variable<String>(tagId.value);
+    }
+    if (tagName.present) {
+      map['tagName'] = Variable<String>(tagName.value);
+    }
+    if (tagGroupId.present) {
+      map['tagGroupId'] = Variable<String>(tagGroupId.value);
+    }
+    if (tagGroupName.present) {
+      map['tagGroupName'] = Variable<String>(tagGroupName.value);
+    }
+    if (tagType.present) {
+      map['tagType'] = Variable<String>(tagType.value);
+    }
+    if (tagSelectionValue.present) {
+      map['tagSelectionValue'] = Variable<String>(tagSelectionValue.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (specification.present) {
+      map['specification'] = Variable<String>(specification.value);
+    }
+    if (specMin.present) {
+      map['specMin'] = Variable<String>(specMin.value);
+    }
+    if (specMax.present) {
+      map['specMax'] = Variable<String>(specMax.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (valueType.present) {
+      map['valueType'] = Variable<String>(valueType.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (unReadable.present) {
+      map['unReadable'] = Variable<String>(unReadable.value);
+    }
+    if (remark.present) {
+      map['remark'] = Variable<String>(remark.value);
+    }
+    if (syncDate.present) {
+      map['syncDate'] = Variable<String>(syncDate.value);
+    }
+    if (uiType.present) {
+      map['uiType'] = Variable<int>(uiType.value);
+    }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentRecordOnlinesCompanion(')
+          ..write('uid: $uid, ')
+          ..write('documentId: $documentId, ')
+          ..write('documentCreateDate: $documentCreateDate, ')
+          ..write('documentCreateUser: $documentCreateUser, ')
+          ..write('machineId: $machineId, ')
+          ..write('jobId: $jobId, ')
+          ..write('tagId: $tagId, ')
+          ..write('tagName: $tagName, ')
+          ..write('tagGroupId: $tagGroupId, ')
+          ..write('tagGroupName: $tagGroupName, ')
+          ..write('tagType: $tagType, ')
+          ..write('tagSelectionValue: $tagSelectionValue, ')
+          ..write('description: $description, ')
+          ..write('specification: $specification, ')
+          ..write('specMin: $specMin, ')
+          ..write('specMax: $specMax, ')
+          ..write('unit: $unit, ')
+          ..write('valueType: $valueType, ')
+          ..write('value: $value, ')
+          ..write('status: $status, ')
+          ..write('unReadable: $unReadable, ')
+          ..write('remark: $remark, ')
+          ..write('syncDate: $syncDate, ')
+          ..write('uiType: $uiType, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $DocumentMachinesTable extends DocumentMachines
     with TableInfo<$DocumentMachinesTable, DbDocumentMachine> {
   @override
@@ -8923,6 +10068,1364 @@ class CheckSheetMasterImagesCompanion
   }
 }
 
+class $DraftJobsTable extends DraftJobs
+    with TableInfo<$DraftJobsTable, DbDraftJob> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DraftJobsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uidMeta = const VerificationMeta('uid');
+  @override
+  late final GeneratedColumn<int> uid = GeneratedColumn<int>(
+      'uid', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _jobNameMeta =
+      const VerificationMeta('jobName');
+  @override
+  late final GeneratedColumn<String> jobName = GeneratedColumn<String>(
+      'jobName', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _locationMeta =
+      const VerificationMeta('location');
+  @override
+  late final GeneratedColumn<String> location = GeneratedColumn<String>(
+      'location', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _machineNameMeta =
+      const VerificationMeta('machineName');
+  @override
+  late final GeneratedColumn<String> machineName = GeneratedColumn<String>(
+      'machineName', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _documentIdMeta =
+      const VerificationMeta('documentId');
+  @override
+  late final GeneratedColumn<String> documentId = GeneratedColumn<String>(
+      'documentId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+      'status', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _createDateMeta =
+      const VerificationMeta('createDate');
+  @override
+  late final GeneratedColumn<String> createDate = GeneratedColumn<String>(
+      'createDate', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+      'updatedAt', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        uid,
+        jobName,
+        location,
+        machineName,
+        documentId,
+        status,
+        createDate,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'draft_jobs';
+  @override
+  VerificationContext validateIntegrity(Insertable<DbDraftJob> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uid')) {
+      context.handle(
+          _uidMeta, uid.isAcceptableOrUnknown(data['uid']!, _uidMeta));
+    }
+    if (data.containsKey('jobName')) {
+      context.handle(_jobNameMeta,
+          jobName.isAcceptableOrUnknown(data['jobName']!, _jobNameMeta));
+    } else if (isInserting) {
+      context.missing(_jobNameMeta);
+    }
+    if (data.containsKey('location')) {
+      context.handle(_locationMeta,
+          location.isAcceptableOrUnknown(data['location']!, _locationMeta));
+    } else if (isInserting) {
+      context.missing(_locationMeta);
+    }
+    if (data.containsKey('machineName')) {
+      context.handle(
+          _machineNameMeta,
+          machineName.isAcceptableOrUnknown(
+              data['machineName']!, _machineNameMeta));
+    }
+    if (data.containsKey('documentId')) {
+      context.handle(
+          _documentIdMeta,
+          documentId.isAcceptableOrUnknown(
+              data['documentId']!, _documentIdMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('createDate')) {
+      context.handle(
+          _createDateMeta,
+          createDate.isAcceptableOrUnknown(
+              data['createDate']!, _createDateMeta));
+    }
+    if (data.containsKey('updatedAt')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uid};
+  @override
+  DbDraftJob map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DbDraftJob(
+      uid: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}uid'])!,
+      jobName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}jobName'])!,
+      location: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}location'])!,
+      machineName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}machineName']),
+      documentId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}documentId']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}status'])!,
+      createDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}createDate']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
+    );
+  }
+
+  @override
+  $DraftJobsTable createAlias(String alias) {
+    return $DraftJobsTable(attachedDatabase, alias);
+  }
+}
+
+class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
+  final int uid;
+  final String jobName;
+  final String location;
+  final String? machineName;
+  final String? documentId;
+  final int status;
+  final String? createDate;
+  final String? updatedAt;
+  const DbDraftJob(
+      {required this.uid,
+      required this.jobName,
+      required this.location,
+      this.machineName,
+      this.documentId,
+      required this.status,
+      this.createDate,
+      this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uid'] = Variable<int>(uid);
+    map['jobName'] = Variable<String>(jobName);
+    map['location'] = Variable<String>(location);
+    if (!nullToAbsent || machineName != null) {
+      map['machineName'] = Variable<String>(machineName);
+    }
+    if (!nullToAbsent || documentId != null) {
+      map['documentId'] = Variable<String>(documentId);
+    }
+    map['status'] = Variable<int>(status);
+    if (!nullToAbsent || createDate != null) {
+      map['createDate'] = Variable<String>(createDate);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updatedAt'] = Variable<String>(updatedAt);
+    }
+    return map;
+  }
+
+  DraftJobsCompanion toCompanion(bool nullToAbsent) {
+    return DraftJobsCompanion(
+      uid: Value(uid),
+      jobName: Value(jobName),
+      location: Value(location),
+      machineName: machineName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(machineName),
+      documentId: documentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(documentId),
+      status: Value(status),
+      createDate: createDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createDate),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory DbDraftJob.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DbDraftJob(
+      uid: serializer.fromJson<int>(json['uid']),
+      jobName: serializer.fromJson<String>(json['jobName']),
+      location: serializer.fromJson<String>(json['location']),
+      machineName: serializer.fromJson<String?>(json['machineName']),
+      documentId: serializer.fromJson<String?>(json['documentId']),
+      status: serializer.fromJson<int>(json['status']),
+      createDate: serializer.fromJson<String?>(json['createDate']),
+      updatedAt: serializer.fromJson<String?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uid': serializer.toJson<int>(uid),
+      'jobName': serializer.toJson<String>(jobName),
+      'location': serializer.toJson<String>(location),
+      'machineName': serializer.toJson<String?>(machineName),
+      'documentId': serializer.toJson<String?>(documentId),
+      'status': serializer.toJson<int>(status),
+      'createDate': serializer.toJson<String?>(createDate),
+      'updatedAt': serializer.toJson<String?>(updatedAt),
+    };
+  }
+
+  DbDraftJob copyWith(
+          {int? uid,
+          String? jobName,
+          String? location,
+          Value<String?> machineName = const Value.absent(),
+          Value<String?> documentId = const Value.absent(),
+          int? status,
+          Value<String?> createDate = const Value.absent(),
+          Value<String?> updatedAt = const Value.absent()}) =>
+      DbDraftJob(
+        uid: uid ?? this.uid,
+        jobName: jobName ?? this.jobName,
+        location: location ?? this.location,
+        machineName: machineName.present ? machineName.value : this.machineName,
+        documentId: documentId.present ? documentId.value : this.documentId,
+        status: status ?? this.status,
+        createDate: createDate.present ? createDate.value : this.createDate,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+      );
+  DbDraftJob copyWithCompanion(DraftJobsCompanion data) {
+    return DbDraftJob(
+      uid: data.uid.present ? data.uid.value : this.uid,
+      jobName: data.jobName.present ? data.jobName.value : this.jobName,
+      location: data.location.present ? data.location.value : this.location,
+      machineName:
+          data.machineName.present ? data.machineName.value : this.machineName,
+      documentId:
+          data.documentId.present ? data.documentId.value : this.documentId,
+      status: data.status.present ? data.status.value : this.status,
+      createDate:
+          data.createDate.present ? data.createDate.value : this.createDate,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DbDraftJob(')
+          ..write('uid: $uid, ')
+          ..write('jobName: $jobName, ')
+          ..write('location: $location, ')
+          ..write('machineName: $machineName, ')
+          ..write('documentId: $documentId, ')
+          ..write('status: $status, ')
+          ..write('createDate: $createDate, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(uid, jobName, location, machineName,
+      documentId, status, createDate, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DbDraftJob &&
+          other.uid == this.uid &&
+          other.jobName == this.jobName &&
+          other.location == this.location &&
+          other.machineName == this.machineName &&
+          other.documentId == this.documentId &&
+          other.status == this.status &&
+          other.createDate == this.createDate &&
+          other.updatedAt == this.updatedAt);
+}
+
+class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
+  final Value<int> uid;
+  final Value<String> jobName;
+  final Value<String> location;
+  final Value<String?> machineName;
+  final Value<String?> documentId;
+  final Value<int> status;
+  final Value<String?> createDate;
+  final Value<String?> updatedAt;
+  const DraftJobsCompanion({
+    this.uid = const Value.absent(),
+    this.jobName = const Value.absent(),
+    this.location = const Value.absent(),
+    this.machineName = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  DraftJobsCompanion.insert({
+    this.uid = const Value.absent(),
+    required String jobName,
+    required String location,
+    this.machineName = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  })  : jobName = Value(jobName),
+        location = Value(location);
+  static Insertable<DbDraftJob> custom({
+    Expression<int>? uid,
+    Expression<String>? jobName,
+    Expression<String>? location,
+    Expression<String>? machineName,
+    Expression<String>? documentId,
+    Expression<int>? status,
+    Expression<String>? createDate,
+    Expression<String>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (uid != null) 'uid': uid,
+      if (jobName != null) 'jobName': jobName,
+      if (location != null) 'location': location,
+      if (machineName != null) 'machineName': machineName,
+      if (documentId != null) 'documentId': documentId,
+      if (status != null) 'status': status,
+      if (createDate != null) 'createDate': createDate,
+      if (updatedAt != null) 'updatedAt': updatedAt,
+    });
+  }
+
+  DraftJobsCompanion copyWith(
+      {Value<int>? uid,
+      Value<String>? jobName,
+      Value<String>? location,
+      Value<String?>? machineName,
+      Value<String?>? documentId,
+      Value<int>? status,
+      Value<String?>? createDate,
+      Value<String?>? updatedAt}) {
+    return DraftJobsCompanion(
+      uid: uid ?? this.uid,
+      jobName: jobName ?? this.jobName,
+      location: location ?? this.location,
+      machineName: machineName ?? this.machineName,
+      documentId: documentId ?? this.documentId,
+      status: status ?? this.status,
+      createDate: createDate ?? this.createDate,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uid.present) {
+      map['uid'] = Variable<int>(uid.value);
+    }
+    if (jobName.present) {
+      map['jobName'] = Variable<String>(jobName.value);
+    }
+    if (location.present) {
+      map['location'] = Variable<String>(location.value);
+    }
+    if (machineName.present) {
+      map['machineName'] = Variable<String>(machineName.value);
+    }
+    if (documentId.present) {
+      map['documentId'] = Variable<String>(documentId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (createDate.present) {
+      map['createDate'] = Variable<String>(createDate.value);
+    }
+    if (updatedAt.present) {
+      map['updatedAt'] = Variable<String>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DraftJobsCompanion(')
+          ..write('uid: $uid, ')
+          ..write('jobName: $jobName, ')
+          ..write('location: $location, ')
+          ..write('machineName: $machineName, ')
+          ..write('documentId: $documentId, ')
+          ..write('status: $status, ')
+          ..write('createDate: $createDate, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DraftMachinesTable extends DraftMachines
+    with TableInfo<$DraftMachinesTable, DbDraftMachine> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DraftMachinesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uidMeta = const VerificationMeta('uid');
+  @override
+  late final GeneratedColumn<int> uid = GeneratedColumn<int>(
+      'uid', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _draftJobIdMeta =
+      const VerificationMeta('draftJobId');
+  @override
+  late final GeneratedColumn<int> draftJobId = GeneratedColumn<int>(
+      'draftJobId', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _machineIdMeta =
+      const VerificationMeta('machineId');
+  @override
+  late final GeneratedColumn<String> machineId = GeneratedColumn<String>(
+      'machineId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _machineNameMeta =
+      const VerificationMeta('machineName');
+  @override
+  late final GeneratedColumn<String> machineName = GeneratedColumn<String>(
+      'machineName', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _machineTypeMeta =
+      const VerificationMeta('machineType');
+  @override
+  late final GeneratedColumn<String> machineType = GeneratedColumn<String>(
+      'machineType', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [uid, draftJobId, machineId, machineName, machineType];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'draft_machines';
+  @override
+  VerificationContext validateIntegrity(Insertable<DbDraftMachine> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uid')) {
+      context.handle(
+          _uidMeta, uid.isAcceptableOrUnknown(data['uid']!, _uidMeta));
+    }
+    if (data.containsKey('draftJobId')) {
+      context.handle(
+          _draftJobIdMeta,
+          draftJobId.isAcceptableOrUnknown(
+              data['draftJobId']!, _draftJobIdMeta));
+    } else if (isInserting) {
+      context.missing(_draftJobIdMeta);
+    }
+    if (data.containsKey('machineId')) {
+      context.handle(_machineIdMeta,
+          machineId.isAcceptableOrUnknown(data['machineId']!, _machineIdMeta));
+    }
+    if (data.containsKey('machineName')) {
+      context.handle(
+          _machineNameMeta,
+          machineName.isAcceptableOrUnknown(
+              data['machineName']!, _machineNameMeta));
+    }
+    if (data.containsKey('machineType')) {
+      context.handle(
+          _machineTypeMeta,
+          machineType.isAcceptableOrUnknown(
+              data['machineType']!, _machineTypeMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uid};
+  @override
+  DbDraftMachine map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DbDraftMachine(
+      uid: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}uid'])!,
+      draftJobId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}draftJobId'])!,
+      machineId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}machineId']),
+      machineName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}machineName']),
+      machineType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}machineType']),
+    );
+  }
+
+  @override
+  $DraftMachinesTable createAlias(String alias) {
+    return $DraftMachinesTable(attachedDatabase, alias);
+  }
+}
+
+class DbDraftMachine extends DataClass implements Insertable<DbDraftMachine> {
+  final int uid;
+  final int draftJobId;
+  final String? machineId;
+  final String? machineName;
+  final String? machineType;
+  const DbDraftMachine(
+      {required this.uid,
+      required this.draftJobId,
+      this.machineId,
+      this.machineName,
+      this.machineType});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uid'] = Variable<int>(uid);
+    map['draftJobId'] = Variable<int>(draftJobId);
+    if (!nullToAbsent || machineId != null) {
+      map['machineId'] = Variable<String>(machineId);
+    }
+    if (!nullToAbsent || machineName != null) {
+      map['machineName'] = Variable<String>(machineName);
+    }
+    if (!nullToAbsent || machineType != null) {
+      map['machineType'] = Variable<String>(machineType);
+    }
+    return map;
+  }
+
+  DraftMachinesCompanion toCompanion(bool nullToAbsent) {
+    return DraftMachinesCompanion(
+      uid: Value(uid),
+      draftJobId: Value(draftJobId),
+      machineId: machineId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(machineId),
+      machineName: machineName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(machineName),
+      machineType: machineType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(machineType),
+    );
+  }
+
+  factory DbDraftMachine.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DbDraftMachine(
+      uid: serializer.fromJson<int>(json['uid']),
+      draftJobId: serializer.fromJson<int>(json['draftJobId']),
+      machineId: serializer.fromJson<String?>(json['machineId']),
+      machineName: serializer.fromJson<String?>(json['machineName']),
+      machineType: serializer.fromJson<String?>(json['machineType']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uid': serializer.toJson<int>(uid),
+      'draftJobId': serializer.toJson<int>(draftJobId),
+      'machineId': serializer.toJson<String?>(machineId),
+      'machineName': serializer.toJson<String?>(machineName),
+      'machineType': serializer.toJson<String?>(machineType),
+    };
+  }
+
+  DbDraftMachine copyWith(
+          {int? uid,
+          int? draftJobId,
+          Value<String?> machineId = const Value.absent(),
+          Value<String?> machineName = const Value.absent(),
+          Value<String?> machineType = const Value.absent()}) =>
+      DbDraftMachine(
+        uid: uid ?? this.uid,
+        draftJobId: draftJobId ?? this.draftJobId,
+        machineId: machineId.present ? machineId.value : this.machineId,
+        machineName: machineName.present ? machineName.value : this.machineName,
+        machineType: machineType.present ? machineType.value : this.machineType,
+      );
+  DbDraftMachine copyWithCompanion(DraftMachinesCompanion data) {
+    return DbDraftMachine(
+      uid: data.uid.present ? data.uid.value : this.uid,
+      draftJobId:
+          data.draftJobId.present ? data.draftJobId.value : this.draftJobId,
+      machineId: data.machineId.present ? data.machineId.value : this.machineId,
+      machineName:
+          data.machineName.present ? data.machineName.value : this.machineName,
+      machineType:
+          data.machineType.present ? data.machineType.value : this.machineType,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DbDraftMachine(')
+          ..write('uid: $uid, ')
+          ..write('draftJobId: $draftJobId, ')
+          ..write('machineId: $machineId, ')
+          ..write('machineName: $machineName, ')
+          ..write('machineType: $machineType')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(uid, draftJobId, machineId, machineName, machineType);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DbDraftMachine &&
+          other.uid == this.uid &&
+          other.draftJobId == this.draftJobId &&
+          other.machineId == this.machineId &&
+          other.machineName == this.machineName &&
+          other.machineType == this.machineType);
+}
+
+class DraftMachinesCompanion extends UpdateCompanion<DbDraftMachine> {
+  final Value<int> uid;
+  final Value<int> draftJobId;
+  final Value<String?> machineId;
+  final Value<String?> machineName;
+  final Value<String?> machineType;
+  const DraftMachinesCompanion({
+    this.uid = const Value.absent(),
+    this.draftJobId = const Value.absent(),
+    this.machineId = const Value.absent(),
+    this.machineName = const Value.absent(),
+    this.machineType = const Value.absent(),
+  });
+  DraftMachinesCompanion.insert({
+    this.uid = const Value.absent(),
+    required int draftJobId,
+    this.machineId = const Value.absent(),
+    this.machineName = const Value.absent(),
+    this.machineType = const Value.absent(),
+  }) : draftJobId = Value(draftJobId);
+  static Insertable<DbDraftMachine> custom({
+    Expression<int>? uid,
+    Expression<int>? draftJobId,
+    Expression<String>? machineId,
+    Expression<String>? machineName,
+    Expression<String>? machineType,
+  }) {
+    return RawValuesInsertable({
+      if (uid != null) 'uid': uid,
+      if (draftJobId != null) 'draftJobId': draftJobId,
+      if (machineId != null) 'machineId': machineId,
+      if (machineName != null) 'machineName': machineName,
+      if (machineType != null) 'machineType': machineType,
+    });
+  }
+
+  DraftMachinesCompanion copyWith(
+      {Value<int>? uid,
+      Value<int>? draftJobId,
+      Value<String?>? machineId,
+      Value<String?>? machineName,
+      Value<String?>? machineType}) {
+    return DraftMachinesCompanion(
+      uid: uid ?? this.uid,
+      draftJobId: draftJobId ?? this.draftJobId,
+      machineId: machineId ?? this.machineId,
+      machineName: machineName ?? this.machineName,
+      machineType: machineType ?? this.machineType,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uid.present) {
+      map['uid'] = Variable<int>(uid.value);
+    }
+    if (draftJobId.present) {
+      map['draftJobId'] = Variable<int>(draftJobId.value);
+    }
+    if (machineId.present) {
+      map['machineId'] = Variable<String>(machineId.value);
+    }
+    if (machineName.present) {
+      map['machineName'] = Variable<String>(machineName.value);
+    }
+    if (machineType.present) {
+      map['machineType'] = Variable<String>(machineType.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DraftMachinesCompanion(')
+          ..write('uid: $uid, ')
+          ..write('draftJobId: $draftJobId, ')
+          ..write('machineId: $machineId, ')
+          ..write('machineName: $machineName, ')
+          ..write('machineType: $machineType')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DraftTagsTable extends DraftTags
+    with TableInfo<$DraftTagsTable, DbDraftTag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DraftTagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uidMeta = const VerificationMeta('uid');
+  @override
+  late final GeneratedColumn<int> uid = GeneratedColumn<int>(
+      'uid', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _draftJobIdMeta =
+      const VerificationMeta('draftJobId');
+  @override
+  late final GeneratedColumn<int> draftJobId = GeneratedColumn<int>(
+      'draftJobId', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _draftMachineIdMeta =
+      const VerificationMeta('draftMachineId');
+  @override
+  late final GeneratedColumn<int> draftMachineId = GeneratedColumn<int>(
+      'draftMachineId', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _tagGroupIdMeta =
+      const VerificationMeta('tagGroupId');
+  @override
+  late final GeneratedColumn<String> tagGroupId = GeneratedColumn<String>(
+      'tagGroupId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagGroupNameMeta =
+      const VerificationMeta('tagGroupName');
+  @override
+  late final GeneratedColumn<String> tagGroupName = GeneratedColumn<String>(
+      'tagGroupName', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagNameMeta =
+      const VerificationMeta('tagName');
+  @override
+  late final GeneratedColumn<String> tagName = GeneratedColumn<String>(
+      'tagName', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagTypeMeta =
+      const VerificationMeta('tagType');
+  @override
+  late final GeneratedColumn<String> tagType = GeneratedColumn<String>(
+      'tagType', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagSelectionValueMeta =
+      const VerificationMeta('tagSelectionValue');
+  @override
+  late final GeneratedColumn<String> tagSelectionValue =
+      GeneratedColumn<String>('tagSelectionValue', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _specMinMeta =
+      const VerificationMeta('specMin');
+  @override
+  late final GeneratedColumn<String> specMin = GeneratedColumn<String>(
+      'specMin', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _specMaxMeta =
+      const VerificationMeta('specMax');
+  @override
+  late final GeneratedColumn<String> specMax = GeneratedColumn<String>(
+      'specMax', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+      'unit', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        uid,
+        draftJobId,
+        draftMachineId,
+        tagGroupId,
+        tagGroupName,
+        tagName,
+        tagType,
+        tagSelectionValue,
+        specMin,
+        specMax,
+        unit,
+        description
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'draft_tags';
+  @override
+  VerificationContext validateIntegrity(Insertable<DbDraftTag> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uid')) {
+      context.handle(
+          _uidMeta, uid.isAcceptableOrUnknown(data['uid']!, _uidMeta));
+    }
+    if (data.containsKey('draftJobId')) {
+      context.handle(
+          _draftJobIdMeta,
+          draftJobId.isAcceptableOrUnknown(
+              data['draftJobId']!, _draftJobIdMeta));
+    } else if (isInserting) {
+      context.missing(_draftJobIdMeta);
+    }
+    if (data.containsKey('draftMachineId')) {
+      context.handle(
+          _draftMachineIdMeta,
+          draftMachineId.isAcceptableOrUnknown(
+              data['draftMachineId']!, _draftMachineIdMeta));
+    } else if (isInserting) {
+      context.missing(_draftMachineIdMeta);
+    }
+    if (data.containsKey('tagGroupId')) {
+      context.handle(
+          _tagGroupIdMeta,
+          tagGroupId.isAcceptableOrUnknown(
+              data['tagGroupId']!, _tagGroupIdMeta));
+    }
+    if (data.containsKey('tagGroupName')) {
+      context.handle(
+          _tagGroupNameMeta,
+          tagGroupName.isAcceptableOrUnknown(
+              data['tagGroupName']!, _tagGroupNameMeta));
+    }
+    if (data.containsKey('tagName')) {
+      context.handle(_tagNameMeta,
+          tagName.isAcceptableOrUnknown(data['tagName']!, _tagNameMeta));
+    }
+    if (data.containsKey('tagType')) {
+      context.handle(_tagTypeMeta,
+          tagType.isAcceptableOrUnknown(data['tagType']!, _tagTypeMeta));
+    }
+    if (data.containsKey('tagSelectionValue')) {
+      context.handle(
+          _tagSelectionValueMeta,
+          tagSelectionValue.isAcceptableOrUnknown(
+              data['tagSelectionValue']!, _tagSelectionValueMeta));
+    }
+    if (data.containsKey('specMin')) {
+      context.handle(_specMinMeta,
+          specMin.isAcceptableOrUnknown(data['specMin']!, _specMinMeta));
+    }
+    if (data.containsKey('specMax')) {
+      context.handle(_specMaxMeta,
+          specMax.isAcceptableOrUnknown(data['specMax']!, _specMaxMeta));
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+          _unitMeta, unit.isAcceptableOrUnknown(data['unit']!, _unitMeta));
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uid};
+  @override
+  DbDraftTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DbDraftTag(
+      uid: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}uid'])!,
+      draftJobId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}draftJobId'])!,
+      draftMachineId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}draftMachineId'])!,
+      tagGroupId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagGroupId']),
+      tagGroupName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagGroupName']),
+      tagName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagName']),
+      tagType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagType']),
+      tagSelectionValue: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}tagSelectionValue']),
+      specMin: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}specMin']),
+      specMax: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}specMax']),
+      unit: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}unit']),
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+    );
+  }
+
+  @override
+  $DraftTagsTable createAlias(String alias) {
+    return $DraftTagsTable(attachedDatabase, alias);
+  }
+}
+
+class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
+  final int uid;
+  final int draftJobId;
+  final int draftMachineId;
+  final String? tagGroupId;
+  final String? tagGroupName;
+  final String? tagName;
+  final String? tagType;
+  final String? tagSelectionValue;
+  final String? specMin;
+  final String? specMax;
+  final String? unit;
+  final String? description;
+  const DbDraftTag(
+      {required this.uid,
+      required this.draftJobId,
+      required this.draftMachineId,
+      this.tagGroupId,
+      this.tagGroupName,
+      this.tagName,
+      this.tagType,
+      this.tagSelectionValue,
+      this.specMin,
+      this.specMax,
+      this.unit,
+      this.description});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uid'] = Variable<int>(uid);
+    map['draftJobId'] = Variable<int>(draftJobId);
+    map['draftMachineId'] = Variable<int>(draftMachineId);
+    if (!nullToAbsent || tagGroupId != null) {
+      map['tagGroupId'] = Variable<String>(tagGroupId);
+    }
+    if (!nullToAbsent || tagGroupName != null) {
+      map['tagGroupName'] = Variable<String>(tagGroupName);
+    }
+    if (!nullToAbsent || tagName != null) {
+      map['tagName'] = Variable<String>(tagName);
+    }
+    if (!nullToAbsent || tagType != null) {
+      map['tagType'] = Variable<String>(tagType);
+    }
+    if (!nullToAbsent || tagSelectionValue != null) {
+      map['tagSelectionValue'] = Variable<String>(tagSelectionValue);
+    }
+    if (!nullToAbsent || specMin != null) {
+      map['specMin'] = Variable<String>(specMin);
+    }
+    if (!nullToAbsent || specMax != null) {
+      map['specMax'] = Variable<String>(specMax);
+    }
+    if (!nullToAbsent || unit != null) {
+      map['unit'] = Variable<String>(unit);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    return map;
+  }
+
+  DraftTagsCompanion toCompanion(bool nullToAbsent) {
+    return DraftTagsCompanion(
+      uid: Value(uid),
+      draftJobId: Value(draftJobId),
+      draftMachineId: Value(draftMachineId),
+      tagGroupId: tagGroupId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagGroupId),
+      tagGroupName: tagGroupName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagGroupName),
+      tagName: tagName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagName),
+      tagType: tagType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagType),
+      tagSelectionValue: tagSelectionValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(tagSelectionValue),
+      specMin: specMin == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specMin),
+      specMax: specMax == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specMax),
+      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+    );
+  }
+
+  factory DbDraftTag.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DbDraftTag(
+      uid: serializer.fromJson<int>(json['uid']),
+      draftJobId: serializer.fromJson<int>(json['draftJobId']),
+      draftMachineId: serializer.fromJson<int>(json['draftMachineId']),
+      tagGroupId: serializer.fromJson<String?>(json['tagGroupId']),
+      tagGroupName: serializer.fromJson<String?>(json['tagGroupName']),
+      tagName: serializer.fromJson<String?>(json['tagName']),
+      tagType: serializer.fromJson<String?>(json['tagType']),
+      tagSelectionValue:
+          serializer.fromJson<String?>(json['tagSelectionValue']),
+      specMin: serializer.fromJson<String?>(json['specMin']),
+      specMax: serializer.fromJson<String?>(json['specMax']),
+      unit: serializer.fromJson<String?>(json['unit']),
+      description: serializer.fromJson<String?>(json['description']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uid': serializer.toJson<int>(uid),
+      'draftJobId': serializer.toJson<int>(draftJobId),
+      'draftMachineId': serializer.toJson<int>(draftMachineId),
+      'tagGroupId': serializer.toJson<String?>(tagGroupId),
+      'tagGroupName': serializer.toJson<String?>(tagGroupName),
+      'tagName': serializer.toJson<String?>(tagName),
+      'tagType': serializer.toJson<String?>(tagType),
+      'tagSelectionValue': serializer.toJson<String?>(tagSelectionValue),
+      'specMin': serializer.toJson<String?>(specMin),
+      'specMax': serializer.toJson<String?>(specMax),
+      'unit': serializer.toJson<String?>(unit),
+      'description': serializer.toJson<String?>(description),
+    };
+  }
+
+  DbDraftTag copyWith(
+          {int? uid,
+          int? draftJobId,
+          int? draftMachineId,
+          Value<String?> tagGroupId = const Value.absent(),
+          Value<String?> tagGroupName = const Value.absent(),
+          Value<String?> tagName = const Value.absent(),
+          Value<String?> tagType = const Value.absent(),
+          Value<String?> tagSelectionValue = const Value.absent(),
+          Value<String?> specMin = const Value.absent(),
+          Value<String?> specMax = const Value.absent(),
+          Value<String?> unit = const Value.absent(),
+          Value<String?> description = const Value.absent()}) =>
+      DbDraftTag(
+        uid: uid ?? this.uid,
+        draftJobId: draftJobId ?? this.draftJobId,
+        draftMachineId: draftMachineId ?? this.draftMachineId,
+        tagGroupId: tagGroupId.present ? tagGroupId.value : this.tagGroupId,
+        tagGroupName:
+            tagGroupName.present ? tagGroupName.value : this.tagGroupName,
+        tagName: tagName.present ? tagName.value : this.tagName,
+        tagType: tagType.present ? tagType.value : this.tagType,
+        tagSelectionValue: tagSelectionValue.present
+            ? tagSelectionValue.value
+            : this.tagSelectionValue,
+        specMin: specMin.present ? specMin.value : this.specMin,
+        specMax: specMax.present ? specMax.value : this.specMax,
+        unit: unit.present ? unit.value : this.unit,
+        description: description.present ? description.value : this.description,
+      );
+  DbDraftTag copyWithCompanion(DraftTagsCompanion data) {
+    return DbDraftTag(
+      uid: data.uid.present ? data.uid.value : this.uid,
+      draftJobId:
+          data.draftJobId.present ? data.draftJobId.value : this.draftJobId,
+      draftMachineId: data.draftMachineId.present
+          ? data.draftMachineId.value
+          : this.draftMachineId,
+      tagGroupId:
+          data.tagGroupId.present ? data.tagGroupId.value : this.tagGroupId,
+      tagGroupName: data.tagGroupName.present
+          ? data.tagGroupName.value
+          : this.tagGroupName,
+      tagName: data.tagName.present ? data.tagName.value : this.tagName,
+      tagType: data.tagType.present ? data.tagType.value : this.tagType,
+      tagSelectionValue: data.tagSelectionValue.present
+          ? data.tagSelectionValue.value
+          : this.tagSelectionValue,
+      specMin: data.specMin.present ? data.specMin.value : this.specMin,
+      specMax: data.specMax.present ? data.specMax.value : this.specMax,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      description:
+          data.description.present ? data.description.value : this.description,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DbDraftTag(')
+          ..write('uid: $uid, ')
+          ..write('draftJobId: $draftJobId, ')
+          ..write('draftMachineId: $draftMachineId, ')
+          ..write('tagGroupId: $tagGroupId, ')
+          ..write('tagGroupName: $tagGroupName, ')
+          ..write('tagName: $tagName, ')
+          ..write('tagType: $tagType, ')
+          ..write('tagSelectionValue: $tagSelectionValue, ')
+          ..write('specMin: $specMin, ')
+          ..write('specMax: $specMax, ')
+          ..write('unit: $unit, ')
+          ..write('description: $description')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      uid,
+      draftJobId,
+      draftMachineId,
+      tagGroupId,
+      tagGroupName,
+      tagName,
+      tagType,
+      tagSelectionValue,
+      specMin,
+      specMax,
+      unit,
+      description);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DbDraftTag &&
+          other.uid == this.uid &&
+          other.draftJobId == this.draftJobId &&
+          other.draftMachineId == this.draftMachineId &&
+          other.tagGroupId == this.tagGroupId &&
+          other.tagGroupName == this.tagGroupName &&
+          other.tagName == this.tagName &&
+          other.tagType == this.tagType &&
+          other.tagSelectionValue == this.tagSelectionValue &&
+          other.specMin == this.specMin &&
+          other.specMax == this.specMax &&
+          other.unit == this.unit &&
+          other.description == this.description);
+}
+
+class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
+  final Value<int> uid;
+  final Value<int> draftJobId;
+  final Value<int> draftMachineId;
+  final Value<String?> tagGroupId;
+  final Value<String?> tagGroupName;
+  final Value<String?> tagName;
+  final Value<String?> tagType;
+  final Value<String?> tagSelectionValue;
+  final Value<String?> specMin;
+  final Value<String?> specMax;
+  final Value<String?> unit;
+  final Value<String?> description;
+  const DraftTagsCompanion({
+    this.uid = const Value.absent(),
+    this.draftJobId = const Value.absent(),
+    this.draftMachineId = const Value.absent(),
+    this.tagGroupId = const Value.absent(),
+    this.tagGroupName = const Value.absent(),
+    this.tagName = const Value.absent(),
+    this.tagType = const Value.absent(),
+    this.tagSelectionValue = const Value.absent(),
+    this.specMin = const Value.absent(),
+    this.specMax = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.description = const Value.absent(),
+  });
+  DraftTagsCompanion.insert({
+    this.uid = const Value.absent(),
+    required int draftJobId,
+    required int draftMachineId,
+    this.tagGroupId = const Value.absent(),
+    this.tagGroupName = const Value.absent(),
+    this.tagName = const Value.absent(),
+    this.tagType = const Value.absent(),
+    this.tagSelectionValue = const Value.absent(),
+    this.specMin = const Value.absent(),
+    this.specMax = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.description = const Value.absent(),
+  })  : draftJobId = Value(draftJobId),
+        draftMachineId = Value(draftMachineId);
+  static Insertable<DbDraftTag> custom({
+    Expression<int>? uid,
+    Expression<int>? draftJobId,
+    Expression<int>? draftMachineId,
+    Expression<String>? tagGroupId,
+    Expression<String>? tagGroupName,
+    Expression<String>? tagName,
+    Expression<String>? tagType,
+    Expression<String>? tagSelectionValue,
+    Expression<String>? specMin,
+    Expression<String>? specMax,
+    Expression<String>? unit,
+    Expression<String>? description,
+  }) {
+    return RawValuesInsertable({
+      if (uid != null) 'uid': uid,
+      if (draftJobId != null) 'draftJobId': draftJobId,
+      if (draftMachineId != null) 'draftMachineId': draftMachineId,
+      if (tagGroupId != null) 'tagGroupId': tagGroupId,
+      if (tagGroupName != null) 'tagGroupName': tagGroupName,
+      if (tagName != null) 'tagName': tagName,
+      if (tagType != null) 'tagType': tagType,
+      if (tagSelectionValue != null) 'tagSelectionValue': tagSelectionValue,
+      if (specMin != null) 'specMin': specMin,
+      if (specMax != null) 'specMax': specMax,
+      if (unit != null) 'unit': unit,
+      if (description != null) 'description': description,
+    });
+  }
+
+  DraftTagsCompanion copyWith(
+      {Value<int>? uid,
+      Value<int>? draftJobId,
+      Value<int>? draftMachineId,
+      Value<String?>? tagGroupId,
+      Value<String?>? tagGroupName,
+      Value<String?>? tagName,
+      Value<String?>? tagType,
+      Value<String?>? tagSelectionValue,
+      Value<String?>? specMin,
+      Value<String?>? specMax,
+      Value<String?>? unit,
+      Value<String?>? description}) {
+    return DraftTagsCompanion(
+      uid: uid ?? this.uid,
+      draftJobId: draftJobId ?? this.draftJobId,
+      draftMachineId: draftMachineId ?? this.draftMachineId,
+      tagGroupId: tagGroupId ?? this.tagGroupId,
+      tagGroupName: tagGroupName ?? this.tagGroupName,
+      tagName: tagName ?? this.tagName,
+      tagType: tagType ?? this.tagType,
+      tagSelectionValue: tagSelectionValue ?? this.tagSelectionValue,
+      specMin: specMin ?? this.specMin,
+      specMax: specMax ?? this.specMax,
+      unit: unit ?? this.unit,
+      description: description ?? this.description,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uid.present) {
+      map['uid'] = Variable<int>(uid.value);
+    }
+    if (draftJobId.present) {
+      map['draftJobId'] = Variable<int>(draftJobId.value);
+    }
+    if (draftMachineId.present) {
+      map['draftMachineId'] = Variable<int>(draftMachineId.value);
+    }
+    if (tagGroupId.present) {
+      map['tagGroupId'] = Variable<String>(tagGroupId.value);
+    }
+    if (tagGroupName.present) {
+      map['tagGroupName'] = Variable<String>(tagGroupName.value);
+    }
+    if (tagName.present) {
+      map['tagName'] = Variable<String>(tagName.value);
+    }
+    if (tagType.present) {
+      map['tagType'] = Variable<String>(tagType.value);
+    }
+    if (tagSelectionValue.present) {
+      map['tagSelectionValue'] = Variable<String>(tagSelectionValue.value);
+    }
+    if (specMin.present) {
+      map['specMin'] = Variable<String>(specMin.value);
+    }
+    if (specMax.present) {
+      map['specMax'] = Variable<String>(specMax.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DraftTagsCompanion(')
+          ..write('uid: $uid, ')
+          ..write('draftJobId: $draftJobId, ')
+          ..write('draftMachineId: $draftMachineId, ')
+          ..write('tagGroupId: $tagGroupId, ')
+          ..write('tagGroupName: $tagGroupName, ')
+          ..write('tagName: $tagName, ')
+          ..write('tagType: $tagType, ')
+          ..write('tagSelectionValue: $tagSelectionValue, ')
+          ..write('specMin: $specMin, ')
+          ..write('specMax: $specMax, ')
+          ..write('unit: $unit, ')
+          ..write('description: $description')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -8930,6 +11433,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DocumentsTable documents = $DocumentsTable(this);
   late final $DocumentOnlinesTable documentOnlines =
       $DocumentOnlinesTable(this);
+  late final $DocumentRecordOnlinesTable documentRecordOnlines =
+      $DocumentRecordOnlinesTable(this);
   late final $DocumentMachinesTable documentMachines =
       $DocumentMachinesTable(this);
   late final $DocumentRecordsTable documentRecords =
@@ -8942,10 +11447,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ImagesTable images = $ImagesTable(this);
   late final $CheckSheetMasterImagesTable checkSheetMasterImages =
       $CheckSheetMasterImagesTable(this);
+  late final $DraftJobsTable draftJobs = $DraftJobsTable(this);
+  late final $DraftMachinesTable draftMachines = $DraftMachinesTable(this);
+  late final $DraftTagsTable draftTags = $DraftTagsTable(this);
   late final JobDao jobDao = JobDao(this as AppDatabase);
   late final DocumentDao documentDao = DocumentDao(this as AppDatabase);
   late final DocumentOnlineDao documentOnlineDao =
       DocumentOnlineDao(this as AppDatabase);
+  late final DocumentRecordOnlineDao documentRecordOnlineDao =
+      DocumentRecordOnlineDao(this as AppDatabase);
   late final DocumentMachineDao documentMachineDao =
       DocumentMachineDao(this as AppDatabase);
   late final DocumentRecordDao documentRecordDao =
@@ -8958,6 +11468,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final ImageDao imageDao = ImageDao(this as AppDatabase);
   late final ChecksheetMasterImageDao checksheetMasterImageDao =
       ChecksheetMasterImageDao(this as AppDatabase);
+  late final DraftJobDao draftJobDao = DraftJobDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -8966,6 +11477,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         jobs,
         documents,
         documentOnlines,
+        documentRecordOnlines,
         documentMachines,
         documentRecords,
         jobMachines,
@@ -8974,7 +11486,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         syncs,
         users,
         images,
-        checkSheetMasterImages
+        checkSheetMasterImages,
+        draftJobs,
+        draftMachines,
+        draftTags
       ];
 }
 
@@ -9674,6 +12189,488 @@ typedef $$DocumentOnlinesTableProcessedTableManager = ProcessedTableManager<
     ),
     DbDocumentOnline,
     PrefetchHooks Function()>;
+typedef $$DocumentRecordOnlinesTableCreateCompanionBuilder
+    = DocumentRecordOnlinesCompanion Function({
+  Value<int> uid,
+  Value<String?> documentId,
+  Value<String?> documentCreateDate,
+  Value<String?> documentCreateUser,
+  Value<String?> machineId,
+  Value<String?> jobId,
+  Value<String?> tagId,
+  Value<String?> tagName,
+  Value<String?> tagGroupId,
+  Value<String?> tagGroupName,
+  Value<String?> tagType,
+  Value<String?> tagSelectionValue,
+  Value<String?> description,
+  Value<String?> specification,
+  Value<String?> specMin,
+  Value<String?> specMax,
+  Value<String?> unit,
+  Value<String?> valueType,
+  Value<String?> value,
+  Value<int> status,
+  Value<String> unReadable,
+  Value<String?> remark,
+  Value<String?> syncDate,
+  Value<int?> uiType,
+  Value<String?> updatedAt,
+});
+typedef $$DocumentRecordOnlinesTableUpdateCompanionBuilder
+    = DocumentRecordOnlinesCompanion Function({
+  Value<int> uid,
+  Value<String?> documentId,
+  Value<String?> documentCreateDate,
+  Value<String?> documentCreateUser,
+  Value<String?> machineId,
+  Value<String?> jobId,
+  Value<String?> tagId,
+  Value<String?> tagName,
+  Value<String?> tagGroupId,
+  Value<String?> tagGroupName,
+  Value<String?> tagType,
+  Value<String?> tagSelectionValue,
+  Value<String?> description,
+  Value<String?> specification,
+  Value<String?> specMin,
+  Value<String?> specMax,
+  Value<String?> unit,
+  Value<String?> valueType,
+  Value<String?> value,
+  Value<int> status,
+  Value<String> unReadable,
+  Value<String?> remark,
+  Value<String?> syncDate,
+  Value<int?> uiType,
+  Value<String?> updatedAt,
+});
+
+class $$DocumentRecordOnlinesTableFilterComposer
+    extends Composer<_$AppDatabase, $DocumentRecordOnlinesTable> {
+  $$DocumentRecordOnlinesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get documentCreateDate => $composableBuilder(
+      column: $table.documentCreateDate,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get documentCreateUser => $composableBuilder(
+      column: $table.documentCreateUser,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get jobId => $composableBuilder(
+      column: $table.jobId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagId => $composableBuilder(
+      column: $table.tagId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagName => $composableBuilder(
+      column: $table.tagName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagGroupId => $composableBuilder(
+      column: $table.tagGroupId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagGroupName => $composableBuilder(
+      column: $table.tagGroupName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagType => $composableBuilder(
+      column: $table.tagType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagSelectionValue => $composableBuilder(
+      column: $table.tagSelectionValue,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get specification => $composableBuilder(
+      column: $table.specification, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get specMin => $composableBuilder(
+      column: $table.specMin, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get specMax => $composableBuilder(
+      column: $table.specMax, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get valueType => $composableBuilder(
+      column: $table.valueType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get value => $composableBuilder(
+      column: $table.value, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get unReadable => $composableBuilder(
+      column: $table.unReadable, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get remark => $composableBuilder(
+      column: $table.remark, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get syncDate => $composableBuilder(
+      column: $table.syncDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get uiType => $composableBuilder(
+      column: $table.uiType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$DocumentRecordOnlinesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DocumentRecordOnlinesTable> {
+  $$DocumentRecordOnlinesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get documentCreateDate => $composableBuilder(
+      column: $table.documentCreateDate,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get documentCreateUser => $composableBuilder(
+      column: $table.documentCreateUser,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get jobId => $composableBuilder(
+      column: $table.jobId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagId => $composableBuilder(
+      column: $table.tagId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagName => $composableBuilder(
+      column: $table.tagName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagGroupId => $composableBuilder(
+      column: $table.tagGroupId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagGroupName => $composableBuilder(
+      column: $table.tagGroupName,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagType => $composableBuilder(
+      column: $table.tagType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagSelectionValue => $composableBuilder(
+      column: $table.tagSelectionValue,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get specification => $composableBuilder(
+      column: $table.specification,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get specMin => $composableBuilder(
+      column: $table.specMin, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get specMax => $composableBuilder(
+      column: $table.specMax, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get valueType => $composableBuilder(
+      column: $table.valueType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get value => $composableBuilder(
+      column: $table.value, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get unReadable => $composableBuilder(
+      column: $table.unReadable, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get remark => $composableBuilder(
+      column: $table.remark, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get syncDate => $composableBuilder(
+      column: $table.syncDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get uiType => $composableBuilder(
+      column: $table.uiType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DocumentRecordOnlinesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DocumentRecordOnlinesTable> {
+  $$DocumentRecordOnlinesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get uid =>
+      $composableBuilder(column: $table.uid, builder: (column) => column);
+
+  GeneratedColumn<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => column);
+
+  GeneratedColumn<String> get documentCreateDate => $composableBuilder(
+      column: $table.documentCreateDate, builder: (column) => column);
+
+  GeneratedColumn<String> get documentCreateUser => $composableBuilder(
+      column: $table.documentCreateUser, builder: (column) => column);
+
+  GeneratedColumn<String> get machineId =>
+      $composableBuilder(column: $table.machineId, builder: (column) => column);
+
+  GeneratedColumn<String> get jobId =>
+      $composableBuilder(column: $table.jobId, builder: (column) => column);
+
+  GeneratedColumn<String> get tagId =>
+      $composableBuilder(column: $table.tagId, builder: (column) => column);
+
+  GeneratedColumn<String> get tagName =>
+      $composableBuilder(column: $table.tagName, builder: (column) => column);
+
+  GeneratedColumn<String> get tagGroupId => $composableBuilder(
+      column: $table.tagGroupId, builder: (column) => column);
+
+  GeneratedColumn<String> get tagGroupName => $composableBuilder(
+      column: $table.tagGroupName, builder: (column) => column);
+
+  GeneratedColumn<String> get tagType =>
+      $composableBuilder(column: $table.tagType, builder: (column) => column);
+
+  GeneratedColumn<String> get tagSelectionValue => $composableBuilder(
+      column: $table.tagSelectionValue, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<String> get specification => $composableBuilder(
+      column: $table.specification, builder: (column) => column);
+
+  GeneratedColumn<String> get specMin =>
+      $composableBuilder(column: $table.specMin, builder: (column) => column);
+
+  GeneratedColumn<String> get specMax =>
+      $composableBuilder(column: $table.specMax, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<String> get valueType =>
+      $composableBuilder(column: $table.valueType, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get unReadable => $composableBuilder(
+      column: $table.unReadable, builder: (column) => column);
+
+  GeneratedColumn<String> get remark =>
+      $composableBuilder(column: $table.remark, builder: (column) => column);
+
+  GeneratedColumn<String> get syncDate =>
+      $composableBuilder(column: $table.syncDate, builder: (column) => column);
+
+  GeneratedColumn<int> get uiType =>
+      $composableBuilder(column: $table.uiType, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$DocumentRecordOnlinesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DocumentRecordOnlinesTable,
+    DbDocumentRecordOnline,
+    $$DocumentRecordOnlinesTableFilterComposer,
+    $$DocumentRecordOnlinesTableOrderingComposer,
+    $$DocumentRecordOnlinesTableAnnotationComposer,
+    $$DocumentRecordOnlinesTableCreateCompanionBuilder,
+    $$DocumentRecordOnlinesTableUpdateCompanionBuilder,
+    (
+      DbDocumentRecordOnline,
+      BaseReferences<_$AppDatabase, $DocumentRecordOnlinesTable,
+          DbDocumentRecordOnline>
+    ),
+    DbDocumentRecordOnline,
+    PrefetchHooks Function()> {
+  $$DocumentRecordOnlinesTableTableManager(
+      _$AppDatabase db, $DocumentRecordOnlinesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DocumentRecordOnlinesTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DocumentRecordOnlinesTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DocumentRecordOnlinesTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            Value<String?> documentId = const Value.absent(),
+            Value<String?> documentCreateDate = const Value.absent(),
+            Value<String?> documentCreateUser = const Value.absent(),
+            Value<String?> machineId = const Value.absent(),
+            Value<String?> jobId = const Value.absent(),
+            Value<String?> tagId = const Value.absent(),
+            Value<String?> tagName = const Value.absent(),
+            Value<String?> tagGroupId = const Value.absent(),
+            Value<String?> tagGroupName = const Value.absent(),
+            Value<String?> tagType = const Value.absent(),
+            Value<String?> tagSelectionValue = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String?> specification = const Value.absent(),
+            Value<String?> specMin = const Value.absent(),
+            Value<String?> specMax = const Value.absent(),
+            Value<String?> unit = const Value.absent(),
+            Value<String?> valueType = const Value.absent(),
+            Value<String?> value = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<String> unReadable = const Value.absent(),
+            Value<String?> remark = const Value.absent(),
+            Value<String?> syncDate = const Value.absent(),
+            Value<int?> uiType = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
+          }) =>
+              DocumentRecordOnlinesCompanion(
+            uid: uid,
+            documentId: documentId,
+            documentCreateDate: documentCreateDate,
+            documentCreateUser: documentCreateUser,
+            machineId: machineId,
+            jobId: jobId,
+            tagId: tagId,
+            tagName: tagName,
+            tagGroupId: tagGroupId,
+            tagGroupName: tagGroupName,
+            tagType: tagType,
+            tagSelectionValue: tagSelectionValue,
+            description: description,
+            specification: specification,
+            specMin: specMin,
+            specMax: specMax,
+            unit: unit,
+            valueType: valueType,
+            value: value,
+            status: status,
+            unReadable: unReadable,
+            remark: remark,
+            syncDate: syncDate,
+            uiType: uiType,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            Value<String?> documentId = const Value.absent(),
+            Value<String?> documentCreateDate = const Value.absent(),
+            Value<String?> documentCreateUser = const Value.absent(),
+            Value<String?> machineId = const Value.absent(),
+            Value<String?> jobId = const Value.absent(),
+            Value<String?> tagId = const Value.absent(),
+            Value<String?> tagName = const Value.absent(),
+            Value<String?> tagGroupId = const Value.absent(),
+            Value<String?> tagGroupName = const Value.absent(),
+            Value<String?> tagType = const Value.absent(),
+            Value<String?> tagSelectionValue = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String?> specification = const Value.absent(),
+            Value<String?> specMin = const Value.absent(),
+            Value<String?> specMax = const Value.absent(),
+            Value<String?> unit = const Value.absent(),
+            Value<String?> valueType = const Value.absent(),
+            Value<String?> value = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<String> unReadable = const Value.absent(),
+            Value<String?> remark = const Value.absent(),
+            Value<String?> syncDate = const Value.absent(),
+            Value<int?> uiType = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
+          }) =>
+              DocumentRecordOnlinesCompanion.insert(
+            uid: uid,
+            documentId: documentId,
+            documentCreateDate: documentCreateDate,
+            documentCreateUser: documentCreateUser,
+            machineId: machineId,
+            jobId: jobId,
+            tagId: tagId,
+            tagName: tagName,
+            tagGroupId: tagGroupId,
+            tagGroupName: tagGroupName,
+            tagType: tagType,
+            tagSelectionValue: tagSelectionValue,
+            description: description,
+            specification: specification,
+            specMin: specMin,
+            specMax: specMax,
+            unit: unit,
+            valueType: valueType,
+            value: value,
+            status: status,
+            unReadable: unReadable,
+            remark: remark,
+            syncDate: syncDate,
+            uiType: uiType,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DocumentRecordOnlinesTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $DocumentRecordOnlinesTable,
+        DbDocumentRecordOnline,
+        $$DocumentRecordOnlinesTableFilterComposer,
+        $$DocumentRecordOnlinesTableOrderingComposer,
+        $$DocumentRecordOnlinesTableAnnotationComposer,
+        $$DocumentRecordOnlinesTableCreateCompanionBuilder,
+        $$DocumentRecordOnlinesTableUpdateCompanionBuilder,
+        (
+          DbDocumentRecordOnline,
+          BaseReferences<_$AppDatabase, $DocumentRecordOnlinesTable,
+              DbDocumentRecordOnline>
+        ),
+        DbDocumentRecordOnline,
+        PrefetchHooks Function()>;
 typedef $$DocumentMachinesTableCreateCompanionBuilder
     = DocumentMachinesCompanion Function({
   Value<int> uid,
@@ -12877,6 +15874,646 @@ typedef $$CheckSheetMasterImagesTableProcessedTableManager
         ),
         DbCheckSheetMasterImage,
         PrefetchHooks Function()>;
+typedef $$DraftJobsTableCreateCompanionBuilder = DraftJobsCompanion Function({
+  Value<int> uid,
+  required String jobName,
+  required String location,
+  Value<String?> machineName,
+  Value<String?> documentId,
+  Value<int> status,
+  Value<String?> createDate,
+  Value<String?> updatedAt,
+});
+typedef $$DraftJobsTableUpdateCompanionBuilder = DraftJobsCompanion Function({
+  Value<int> uid,
+  Value<String> jobName,
+  Value<String> location,
+  Value<String?> machineName,
+  Value<String?> documentId,
+  Value<int> status,
+  Value<String?> createDate,
+  Value<String?> updatedAt,
+});
+
+class $$DraftJobsTableFilterComposer
+    extends Composer<_$AppDatabase, $DraftJobsTable> {
+  $$DraftJobsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get jobName => $composableBuilder(
+      column: $table.jobName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get location => $composableBuilder(
+      column: $table.location, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get machineName => $composableBuilder(
+      column: $table.machineName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$DraftJobsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DraftJobsTable> {
+  $$DraftJobsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get jobName => $composableBuilder(
+      column: $table.jobName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get location => $composableBuilder(
+      column: $table.location, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get machineName => $composableBuilder(
+      column: $table.machineName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DraftJobsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DraftJobsTable> {
+  $$DraftJobsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get uid =>
+      $composableBuilder(column: $table.uid, builder: (column) => column);
+
+  GeneratedColumn<String> get jobName =>
+      $composableBuilder(column: $table.jobName, builder: (column) => column);
+
+  GeneratedColumn<String> get location =>
+      $composableBuilder(column: $table.location, builder: (column) => column);
+
+  GeneratedColumn<String> get machineName => $composableBuilder(
+      column: $table.machineName, builder: (column) => column);
+
+  GeneratedColumn<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$DraftJobsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DraftJobsTable,
+    DbDraftJob,
+    $$DraftJobsTableFilterComposer,
+    $$DraftJobsTableOrderingComposer,
+    $$DraftJobsTableAnnotationComposer,
+    $$DraftJobsTableCreateCompanionBuilder,
+    $$DraftJobsTableUpdateCompanionBuilder,
+    (DbDraftJob, BaseReferences<_$AppDatabase, $DraftJobsTable, DbDraftJob>),
+    DbDraftJob,
+    PrefetchHooks Function()> {
+  $$DraftJobsTableTableManager(_$AppDatabase db, $DraftJobsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DraftJobsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DraftJobsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DraftJobsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            Value<String> jobName = const Value.absent(),
+            Value<String> location = const Value.absent(),
+            Value<String?> machineName = const Value.absent(),
+            Value<String?> documentId = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
+          }) =>
+              DraftJobsCompanion(
+            uid: uid,
+            jobName: jobName,
+            location: location,
+            machineName: machineName,
+            documentId: documentId,
+            status: status,
+            createDate: createDate,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            required String jobName,
+            required String location,
+            Value<String?> machineName = const Value.absent(),
+            Value<String?> documentId = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<String?> updatedAt = const Value.absent(),
+          }) =>
+              DraftJobsCompanion.insert(
+            uid: uid,
+            jobName: jobName,
+            location: location,
+            machineName: machineName,
+            documentId: documentId,
+            status: status,
+            createDate: createDate,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DraftJobsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DraftJobsTable,
+    DbDraftJob,
+    $$DraftJobsTableFilterComposer,
+    $$DraftJobsTableOrderingComposer,
+    $$DraftJobsTableAnnotationComposer,
+    $$DraftJobsTableCreateCompanionBuilder,
+    $$DraftJobsTableUpdateCompanionBuilder,
+    (DbDraftJob, BaseReferences<_$AppDatabase, $DraftJobsTable, DbDraftJob>),
+    DbDraftJob,
+    PrefetchHooks Function()>;
+typedef $$DraftMachinesTableCreateCompanionBuilder = DraftMachinesCompanion
+    Function({
+  Value<int> uid,
+  required int draftJobId,
+  Value<String?> machineId,
+  Value<String?> machineName,
+  Value<String?> machineType,
+});
+typedef $$DraftMachinesTableUpdateCompanionBuilder = DraftMachinesCompanion
+    Function({
+  Value<int> uid,
+  Value<int> draftJobId,
+  Value<String?> machineId,
+  Value<String?> machineName,
+  Value<String?> machineType,
+});
+
+class $$DraftMachinesTableFilterComposer
+    extends Composer<_$AppDatabase, $DraftMachinesTable> {
+  $$DraftMachinesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get draftJobId => $composableBuilder(
+      column: $table.draftJobId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get machineName => $composableBuilder(
+      column: $table.machineName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get machineType => $composableBuilder(
+      column: $table.machineType, builder: (column) => ColumnFilters(column));
+}
+
+class $$DraftMachinesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DraftMachinesTable> {
+  $$DraftMachinesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get draftJobId => $composableBuilder(
+      column: $table.draftJobId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get machineName => $composableBuilder(
+      column: $table.machineName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get machineType => $composableBuilder(
+      column: $table.machineType, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DraftMachinesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DraftMachinesTable> {
+  $$DraftMachinesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get uid =>
+      $composableBuilder(column: $table.uid, builder: (column) => column);
+
+  GeneratedColumn<int> get draftJobId => $composableBuilder(
+      column: $table.draftJobId, builder: (column) => column);
+
+  GeneratedColumn<String> get machineId =>
+      $composableBuilder(column: $table.machineId, builder: (column) => column);
+
+  GeneratedColumn<String> get machineName => $composableBuilder(
+      column: $table.machineName, builder: (column) => column);
+
+  GeneratedColumn<String> get machineType => $composableBuilder(
+      column: $table.machineType, builder: (column) => column);
+}
+
+class $$DraftMachinesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DraftMachinesTable,
+    DbDraftMachine,
+    $$DraftMachinesTableFilterComposer,
+    $$DraftMachinesTableOrderingComposer,
+    $$DraftMachinesTableAnnotationComposer,
+    $$DraftMachinesTableCreateCompanionBuilder,
+    $$DraftMachinesTableUpdateCompanionBuilder,
+    (
+      DbDraftMachine,
+      BaseReferences<_$AppDatabase, $DraftMachinesTable, DbDraftMachine>
+    ),
+    DbDraftMachine,
+    PrefetchHooks Function()> {
+  $$DraftMachinesTableTableManager(_$AppDatabase db, $DraftMachinesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DraftMachinesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DraftMachinesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DraftMachinesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            Value<int> draftJobId = const Value.absent(),
+            Value<String?> machineId = const Value.absent(),
+            Value<String?> machineName = const Value.absent(),
+            Value<String?> machineType = const Value.absent(),
+          }) =>
+              DraftMachinesCompanion(
+            uid: uid,
+            draftJobId: draftJobId,
+            machineId: machineId,
+            machineName: machineName,
+            machineType: machineType,
+          ),
+          createCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            required int draftJobId,
+            Value<String?> machineId = const Value.absent(),
+            Value<String?> machineName = const Value.absent(),
+            Value<String?> machineType = const Value.absent(),
+          }) =>
+              DraftMachinesCompanion.insert(
+            uid: uid,
+            draftJobId: draftJobId,
+            machineId: machineId,
+            machineName: machineName,
+            machineType: machineType,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DraftMachinesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DraftMachinesTable,
+    DbDraftMachine,
+    $$DraftMachinesTableFilterComposer,
+    $$DraftMachinesTableOrderingComposer,
+    $$DraftMachinesTableAnnotationComposer,
+    $$DraftMachinesTableCreateCompanionBuilder,
+    $$DraftMachinesTableUpdateCompanionBuilder,
+    (
+      DbDraftMachine,
+      BaseReferences<_$AppDatabase, $DraftMachinesTable, DbDraftMachine>
+    ),
+    DbDraftMachine,
+    PrefetchHooks Function()>;
+typedef $$DraftTagsTableCreateCompanionBuilder = DraftTagsCompanion Function({
+  Value<int> uid,
+  required int draftJobId,
+  required int draftMachineId,
+  Value<String?> tagGroupId,
+  Value<String?> tagGroupName,
+  Value<String?> tagName,
+  Value<String?> tagType,
+  Value<String?> tagSelectionValue,
+  Value<String?> specMin,
+  Value<String?> specMax,
+  Value<String?> unit,
+  Value<String?> description,
+});
+typedef $$DraftTagsTableUpdateCompanionBuilder = DraftTagsCompanion Function({
+  Value<int> uid,
+  Value<int> draftJobId,
+  Value<int> draftMachineId,
+  Value<String?> tagGroupId,
+  Value<String?> tagGroupName,
+  Value<String?> tagName,
+  Value<String?> tagType,
+  Value<String?> tagSelectionValue,
+  Value<String?> specMin,
+  Value<String?> specMax,
+  Value<String?> unit,
+  Value<String?> description,
+});
+
+class $$DraftTagsTableFilterComposer
+    extends Composer<_$AppDatabase, $DraftTagsTable> {
+  $$DraftTagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get draftJobId => $composableBuilder(
+      column: $table.draftJobId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get draftMachineId => $composableBuilder(
+      column: $table.draftMachineId,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagGroupId => $composableBuilder(
+      column: $table.tagGroupId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagGroupName => $composableBuilder(
+      column: $table.tagGroupName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagName => $composableBuilder(
+      column: $table.tagName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagType => $composableBuilder(
+      column: $table.tagType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagSelectionValue => $composableBuilder(
+      column: $table.tagSelectionValue,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get specMin => $composableBuilder(
+      column: $table.specMin, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get specMax => $composableBuilder(
+      column: $table.specMax, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
+}
+
+class $$DraftTagsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DraftTagsTable> {
+  $$DraftTagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get draftJobId => $composableBuilder(
+      column: $table.draftJobId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get draftMachineId => $composableBuilder(
+      column: $table.draftMachineId,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagGroupId => $composableBuilder(
+      column: $table.tagGroupId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagGroupName => $composableBuilder(
+      column: $table.tagGroupName,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagName => $composableBuilder(
+      column: $table.tagName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagType => $composableBuilder(
+      column: $table.tagType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagSelectionValue => $composableBuilder(
+      column: $table.tagSelectionValue,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get specMin => $composableBuilder(
+      column: $table.specMin, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get specMax => $composableBuilder(
+      column: $table.specMax, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+      column: $table.unit, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DraftTagsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DraftTagsTable> {
+  $$DraftTagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get uid =>
+      $composableBuilder(column: $table.uid, builder: (column) => column);
+
+  GeneratedColumn<int> get draftJobId => $composableBuilder(
+      column: $table.draftJobId, builder: (column) => column);
+
+  GeneratedColumn<int> get draftMachineId => $composableBuilder(
+      column: $table.draftMachineId, builder: (column) => column);
+
+  GeneratedColumn<String> get tagGroupId => $composableBuilder(
+      column: $table.tagGroupId, builder: (column) => column);
+
+  GeneratedColumn<String> get tagGroupName => $composableBuilder(
+      column: $table.tagGroupName, builder: (column) => column);
+
+  GeneratedColumn<String> get tagName =>
+      $composableBuilder(column: $table.tagName, builder: (column) => column);
+
+  GeneratedColumn<String> get tagType =>
+      $composableBuilder(column: $table.tagType, builder: (column) => column);
+
+  GeneratedColumn<String> get tagSelectionValue => $composableBuilder(
+      column: $table.tagSelectionValue, builder: (column) => column);
+
+  GeneratedColumn<String> get specMin =>
+      $composableBuilder(column: $table.specMin, builder: (column) => column);
+
+  GeneratedColumn<String> get specMax =>
+      $composableBuilder(column: $table.specMax, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+}
+
+class $$DraftTagsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DraftTagsTable,
+    DbDraftTag,
+    $$DraftTagsTableFilterComposer,
+    $$DraftTagsTableOrderingComposer,
+    $$DraftTagsTableAnnotationComposer,
+    $$DraftTagsTableCreateCompanionBuilder,
+    $$DraftTagsTableUpdateCompanionBuilder,
+    (DbDraftTag, BaseReferences<_$AppDatabase, $DraftTagsTable, DbDraftTag>),
+    DbDraftTag,
+    PrefetchHooks Function()> {
+  $$DraftTagsTableTableManager(_$AppDatabase db, $DraftTagsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DraftTagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DraftTagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DraftTagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            Value<int> draftJobId = const Value.absent(),
+            Value<int> draftMachineId = const Value.absent(),
+            Value<String?> tagGroupId = const Value.absent(),
+            Value<String?> tagGroupName = const Value.absent(),
+            Value<String?> tagName = const Value.absent(),
+            Value<String?> tagType = const Value.absent(),
+            Value<String?> tagSelectionValue = const Value.absent(),
+            Value<String?> specMin = const Value.absent(),
+            Value<String?> specMax = const Value.absent(),
+            Value<String?> unit = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+          }) =>
+              DraftTagsCompanion(
+            uid: uid,
+            draftJobId: draftJobId,
+            draftMachineId: draftMachineId,
+            tagGroupId: tagGroupId,
+            tagGroupName: tagGroupName,
+            tagName: tagName,
+            tagType: tagType,
+            tagSelectionValue: tagSelectionValue,
+            specMin: specMin,
+            specMax: specMax,
+            unit: unit,
+            description: description,
+          ),
+          createCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            required int draftJobId,
+            required int draftMachineId,
+            Value<String?> tagGroupId = const Value.absent(),
+            Value<String?> tagGroupName = const Value.absent(),
+            Value<String?> tagName = const Value.absent(),
+            Value<String?> tagType = const Value.absent(),
+            Value<String?> tagSelectionValue = const Value.absent(),
+            Value<String?> specMin = const Value.absent(),
+            Value<String?> specMax = const Value.absent(),
+            Value<String?> unit = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+          }) =>
+              DraftTagsCompanion.insert(
+            uid: uid,
+            draftJobId: draftJobId,
+            draftMachineId: draftMachineId,
+            tagGroupId: tagGroupId,
+            tagGroupName: tagGroupName,
+            tagName: tagName,
+            tagType: tagType,
+            tagSelectionValue: tagSelectionValue,
+            specMin: specMin,
+            specMax: specMax,
+            unit: unit,
+            description: description,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DraftTagsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $DraftTagsTable,
+    DbDraftTag,
+    $$DraftTagsTableFilterComposer,
+    $$DraftTagsTableOrderingComposer,
+    $$DraftTagsTableAnnotationComposer,
+    $$DraftTagsTableCreateCompanionBuilder,
+    $$DraftTagsTableUpdateCompanionBuilder,
+    (DbDraftTag, BaseReferences<_$AppDatabase, $DraftTagsTable, DbDraftTag>),
+    DbDraftTag,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12886,6 +16523,8 @@ class $AppDatabaseManager {
       $$DocumentsTableTableManager(_db, _db.documents);
   $$DocumentOnlinesTableTableManager get documentOnlines =>
       $$DocumentOnlinesTableTableManager(_db, _db.documentOnlines);
+  $$DocumentRecordOnlinesTableTableManager get documentRecordOnlines =>
+      $$DocumentRecordOnlinesTableTableManager(_db, _db.documentRecordOnlines);
   $$DocumentMachinesTableTableManager get documentMachines =>
       $$DocumentMachinesTableTableManager(_db, _db.documentMachines);
   $$DocumentRecordsTableTableManager get documentRecords =>
@@ -12905,4 +16544,10 @@ class $AppDatabaseManager {
   $$CheckSheetMasterImagesTableTableManager get checkSheetMasterImages =>
       $$CheckSheetMasterImagesTableTableManager(
           _db, _db.checkSheetMasterImages);
+  $$DraftJobsTableTableManager get draftJobs =>
+      $$DraftJobsTableTableManager(_db, _db.draftJobs);
+  $$DraftMachinesTableTableManager get draftMachines =>
+      $$DraftMachinesTableTableManager(_db, _db.draftMachines);
+  $$DraftTagsTableTableManager get draftTags =>
+      $$DraftTagsTableTableManager(_db, _db.draftTags);
 }

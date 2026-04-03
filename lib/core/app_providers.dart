@@ -24,6 +24,15 @@ import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/am_chec
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_online_viewmodel.dart';
 import 'package:biochecksheet7_flutter/data/repositories/document_online_repository.dart';
 
+import 'package:biochecksheet7_flutter/data/network/document_online_api_service.dart';
+import 'package:biochecksheet7_flutter/data/repositories/document_record_online_repository.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_machine_online_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/am_checksheet_online_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_record_online_viewmodel.dart';
+import 'package:biochecksheet7_flutter/data/repositories/draft_job_repository.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/draft_job/draft_job_viewmodel.dart';
+import 'package:biochecksheet7_flutter/data/network/draft_api_service.dart';
+
 // CRUCIAL FIX: Conditional Import for ImageProcessor
 import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_processor_native.dart'
@@ -66,6 +75,12 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
   );
 
   final documentOnlineRepository = DocumentOnlineRepository(appDatabase: appDatabase);
+
+  final documentOnlineApiService = DocumentOnlineApiService();
+  final documentRecordOnlineRepository = DocumentRecordOnlineRepository(appDatabase.documentRecordOnlineDao, documentOnlineApiService);
+
+  final draftApiService = DraftApiService();
+  final draftJobRepository = DraftJobRepository(appDatabase.draftJobDao, draftApiService);
 
   return [
     // Repositories (provided as value as they are singletons)
@@ -112,5 +127,17 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
         create: (_) => AMChecksheetViewModel(appDatabase: appDatabase)),
     ChangeNotifierProvider(
         create: (_) => DocumentOnlineViewModel(repository: documentOnlineRepository)),
+
+    // Online Read-only ViewModels
+    ChangeNotifierProvider(
+        create: (_) => DocumentMachineOnlineViewModel(repository: documentRecordOnlineRepository)),
+    ChangeNotifierProvider(
+        create: (_) => AMChecksheetOnlineViewModel(repository: documentRecordOnlineRepository)),
+    ChangeNotifierProvider(
+        create: (_) => DocumentRecordOnlineViewModel(repository: documentRecordOnlineRepository)),
+
+    // Custom Job Draft ViewModel
+    ChangeNotifierProvider(
+        create: (_) => DraftJobViewModel(repository: draftJobRepository)),
   ];
 }
