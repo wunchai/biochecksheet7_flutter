@@ -27,7 +27,7 @@ class DatabaseMaintenanceService {
     File? backupFile;
     try {
       final dbFolder = await getApplicationDocumentsDirectory();
-      final dbFilePath = p.join(dbFolder.path, 'db.sqlite');
+      final dbFilePath = p.join(dbFolder.path, AppConfig.databaseName);
 
       final dbFile = File(dbFilePath);
       if (!await dbFile.exists()) {
@@ -41,7 +41,7 @@ class DatabaseMaintenanceService {
       }
 
       final archive = Archive();
-      archive.addFile(ArchiveFile('db.sqlite', dbFile.lengthSync(), fileBytes));
+      archive.addFile(ArchiveFile(AppConfig.databaseName, dbFile.lengthSync(), fileBytes));
       final zipBytes = ZipEncoder().encode(archive);
 
       final backupDir = Directory(p.join(dbFolder.path, 'db_backups'));

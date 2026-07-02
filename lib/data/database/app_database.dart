@@ -81,27 +81,32 @@ part 'app_database.g.dart';
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase._(DatabaseConnection connection) : super(connection);
+  AppDatabase._(super.connection);
 
   static AppDatabase? _instance;
 
   static Future<AppDatabase> instance() async {
-    _instance ??= AppDatabase._(await platform_connection.connect());
+    _instance ??= AppDatabase._(platform_connection.connect());
     return _instance!;
   }
 
   // Define DAOs
+  @override
   DocumentOnlineDao get documentOnlineDao => DocumentOnlineDao(this);
+  @override
   DocumentRecordOnlineDao get documentRecordOnlineDao => DocumentRecordOnlineDao(this); // <<< NEW
 
   // NEW: Add getter for ImageDao
+  @override
   ImageDao get imageDao => ImageDao(this); // <<< NEW: Add ImageDao getter
+  @override
   ChecksheetMasterImageDao get checksheetMasterImageDao =>
       ChecksheetMasterImageDao(this);
+  @override
   DraftJobDao get draftJobDao => DraftJobDao(this);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 17;
 
   // Define the migration strategy.
   @override
@@ -179,6 +184,31 @@ class AppDatabase extends _$AppDatabase {
           if (from < 13) {
             // Added description to draftTags
             await m.addColumn(draftTags, draftTags.description);
+          }
+          if (from < 14) {
+            // Added documentId to draftMachines and draftTags
+            await m.addColumn(draftMachines, draftMachines.documentId);
+            await m.addColumn(draftTags, draftTags.documentId);
+          }
+          if (from < 15) {
+            // Changed primary key of draft tables to String (GUID). Drop and recreate.
+            await m.deleteTable(draftTags.actualTableName);
+            await m.deleteTable(draftMachines.actualTableName);
+            await m.deleteTable(draftJobs.actualTableName);
+            await m.createTable(draftJobs);
+            await m.createTable(draftMachines);
+            await m.createTable(draftTags);
+            // Ensure triggers are recreated for the new tables if applicable
+            await _createUpdatedAtTrigger(m, 'draft_jobs', 'updatedAt');
+          }
+          if (from < 16) {
+            // Added recordVersion to DraftJobs
+            await m.addColumn(draftJobs, draftJobs.recordVersion);
+          }
+          if (from < 17) {
+            // Added machineCode to DraftMachines and DraftTags
+            await m.addColumn(draftMachines, draftMachines.machineCode);
+            await m.addColumn(draftTags, draftTags.machineCode);
           }
         },
       );

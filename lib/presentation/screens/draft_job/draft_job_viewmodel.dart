@@ -10,11 +10,11 @@ class DraftJobViewModel extends ChangeNotifier {
 
   Stream<List<DbDraftJob>> get allDraftJobs => _repository.watchAllDraftJobs();
   
-  Stream<List<DbDraftMachine>> watchMachines(int jobId) => _repository.watchMachinesForJob(jobId);
+  Stream<List<DbDraftMachine>> watchMachines(String jobId) => _repository.watchMachinesForJob(jobId);
   
-  Stream<List<DbDraftTag>> watchTags(int machineId) => _repository.watchTagsForMachine(machineId);
+  Stream<List<DbDraftTag>> watchTags(String machineId) => _repository.watchTagsForMachine(machineId);
 
-  Future<int> createNewJob({
+  Future<String> createNewJob({
     required String jobName,
     required String location,
     String? machineName,
@@ -28,25 +28,60 @@ class DraftJobViewModel extends ChangeNotifier {
     );
   }
 
-  Future<void> deleteJob(int jobId) async {
+  Future<void> deleteJobAndSync(String jobId) async {
+    // 1. Update status to 4 for deleting on server
+    await _repository.updateDraftJobStatus(jobId, 4);
+    // 2. Sync to API (only the job)
+    await _repository.syncDraftJobDeleteToApi(jobId);
+    // 3. Delete from local database
     await _repository.deleteDraftJob(jobId);
   }
 
-  Future<void> syncJobToApi(int jobId) async {
+  Future<void> updateJobDetails({
+    required String draftJobId,
+    required String jobName,
+    required String location,
+    String? machineName,
+    String? documentId,
+  }) async {
+    await _repository.updateDraftJobDetails(
+      draftJobId: draftJobId,
+      jobName: jobName,
+      location: location,
+      machineName: machineName,
+      documentId: documentId,
+    );
+  }
+
+  Future<void> syncJobToApi(String jobId) async {
     await _repository.syncDraftJobToApi(jobId);
   }
 
-  Future<int> addMachine(int jobId, String machineName) async {
-    return await _repository.createDraftMachine(jobId, machineName);
+  Future<void> syncFromApi() async {
+    await _repository.downloadAndSyncDraftsFromApi();
+    notifyListeners();
   }
 
-  Future<void> deleteMachine(int machineId) async {
+  Future<String> addMachine(String jobId, String machineName, {String? machineCode}) async {
+    return await _repository.createDraftMachine(jobId, machineName, machineCode: machineCode);
+  }
+
+  Future<void> updateMachineDetails(String draftMachineId, String draftJobId, String machineName, {String? machineCode}) async {
+    await _repository.updateDraftMachineDetails(
+      draftMachineId: draftMachineId,
+      draftJobId: draftJobId,
+      machineName: machineName,
+      machineCode: machineCode,
+    );
+  }
+
+  Future<void> deleteMachine(String machineId) async {
     await _repository.deleteDraftMachine(machineId);
   }
 
-  Future<int> addTag({
-    required int jobId,
-    required int machineId,
+  Future<String> addTag({
+    required String jobId,
+    required String machineId,
     required String groupName,
     required String tagName,
     required String tagType,
@@ -55,6 +90,7 @@ class DraftJobViewModel extends ChangeNotifier {
     String? unit,
     String? selectionValues,
     String? description,
+    String? machineCode,
   }) async {
     return await _repository.createDraftTag(
       draftJobId: jobId,
@@ -67,14 +103,43 @@ class DraftJobViewModel extends ChangeNotifier {
       unit: unit,
       selectionValues: selectionValues,
       description: description,
+      machineCode: machineCode,
     );
   }
 
-  Future<void> deleteTag(int tagId) async {
+  Future<void> updateTagDetails({
+    required String draftTagId,
+    required String draftJobId,
+    required String groupName,
+    required String tagName,
+    required String tagType,
+    String? specMin,
+    String? specMax,
+    String? unit,
+    String? selectionValues,
+    String? description,
+    String? machineCode,
+  }) async {
+    await _repository.updateDraftTagDetails(
+      draftTagId: draftTagId,
+      draftJobId: draftJobId,
+      groupName: groupName,
+      tagName: tagName,
+      tagType: tagType,
+      specMin: specMin,
+      specMax: specMax,
+      unit: unit,
+      selectionValues: selectionValues,
+      description: description,
+      machineCode: machineCode,
+    );
+  }
+
+  Future<void> deleteTag(String tagId) async {
     await _repository.deleteDraftTag(tagId);
   }
 
   // --- Auto-complete queries ---
-  Future<List<String>> getDistinctGroupNames(int draftJobId) => _repository.getDistinctGroupNames(draftJobId);
-  Future<List<String>> getDistinctTagNames(int draftJobId) => _repository.getDistinctTagNames(draftJobId);
+  Future<List<String>> getDistinctGroupNames(String draftJobId) => _repository.getDistinctGroupNames(draftJobId);
+  Future<List<String>> getDistinctTagNames(String draftJobId) => _repository.getDistinctTagNames(draftJobId);
 }

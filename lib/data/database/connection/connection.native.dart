@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:biochecksheet7_flutter/core/app_config.dart';
 
 // Removed unused import for sqlite3
 // import 'package:sqlite3/sqlite3.dart';
@@ -13,7 +14,7 @@ DatabaseConnection connect() {
   return DatabaseConnection.delayed(
     Future(() async {
       final dbFolder = await getApplicationDocumentsDirectory();
-      final file = File(p.join(dbFolder.path, 'db.sqlite'));
+      final file = File(p.join(dbFolder.path, AppConfig.databaseName));
 
       // The NativeDatabase constructor now correctly returns a QueryExecutor
       // which is then wrapped in a DatabaseConnection as required.

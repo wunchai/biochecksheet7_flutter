@@ -5,15 +5,17 @@ import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/draft_job/draft_job_viewmodel.dart';
 
 class DraftTagListScreen extends StatelessWidget {
-  final int jobId;
-  final int machineId;
+  final String jobId;
+  final String machineId;
   final String machineName;
+  final String? machineCode; // Parent machine code
 
   const DraftTagListScreen({
     super.key,
     required this.jobId,
     required this.machineId,
     required this.machineName,
+    this.machineCode,
   });
 
   @override
@@ -87,21 +89,33 @@ class DraftTagListScreen extends StatelessWidget {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Type: ${tag.tagType ?? '-'} | Min: ${tag.specMin ?? '-'} | Max: ${tag.specMax ?? '-'} | Unit: ${tag.unit ?? '-'}'),
+          Text('Code: ${tag.machineCode ?? '-'} | Type: ${tag.tagType ?? '-'}'),
+          Text('Min: ${tag.specMin ?? '-'} | Max: ${tag.specMax ?? '-'} | Unit: ${tag.unit ?? '-'}'),
           if (tag.description != null && tag.description!.isNotEmpty)
             Text('Desc: ${tag.description}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
         ],
       ),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-        onPressed: () {
-          viewModel.deleteTag(tag.uid);
-        },
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.orange),
+            onPressed: () {
+              _showEditTagDialog(context, tag, viewModel);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+            onPressed: () {
+              viewModel.deleteTag(tag.uid);
+            },
+          ),
+        ],
       ),
     );
   }
 
-  void _showAddTagDialog(BuildContext context, DraftJobViewModel viewModel, int jobId, int machineId) async {
+  void _showAddTagDialog(BuildContext context, DraftJobViewModel viewModel, String jobId, String machineId) async {
     // Fetch distinct lists
     final groupOptions = await viewModel.getDistinctGroupNames(jobId);
     final tagOptions = await viewModel.getDistinctTagNames(jobId);
@@ -114,6 +128,7 @@ class DraftTagListScreen extends StatelessWidget {
     final maxCtrl = TextEditingController();
     final unitCtrl = TextEditingController();
     final descCtrl = TextEditingController();
+    final codeCtrl = TextEditingController(text: machineCode);
     String selectedType = 'number';
 
     showDialog(
@@ -175,6 +190,8 @@ class DraftTagListScreen extends StatelessWidget {
                     ],
                     const SizedBox(height: 16),
                     TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description (Optional)'), maxLines: 2),
+                    const SizedBox(height: 16),
+                    TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Machine Code (MT System Code)')),
                   ],
                 ),
               ),
@@ -193,11 +210,112 @@ class DraftTagListScreen extends StatelessWidget {
                         specMax: maxCtrl.text.isEmpty ? null : maxCtrl.text,
                         unit: unitCtrl.text.isEmpty ? null : unitCtrl.text,
                         description: descCtrl.text.isEmpty ? null : descCtrl.text,
+                        machineCode: codeCtrl.text.trim().isEmpty ? null : codeCtrl.text.trim(),
                       );
                       Navigator.pop(ctx);
                     }
                   },
                   child: const Text('Add'),
+                ),
+              ],
+            );
+          }
+        );
+      },
+    );
+  }
+
+  void _showEditTagDialog(BuildContext context, DbDraftTag tag, DraftJobViewModel viewModel) {
+    final formKey = GlobalKey<FormState>();
+    final groupCtrl = TextEditingController(text: tag.tagGroupName);
+    final nameCtrl = TextEditingController(text: tag.tagName);
+    final minCtrl = TextEditingController(text: tag.specMin);
+    final maxCtrl = TextEditingController(text: tag.specMax);
+    final unitCtrl = TextEditingController(text: tag.unit);
+    final descCtrl = TextEditingController(text: tag.description);
+    final codeCtrl = TextEditingController(text: tag.machineCode);
+    String selectedType = tag.tagType ?? 'number';
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Edit Tag'),
+              content: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: groupCtrl,
+                        decoration: const InputDecoration(labelText: 'Group Name *'),
+                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: nameCtrl,
+                        decoration: const InputDecoration(labelText: 'Tag Name *'),
+                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: selectedType,
+                        decoration: const InputDecoration(labelText: 'Data Type'),
+                        items: const [
+                          DropdownMenuItem(value: 'number', child: Text('Number')),
+                          DropdownMenuItem(value: 'text', child: Text('Text')),
+                          DropdownMenuItem(value: 'boolean', child: Text('Boolean (Pass/Fail)')),
+                        ],
+                        onChanged: (val) {
+                          setState(() { selectedType = val!; });
+                        },
+                      ),
+                      if (selectedType == 'number') ...[
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(child: TextFormField(controller: minCtrl, decoration: const InputDecoration(labelText: 'Min Spec'), keyboardType: TextInputType.number)),
+                            const SizedBox(width: 12),
+                            Expanded(child: TextFormField(controller: maxCtrl, decoration: const InputDecoration(labelText: 'Max Spec'), keyboardType: TextInputType.number)),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(controller: unitCtrl, decoration: const InputDecoration(labelText: 'Unit (e.g. °C, PSI)')),
+                      ],
+                      const SizedBox(height: 16),
+                      TextFormField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description (Optional)'), maxLines: 2),
+                      const SizedBox(height: 16),
+                      TextFormField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Machine Code (MT System Code)')),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
+                  onPressed: () async {
+                    if (formKey.currentState!.validate()) {
+                      await viewModel.updateTagDetails(
+                        draftTagId: tag.uid,
+                        draftJobId: tag.draftJobId,
+                        groupName: groupCtrl.text.trim(),
+                        tagName: nameCtrl.text.trim(),
+                        tagType: selectedType,
+                        specMin: minCtrl.text.isEmpty ? null : minCtrl.text,
+                        specMax: maxCtrl.text.isEmpty ? null : maxCtrl.text,
+                        unit: unitCtrl.text.isEmpty ? null : unitCtrl.text,
+                        selectionValues: tag.tagSelectionValue, // Keep unchanged for now
+                        description: descCtrl.text.isEmpty ? null : descCtrl.text,
+                        machineCode: codeCtrl.text.trim().isEmpty ? null : codeCtrl.text.trim(),
+                      );
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    }
+                  },
+                  child: const Text('Save', style: TextStyle(color: Colors.white)),
                 ),
               ],
             );

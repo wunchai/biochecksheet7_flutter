@@ -3,7 +3,9 @@ import 'package:drift/drift.dart';
 
 @DataClassName('DbDraftJob')
 class DraftJobs extends Table {
-  IntColumn get uid => integer().autoIncrement().named('uid')();
+  TextColumn get uid => text().named('uid')();
+  @override
+  Set<Column> get primaryKey => {uid};
   TextColumn get jobName => text().named('jobName')();
   TextColumn get location => text().named('location')();
   
@@ -13,6 +15,8 @@ class DraftJobs extends Table {
   
   // Status: 0 = Draft (editing), 1 = Ready/Submitted
   IntColumn get status => integer().named('status').withDefault(const Constant(0))();
+  
+  IntColumn get recordVersion => integer().named('recordVersion').withDefault(const Constant(1))();
   
   TextColumn get createDate => text().named('createDate').nullable()();
   TextColumn get updatedAt => text().named('updatedAt').nullable()();

@@ -4,13 +4,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // <<< 1. เพิ่ม Import
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 // Import new modular files
-//import 'package:biochecksheet7_flutter/app_config.dart'; // For colors
+import 'package:biochecksheet7_flutter/core/app_config.dart'; // For AppConfig.databaseName
 import 'package:biochecksheet7_flutter/core/app_theme.dart'; // For appTheme()
 import 'package:biochecksheet7_flutter/core/app_routes.dart'; // For appRoutes()
 import 'package:biochecksheet7_flutter/core/app_providers.dart'; // For appProviders()
 import 'package:biochecksheet7_flutter/data/services/background_tasks.dart'; // For callbackDispatcher
+import 'package:biochecksheet7_flutter/data/services/fcm_service.dart'; // For FCMService
 
 // Import AppDatabase (still needed directly for initialization)
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
@@ -35,6 +38,18 @@ Future<void> main() async {
   runZonedGuarded<Future<void>>(() async {
     WidgetsFlutterBinding.ensureInitialized();
 
+    // Initialize Firebase
+    try {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      // Initialize FCM Service (using global singleton)
+      await fcmService.initialize();
+    } catch (e) {
+      print("Firebase initialization failed: $e");
+    }
+
     // (ทางเลือก) ทำให้ System Bar โปร่งใสเพื่อให้สวยงามยิ่งขึ้น
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       systemNavigationBarColor: Colors.transparent,
@@ -46,8 +61,8 @@ Future<void> main() async {
       // <<< CRUCIAL FIX: Add Platform.isAndroid || Platform.isIOS
       try {
         final dbFolder = await getApplicationDocumentsDirectory();
-        final dbPath = File('${dbFolder.path}/db.sqlite');
-        print('Database path (db.sqlite): ${dbPath.path}');
+        final dbPath = File('${dbFolder.path}/${AppConfig.databaseName}');
+        print('Database path (${AppConfig.databaseName}): ${dbPath.path}');
         print('Database directory: ${dbFolder.path}');
       } catch (e) {
         print('Error getting database path: $e');

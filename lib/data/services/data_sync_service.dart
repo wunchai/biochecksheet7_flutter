@@ -492,6 +492,7 @@ class DataSyncService {
     required String version,
     required String ipAddress,
     required String wifiStrength,
+    String? fcmToken, // <<< NEW
   }) async {
     return _syncMetadataApiService.checkSyncStatus(
       username: username,
@@ -500,6 +501,7 @@ class DataSyncService {
       version: version,
       ipAddress: ipAddress,
       wifiStrength: wifiStrength,
+      fcmToken: fcmToken, // <<< NEW
     );
   }
 

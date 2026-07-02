@@ -3,11 +3,13 @@ import 'package:drift/drift.dart';
 
 @DataClassName('DbDraftTag')
 class DraftTags extends Table {
-  IntColumn get uid => integer().autoIncrement().named('uid')();
+  TextColumn get uid => text().named('uid')();
+  @override
+  Set<Column> get primaryKey => {uid};
   
   // Link back to DraftMachine and Job
-  IntColumn get draftJobId => integer().named('draftJobId')();
-  IntColumn get draftMachineId => integer().named('draftMachineId')();
+  TextColumn get draftJobId => text().named('draftJobId')();
+  TextColumn get draftMachineId => text().named('draftMachineId')();
   
   // Custom generated ID per machine (e.g., TagGroupId running number)
   TextColumn get tagGroupId => text().named('tagGroupId').nullable()();
@@ -23,4 +25,10 @@ class DraftTags extends Table {
   TextColumn get specMax => text().named('specMax').nullable()();
   TextColumn get unit => text().named('unit').nullable()();
   TextColumn get description => text().named('description').nullable()();
+  
+  // Link documentId for easy syncing
+  TextColumn get documentId => text().named('documentId').nullable()();
+  
+  // Specific MT System Code for this Tag (in case it belongs to a different machine)
+  TextColumn get machineCode => text().named('machineCode').nullable()();
 }

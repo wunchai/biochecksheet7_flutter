@@ -7,6 +7,7 @@ import 'package:biochecksheet7_flutter/data/repositories/job_repository.dart';
 //import 'package:biochecksheet7_flutter/data/database/daos/job_dao.dart';
 import 'package:biochecksheet7_flutter/data/services/data_sync_service.dart';
 import 'package:biochecksheet7_flutter/data/network/sync_status.dart';
+import 'package:biochecksheet7_flutter/data/services/fcm_service.dart';
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import api_response_models.dart
 import 'package:biochecksheet7_flutter/presentation/screens/login/login_viewmodel.dart'; // Make sure LoginViewModel is imported
 import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart'; // Make sure LoginRepository is imported
@@ -90,6 +91,7 @@ class HomeViewModel extends ChangeNotifier {
         version: appVersion,
         ipAddress: ipAddress,
         wifiStrength: wifiStrength,
+        fcmToken: await fcmService.getDeviceToken(), // <<< NEW
       );
 
       // 3. Process actions from server response

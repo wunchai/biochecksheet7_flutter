@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/home/home_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/notifications/notifications_viewmodel.dart'; // <<< NEW
 
 /// Custom AppBar for HomeScreen, handling title, search, and action buttons.
 class HomeAppBar extends StatefulWidget implements PreferredSizeWidget {
@@ -95,6 +96,21 @@ class _HomeAppBarState extends State<HomeAppBar> {
                 viewModel.setSearchQuery(''); // Clear search in ViewModel
               }
             });
+          },
+        ),
+        // Notification Button
+        Consumer<NotificationsViewModel>(
+          builder: (context, notificationViewModel, child) {
+            return IconButton(
+              icon: Badge(
+                isLabelVisible: notificationViewModel.unreadCount > 0,
+                label: Text(notificationViewModel.unreadCount.toString()),
+                child: const Icon(Icons.notifications),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(context, '/notifications');
+              },
+            );
           },
         ),
         // Refresh Button

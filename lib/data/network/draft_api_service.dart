@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
-import 'package:biochecksheet7_flutter/data/network/api_response_models.dart';
+
 
 class DraftApiService {
   final String _baseUrl = AppConfig.baseUrl;
 
-  Future<List<UploadRecordResult>> uploadDraftJobs(
+  Future<void> uploadDraftJobs(
       List<DbDraftJob> jobs) async {
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTJOB_SYNC");
     print("Uploading draft jobs to API: $uri");
@@ -23,7 +23,8 @@ class DraftApiService {
         "documentId": record.documentId,
         "status": record.status,
         "createDate": record.createDate,
-        "updatedAt": record.updatedAt
+        "updatedAt": record.updatedAt,
+        "recordVersion": record.recordVersion,
       };
     }).toList();
 
@@ -46,8 +47,9 @@ class DraftApiService {
       print("Draft Job Upload API Response status: ${response.statusCode}");
       print("Draft Job Upload API Response body: $decodedBody");
 
-      return _parseUploadResponse(
-          response.statusCode, decodedBody, jobs.map((e) => e.uid).toList());
+      if (response.statusCode != 200) {
+        throw Exception("Upload API failed: Status code ${response.statusCode}");
+      }
     } on http.ClientException catch (e) {
       print("Network error uploading draft jobs: ${e.message}");
       throw Exception("Network error uploading draft jobs: ${e.message}");
@@ -57,8 +59,8 @@ class DraftApiService {
     }
   }
 
-  Future<List<UploadRecordResult>> uploadDraftMachines(
-      List<DbDraftMachine> machines) async {
+  Future<void> uploadDraftMachines(
+      List<DbDraftMachine> machines, {int? recordVersion}) async {
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTMACHINE_SYNC");
     print("Uploading draft machines to API: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -69,7 +71,9 @@ class DraftApiService {
         "draftJobId": record.draftJobId,
         "machineId": record.machineId,
         "machineName": record.machineName,
-        "machineType": record.machineType
+        "machineType": record.machineType,
+        "machineCode": record.machineCode,
+        if (recordVersion != null) "recordVersion": recordVersion,
       };
     }).toList();
 
@@ -91,8 +95,9 @@ class DraftApiService {
       print("Draft Machine Upload API Response status: ${response.statusCode}");
       print("Draft Machine Upload API Response body: $decodedBody");
 
-      return _parseUploadResponse(response.statusCode, decodedBody,
-          machines.map((e) => e.uid).toList());
+      if (response.statusCode != 200) {
+        throw Exception("Upload API failed: Status code ${response.statusCode}");
+      }
     } on http.ClientException catch (e) {
       print("Network error uploading draft machines: ${e.message}");
       throw Exception("Network error uploading draft machines: ${e.message}");
@@ -103,8 +108,8 @@ class DraftApiService {
     }
   }
 
-  Future<List<UploadRecordResult>> uploadDraftTags(
-      List<DbDraftTag> tags) async {
+  Future<void> uploadDraftTags(
+      List<DbDraftTag> tags, {int? recordVersion}) async {
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTTAG_SYNC");
     print("Uploading draft tags to API: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -122,7 +127,9 @@ class DraftApiService {
         "specMin": record.specMin,
         "specMax": record.specMax,
         "unit": record.unit,
-        "description": record.description
+        "description": record.description,
+        "machineCode": record.machineCode,
+        if (recordVersion != null) "recordVersion": recordVersion,
       };
     }).toList();
 
@@ -144,8 +151,9 @@ class DraftApiService {
       print("Draft Tag Upload API Response status: ${response.statusCode}");
       print("Draft Tag Upload API Response body: $decodedBody");
 
-      return _parseUploadResponse(
-          response.statusCode, decodedBody, tags.map((e) => e.uid).toList());
+      if (response.statusCode != 200) {
+        throw Exception("Upload API failed: Status code ${response.statusCode}");
+      }
     } on http.ClientException catch (e) {
       print("Network error uploading draft tags: ${e.message}");
       throw Exception("Network error uploading draft tags: ${e.message}");
@@ -155,12 +163,201 @@ class DraftApiService {
     }
   }
 
-  List<UploadRecordResult> _parseUploadResponse(int statusCode, String decodedBody, List<int> originalUids) {
-    if (statusCode == 200) {
-      // ตามที่ User ต้องการ: ไม่สนใจ JSON รูปแบบข้างใน หากส่งผ่าน 200 แล้วได้ Response Body ปกติถือว่าสำเร็จทั้งหมด
-      return originalUids.map((uid) => UploadRecordResult(uid: uid, result: 3)).toList();
-    } else {
-      throw Exception("Upload API failed: Status code $statusCode");
+  Future<List<DbDraftJob>> downloadDraftJobs() async {
+    List<DbDraftJob> allJobs = [];
+    int pageIndex = 1;
+    const int pageSize = 20;
+    bool hasMoreData = true;
+
+    while (hasMoreData) {
+      final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTJOB_PAGED_SYNC");
+      final body = jsonEncode({
+        'userId': '000000',
+        'pageIndex': pageIndex.toString(),
+        'pageSize': pageSize.toString(),
+      });
+
+      try {
+        final response = await http.post(uri, headers: {'Content-Type': 'application/json'}, body: body);
+        final String decodedBody = utf8.decode(response.bodyBytes);
+        
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
+          if (responseJson['Jobs'] != null) {
+            final decodedJobs = jsonDecode(responseJson['Jobs']);
+            if (decodedJobs is List) {
+              if (decodedJobs.isEmpty) {
+                hasMoreData = false;
+                break;
+              }
+
+              final List<DbDraftJob> syncedJobs = decodedJobs.map((jobData) {
+                return DbDraftJob(
+                  uid: jobData['Uid']?.toString() ?? '',
+                  jobName: jobData['JobName'] ?? '',
+                  location: jobData['Location'] ?? '',
+                  machineName: jobData['MachineName'],
+                  documentId: jobData['DocumentId'],
+                  status: jobData['Status'] ?? 0,
+                  createDate: jobData['CreateDate'] ?? '',
+                  updatedAt: jobData['UpdatedAt'],
+                  recordVersion: jobData['RecordVersion'] ?? 1,
+                );
+              }).toList();
+
+              allJobs.addAll(syncedJobs);
+              if (syncedJobs.length < pageSize) {
+                hasMoreData = false;
+              } else {
+                pageIndex++;
+              }
+            } else {
+              hasMoreData = false;
+            }
+          } else {
+            hasMoreData = false;
+          }
+        } else {
+          print("Error downloading jobs: Status code ${response.statusCode}");
+          hasMoreData = false;
+        }
+      } catch (e) {
+        print("Error downloading draft jobs: $e");
+        hasMoreData = false;
+      }
     }
+    return allJobs;
   }
+
+  Future<List<DbDraftMachine>> downloadDraftMachines() async {
+    List<DbDraftMachine> allMachines = [];
+    int pageIndex = 1;
+    const int pageSize = 20;
+    bool hasMoreData = true;
+
+    while (hasMoreData) {
+      final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTMACHINE_PAGED_SYNC");
+      final body = jsonEncode({
+        'userId': '000000',
+        'pageIndex': pageIndex.toString(),
+        'pageSize': pageSize.toString(),
+      });
+
+      try {
+        final response = await http.post(uri, headers: {'Content-Type': 'application/json'}, body: body);
+        final String decodedBody = utf8.decode(response.bodyBytes);
+        
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
+          if (responseJson['Jobs'] != null) {
+            final decodedMachines = jsonDecode(responseJson['Jobs']);
+            if (decodedMachines is List) {
+              if (decodedMachines.isEmpty) {
+                hasMoreData = false;
+                break;
+              }
+
+              final List<DbDraftMachine> syncedMachines = decodedMachines.map((machineData) {
+                return DbDraftMachine(
+                  uid: machineData['Uid']?.toString() ?? '',
+                  draftJobId: machineData['DraftJobId']?.toString() ?? '',
+                  machineId: machineData['MachineId']?.toString(),
+                  machineName: machineData['MachineName'],
+                  machineType: machineData['MachineType'],
+                  machineCode: machineData['MachineCode'],
+                );
+              }).toList();
+
+              allMachines.addAll(syncedMachines);
+              if (syncedMachines.length < pageSize) {
+                hasMoreData = false;
+              } else {
+                pageIndex++;
+              }
+            } else {
+              hasMoreData = false;
+            }
+          } else {
+            hasMoreData = false;
+          }
+        } else {
+          hasMoreData = false;
+        }
+      } catch (e) {
+        print("Error downloading draft machines: $e");
+        hasMoreData = false;
+      }
+    }
+    return allMachines;
+  }
+
+  Future<List<DbDraftTag>> downloadDraftTags() async {
+    List<DbDraftTag> allTags = [];
+    int pageIndex = 1;
+    const int pageSize = 20;
+    bool hasMoreData = true;
+
+    while (hasMoreData) {
+      final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTTAG_PAGED_SYNC");
+      final body = jsonEncode({
+        'userId': '000000',
+        'pageIndex': pageIndex.toString(),
+        'pageSize': pageSize.toString(),
+      });
+
+      try {
+        final response = await http.post(uri, headers: {'Content-Type': 'application/json'}, body: body);
+        final String decodedBody = utf8.decode(response.bodyBytes);
+        
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
+          if (responseJson['Jobs'] != null) {
+            final decodedTags = jsonDecode(responseJson['Jobs']);
+            if (decodedTags is List) {
+              if (decodedTags.isEmpty) {
+                hasMoreData = false;
+                break;
+              }
+
+              final List<DbDraftTag> syncedTags = decodedTags.map((tagData) {
+                return DbDraftTag(
+                  uid: tagData['Uid']?.toString() ?? '',
+                  draftJobId: tagData['DraftJobId']?.toString() ?? '',
+                  draftMachineId: tagData['DraftMachineId']?.toString() ?? '',
+                  tagGroupId: tagData['TagGroupId']?.toString(),
+                  tagGroupName: tagData['TagGroupName'],
+                  tagName: tagData['TagName'],
+                  tagType: tagData['TagType'],
+                  tagSelectionValue: tagData['TagSelectionValue'],
+                  specMin: tagData['SpecMin'],
+                  specMax: tagData['SpecMax'],
+                  unit: tagData['Unit'],
+                  description: tagData['Description'],
+                  machineCode: tagData['MachineCode'],
+                );
+              }).toList();
+
+              allTags.addAll(syncedTags);
+              if (syncedTags.length < pageSize) {
+                hasMoreData = false;
+              } else {
+                pageIndex++;
+              }
+            } else {
+              hasMoreData = false;
+            }
+          } else {
+            hasMoreData = false;
+          }
+        } else {
+          hasMoreData = false;
+        }
+      } catch (e) {
+        print("Error downloading draft tags: $e");
+        hasMoreData = false;
+      }
+    }
+    return allTags;
+  }
+
 }

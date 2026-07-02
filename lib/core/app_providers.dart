@@ -113,7 +113,8 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
         create: (context) => DeviceInfoViewModel(
             deviceInfoService:
                 Provider.of<DeviceInfoService>(context, listen: false),
-            dataSyncService: dataSyncService)),
+            dataSyncService: dataSyncService,
+            loginRepository: loginRepository)), // <<< NEW
     Provider.value(value: dataSyncService), // Use existing instance
     Provider<DatabaseMaintenanceService>(
         create: (_) => DatabaseMaintenanceService(appDatabase: appDatabase)),

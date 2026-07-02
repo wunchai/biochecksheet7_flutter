@@ -5,7 +5,7 @@ import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/draft_job/draft_job_viewmodel.dart';
 
 class DraftMachineListScreen extends StatelessWidget {
-  final int jobId;
+  final String jobId;
   final String jobName;
 
   const DraftMachineListScreen({super.key, required this.jobId, required this.jobName});
@@ -67,26 +67,40 @@ class DraftMachineListScreen extends StatelessWidget {
           backgroundColor: Colors.teal.shade100,
           child: const Icon(Icons.precision_manufacturing, color: Colors.teal),
         ),
-        title: Text('${machine.machineId} : ${machine.machineName ?? 'Unnamed'}', 
+        title: Text('${(machine.machineId != null && machine.machineId!.length > 8) ? machine.machineId!.substring(0, 8) : machine.machineId} : ${machine.machineName ?? 'Unnamed'}', 
             style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: const Text('Tap to manage Tags'),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete, color: Colors.red),
-          onPressed: () => _confirmDeleteMachine(context, machine, viewModel),
+        subtitle: Text(
+          'Code: ${machine.machineCode ?? '-'} | Tap to manage Tags',
+          style: TextStyle(color: Colors.grey.shade600),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.orange),
+              onPressed: () => _showEditMachineDialog(context, machine, viewModel, jobId),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () => _confirmDeleteMachine(context, machine, viewModel),
+            ),
+          ],
         ),
         onTap: () {
           Navigator.pushNamed(context, '/draft_tag_list', arguments: {
             'jobId': jobId,
             'machineId': machine.uid,
             'machineName': machine.machineName ?? 'Unnamed',
+            'machineCode': machine.machineCode,
           });
         },
       ),
     );
   }
 
-  void _showAddMachineDialog(BuildContext context, DraftJobViewModel viewModel, int jobId) {
+  void _showAddMachineDialog(BuildContext context, DraftJobViewModel viewModel, String jobId) {
     final nameCtrl = TextEditingController();
+    final codeCtrl = TextEditingController();
 
     showDialog(
       context: context,
@@ -96,6 +110,8 @@ class DraftMachineListScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Machine Name')),
+            const SizedBox(height: 16),
+            TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Machine Code (MT System Code)')),
           ],
         ),
         actions: [
@@ -103,11 +119,64 @@ class DraftMachineListScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () async {
               if (nameCtrl.text.isNotEmpty) {
-                await viewModel.addMachine(jobId, nameCtrl.text);
-                Navigator.pop(ctx);
+                await viewModel.addMachine(
+                  jobId, 
+                  nameCtrl.text.trim(),
+                  machineCode: codeCtrl.text.trim().isEmpty ? null : codeCtrl.text.trim(),
+                );
+                if (ctx.mounted) Navigator.pop(ctx);
               }
             },
             child: const Text('Add'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditMachineDialog(BuildContext context, DbDraftMachine machine, DraftJobViewModel viewModel, String jobId) {
+    final formKey = GlobalKey<FormState>();
+    final nameCtrl = TextEditingController(text: machine.machineName);
+    final codeCtrl = TextEditingController(text: machine.machineCode);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit Machine'),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Machine Name *'),
+                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: codeCtrl,
+                decoration: const InputDecoration(labelText: 'Machine Code (MT System Code)'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                await viewModel.updateMachineDetails(
+                  machine.uid,
+                  jobId,
+                  nameCtrl.text.trim(),
+                  machineCode: codeCtrl.text.trim().isEmpty ? null : codeCtrl.text.trim(),
+                );
+                if (ctx.mounted) Navigator.pop(ctx);
+              }
+            },
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

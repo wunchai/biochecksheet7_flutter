@@ -21,6 +21,7 @@ class SyncMetadataApiService {
     required String version,
     required String ipAddress,
     required String wifiStrength,
+    String? fcmToken, // <<< NEW
   }) async {
     final uri = Uri.parse(
         "$_baseUrl/CHECKSHEET_DEVICE_INFO_SYNC"); // Assumed API Endpoint
@@ -35,6 +36,7 @@ class SyncMetadataApiService {
       version: version,
       ipAddress: ipAddress,
       wifiStrength: wifiStrength,
+      fcmToken: fcmToken, // <<< NEW
     );
 
     final Map<String, dynamic> parameterObject = {

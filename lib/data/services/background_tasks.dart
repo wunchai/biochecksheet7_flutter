@@ -7,6 +7,7 @@ import 'package:workmanager/workmanager.dart';
 // Import all necessary services and database for background task
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/services/data_sync_service.dart';
+import 'package:biochecksheet7_flutter/data/services/fcm_service.dart'; // <<< NEW
 import 'package:biochecksheet7_flutter/data/services/database_maintenance_service.dart';
 import 'package:biochecksheet7_flutter/data/services/data_cleanup_service.dart';
 import 'package:biochecksheet7_flutter/data/services/device_info_service.dart';
@@ -116,6 +117,7 @@ void callbackDispatcher() {
             version: appVersion,
             ipAddress: ipAddress,
             wifiStrength: wifiStrength,
+            fcmToken: await fcmService.getDeviceToken(), // <<< NEW
           );
 
           bool allActionsSuccessful = true;

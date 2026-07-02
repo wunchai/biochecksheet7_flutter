@@ -15,6 +15,8 @@ class AppConfig {
   //static const String baseUrl = 'http://10.1.200.26/ServiceJson/Service4.svc';
   //static const String baseUrl = 'http://10.1.200.26:94';
   static const String baseUrl = 'http://10.1.2.42:93';
+  //static const String baseUrl = 'http://10.1.1.66:5029';
+  static const String databaseName = 'biochecksheet7_db.sqlite';
   // --- การตั้งค่าอื่นๆ (สามารถเพิ่มได้ในอนาคต) ---
 
   // ตัวอย่าง: ระยะเวลา timeout สำหรับการเชื่อมต่อ API (เป็นวินาที)

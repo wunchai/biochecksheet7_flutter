@@ -6,7 +6,7 @@ import 'package:biochecksheet7_flutter/presentation/screens/login/login_screen.d
 import 'package:biochecksheet7_flutter/presentation/screens/main_wrapper/main_wrapper_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/home/home_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/dashboard/dashboard_screen.dart';
-//import 'package:biochecksheet7_flutter/ui/notifications/notifications_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/notifications/notifications_screen.dart'; // <<< NEW
 import 'package:biochecksheet7_flutter/presentation/screens/document/document_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/documentmachine/document_machine_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/documentrecord/document_record_screen.dart';
@@ -75,8 +75,7 @@ Map<String, WidgetBuilder> appRoutes() {
     },
     '/problem': (context) => const ProblemScreen(title: 'Problem List'),
     '/device_info': (context) => const DeviceInfoScreen(title: 'ข้อมูลอุปกรณ์'),
-    '/notifications': (context) => const DataSummaryScreen(
-        title: 'สรุปข้อมูล'), // <<< CHANGED: Notifications to DataSummary
+    '/notifications': (context) => const NotificationsScreen(title: 'การแจ้งเตือน'),
     '/data_summary': (context) => const DataSummaryScreen(
         title: 'สรุปข้อมูล'), // <<< NEW: Add explicit route
     '/document_machine_online': (context) {
@@ -108,16 +107,17 @@ Map<String, WidgetBuilder> appRoutes() {
     '/draft_machine_list': (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       return DraftMachineListScreen(
-        jobId: args?['jobId'] ?? 0,
+        jobId: args?['jobId'] ?? '',
         jobName: args?['jobName'] ?? 'Untitled',
       );
     },
     '/draft_tag_list': (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       return DraftTagListScreen(
-        jobId: args?['jobId'] ?? 0,
-        machineId: args?['machineId'] ?? 0,
+        jobId: args?['jobId'] ?? '',
+        machineId: args?['machineId'] ?? '',
         machineName: args?['machineName'] ?? 'Unnamed',
+        machineCode: args?['machineCode'],
       );
     },
   };

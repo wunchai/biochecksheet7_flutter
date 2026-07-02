@@ -2,13 +2,15 @@
 import 'package:flutter/material.dart';
 import 'package:biochecksheet7_flutter/data/services/device_info_service.dart'; // Import DeviceInfoService
 import 'package:biochecksheet7_flutter/data/services/data_sync_service.dart'; // <<< NEW: Import DataSyncService
-import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import API Response Models
+import 'package:biochecksheet7_flutter/data/network/api_response_models.dart';
+import 'package:biochecksheet7_flutter/data/services/fcm_service.dart';
+import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart'; // <<< NEW
 import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // <<< NEW: Import SyncStatus
 
 class DeviceInfoViewModel extends ChangeNotifier {
   final DeviceInfoService _deviceInfoService;
-  final DataSyncService
-      _dataSyncService; // <<< NEW: Add DataSyncService dependency
+  final DataSyncService _dataSyncService; // <<< NEW: Add DataSyncService dependency
+  final LoginRepository _loginRepository; // <<< NEW
 
   String _deviceId = 'กำลังโหลด...';
   String get deviceId => _deviceId;
@@ -44,13 +46,13 @@ class DeviceInfoViewModel extends ChangeNotifier {
   int _masterImageCount = 0;
   int get masterImageCount => _masterImageCount;
 
-  DeviceInfoViewModel(
-      {required DeviceInfoService deviceInfoService,
-      required DataSyncService
-          dataSyncService}) // <<< NEW: Receive DataSyncService
-      : _deviceInfoService = deviceInfoService,
-        _dataSyncService =
-            dataSyncService; // <<< NEW: Initialize DataSyncService
+  DeviceInfoViewModel({
+    required DeviceInfoService deviceInfoService,
+    required DataSyncService dataSyncService,
+    required LoginRepository loginRepository,
+  })  : _deviceInfoService = deviceInfoService,
+        _dataSyncService = dataSyncService,
+        _loginRepository = loginRepository;
 
   /// Fetches all device information.
   Future<void> fetchDeviceInfo() async {
@@ -96,14 +98,16 @@ class DeviceInfoViewModel extends ChangeNotifier {
       await fetchDeviceInfo(); // Refresh device info before sending
 
       // 2. Call checkSyncMetadata API
+      final String username = _loginRepository.loggedInUser?.userId ?? 'unknown_user'; // <<< NEW
       final List<SyncMetadataResponse> syncMetadataResults =
           await _dataSyncService.checkSyncMetadata(
-        username: 'admin', // TODO: Replace with actual logged-in username
+        username: username, // <<< FIX
         deviceId: _deviceId,
         serialNo: _serialNo,
         version: _appVersion,
         ipAddress: _ipAddress,
         wifiStrength: _wifiStrength,
+        fcmToken: await fcmService.getDeviceToken(), // <<< NEW
       );
 
       // 3. Process actions from server response
@@ -115,8 +119,8 @@ class DeviceInfoViewModel extends ChangeNotifier {
           case "transferDB":
             final result = await _dataSyncService.databaseMaintenanceService
                 .backupAndUploadDb(
-                    userId: 'admin',
-                    deviceId: _deviceId); // TODO: Replace userId
+                    userId: username, // <<< FIX
+                    deviceId: _deviceId); 
             if (result is SyncError) allActionsSuccessful = false;
             break;
           case "update":

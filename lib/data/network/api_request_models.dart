@@ -7,6 +7,7 @@ class SyncMetadataRequest {
   final String version;
   final String ipAddress;
   final String wifiStrength;
+  final String? fcmToken; // <<< NEW
 
   SyncMetadataRequest({
     required this.username,
@@ -15,6 +16,7 @@ class SyncMetadataRequest {
     required this.version,
     required this.ipAddress,
     required this.wifiStrength,
+    this.fcmToken, // <<< NEW
   });
 
   Map<String, dynamic> toJson() {
@@ -25,6 +27,7 @@ class SyncMetadataRequest {
       "Version": version,
       "IPAddress": ipAddress,
       "WifiStrength": wifiStrength,
+      "FCMToken": fcmToken ?? "", // <<< NEW
     };
   }
 }
