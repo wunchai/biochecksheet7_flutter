@@ -34,7 +34,10 @@ class DocumentRecordOnlineRepository {
 
         // Convert network response to Db insertions
         if (response.records.isNotEmpty) {
+          print('DEBUG REPO API_ID for first record: ${response.records.first.apiId}');
+
           final companions = response.records.map((record) => DocumentRecordOnlinesCompanion(
+            apiId: record.apiId != null ? drift.Value(record.apiId!) : const drift.Value.absent(), // <<< FIX: Map apiId
             documentId: drift.Value(record.documentId),
             documentCreateDate: drift.Value(record.documentCreateDate),
             documentCreateUser: drift.Value(record.documentCreateUser),
@@ -61,6 +64,12 @@ class DocumentRecordOnlineRepository {
           )).toList();
 
           await _dao.insertMultipleRecords(companions);
+
+          // VERIFY what was actually saved!
+          final allRecords = await _dao.select(_dao.documentRecordOnlines).get();
+          if (allRecords.isNotEmpty) {
+            print('DEBUG DB AFTER INSERT: found ${allRecords.length} records. First apiId in DB is: ${allRecords.first.apiId}');
+          }
         }
 
         currentPage++;

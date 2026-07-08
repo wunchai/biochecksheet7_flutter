@@ -120,6 +120,8 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
             dataSyncService: dataSyncService,
             loginRepository: loginRepository)), // <<< NEW
     Provider.value(value: dataSyncService), // Use existing instance
+    Provider.value(value: documentOnlineApiService), // NEW: Provide DocumentOnlineApiService
+
     Provider<DatabaseMaintenanceService>(
         create: (_) => DatabaseMaintenanceService(appDatabase: appDatabase)),
     Provider<DataCleanupService>(

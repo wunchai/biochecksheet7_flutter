@@ -6,6 +6,7 @@ class DocumentRecordOnlines extends Table {
   IntColumn get uid => integer().autoIncrement().named('uid')();
 
   // Mapped from API
+  IntColumn get apiId => integer().named('apiId').nullable()(); // API primary key ID
   TextColumn get documentId => text().named('documentId').nullable()();
   TextColumn get documentCreateDate => text().named('documentCreateDate').nullable()();
   TextColumn get documentCreateUser => text().named('documentCreateUser').nullable()();

@@ -1510,6 +1510,11 @@ class $DocumentRecordOnlinesTable extends DocumentRecordOnlines
       requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _apiIdMeta = const VerificationMeta('apiId');
+  @override
+  late final GeneratedColumn<int> apiId = GeneratedColumn<int>(
+      'apiId', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _documentIdMeta =
       const VerificationMeta('documentId');
   @override
@@ -1654,6 +1659,7 @@ class $DocumentRecordOnlinesTable extends DocumentRecordOnlines
   @override
   List<GeneratedColumn> get $columns => [
         uid,
+        apiId,
         documentId,
         documentCreateDate,
         documentCreateUser,
@@ -1693,6 +1699,10 @@ class $DocumentRecordOnlinesTable extends DocumentRecordOnlines
     if (data.containsKey('uid')) {
       context.handle(
           _uidMeta, uid.isAcceptableOrUnknown(data['uid']!, _uidMeta));
+    }
+    if (data.containsKey('apiId')) {
+      context.handle(
+          _apiIdMeta, apiId.isAcceptableOrUnknown(data['apiId']!, _apiIdMeta));
     }
     if (data.containsKey('documentId')) {
       context.handle(
@@ -1819,6 +1829,8 @@ class $DocumentRecordOnlinesTable extends DocumentRecordOnlines
     return DbDocumentRecordOnline(
       uid: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}uid'])!,
+      apiId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}apiId']),
       documentId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}documentId']),
       documentCreateDate: attachedDatabase.typeMapping.read(
@@ -1879,6 +1891,7 @@ class $DocumentRecordOnlinesTable extends DocumentRecordOnlines
 class DbDocumentRecordOnline extends DataClass
     implements Insertable<DbDocumentRecordOnline> {
   final int uid;
+  final int? apiId;
   final String? documentId;
   final String? documentCreateDate;
   final String? documentCreateUser;
@@ -1905,6 +1918,7 @@ class DbDocumentRecordOnline extends DataClass
   final String? updatedAt;
   const DbDocumentRecordOnline(
       {required this.uid,
+      this.apiId,
       this.documentId,
       this.documentCreateDate,
       this.documentCreateUser,
@@ -1933,6 +1947,9 @@ class DbDocumentRecordOnline extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['uid'] = Variable<int>(uid);
+    if (!nullToAbsent || apiId != null) {
+      map['apiId'] = Variable<int>(apiId);
+    }
     if (!nullToAbsent || documentId != null) {
       map['documentId'] = Variable<String>(documentId);
     }
@@ -2007,6 +2024,8 @@ class DbDocumentRecordOnline extends DataClass
   DocumentRecordOnlinesCompanion toCompanion(bool nullToAbsent) {
     return DocumentRecordOnlinesCompanion(
       uid: Value(uid),
+      apiId:
+          apiId == null && nullToAbsent ? const Value.absent() : Value(apiId),
       documentId: documentId == null && nullToAbsent
           ? const Value.absent()
           : Value(documentId),
@@ -2076,6 +2095,7 @@ class DbDocumentRecordOnline extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return DbDocumentRecordOnline(
       uid: serializer.fromJson<int>(json['uid']),
+      apiId: serializer.fromJson<int?>(json['apiId']),
       documentId: serializer.fromJson<String?>(json['documentId']),
       documentCreateDate:
           serializer.fromJson<String?>(json['documentCreateDate']),
@@ -2110,6 +2130,7 @@ class DbDocumentRecordOnline extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'uid': serializer.toJson<int>(uid),
+      'apiId': serializer.toJson<int?>(apiId),
       'documentId': serializer.toJson<String?>(documentId),
       'documentCreateDate': serializer.toJson<String?>(documentCreateDate),
       'documentCreateUser': serializer.toJson<String?>(documentCreateUser),
@@ -2139,6 +2160,7 @@ class DbDocumentRecordOnline extends DataClass
 
   DbDocumentRecordOnline copyWith(
           {int? uid,
+          Value<int?> apiId = const Value.absent(),
           Value<String?> documentId = const Value.absent(),
           Value<String?> documentCreateDate = const Value.absent(),
           Value<String?> documentCreateUser = const Value.absent(),
@@ -2165,6 +2187,7 @@ class DbDocumentRecordOnline extends DataClass
           Value<String?> updatedAt = const Value.absent()}) =>
       DbDocumentRecordOnline(
         uid: uid ?? this.uid,
+        apiId: apiId.present ? apiId.value : this.apiId,
         documentId: documentId.present ? documentId.value : this.documentId,
         documentCreateDate: documentCreateDate.present
             ? documentCreateDate.value
@@ -2202,6 +2225,7 @@ class DbDocumentRecordOnline extends DataClass
       DocumentRecordOnlinesCompanion data) {
     return DbDocumentRecordOnline(
       uid: data.uid.present ? data.uid.value : this.uid,
+      apiId: data.apiId.present ? data.apiId.value : this.apiId,
       documentId:
           data.documentId.present ? data.documentId.value : this.documentId,
       documentCreateDate: data.documentCreateDate.present
@@ -2247,6 +2271,7 @@ class DbDocumentRecordOnline extends DataClass
   String toString() {
     return (StringBuffer('DbDocumentRecordOnline(')
           ..write('uid: $uid, ')
+          ..write('apiId: $apiId, ')
           ..write('documentId: $documentId, ')
           ..write('documentCreateDate: $documentCreateDate, ')
           ..write('documentCreateUser: $documentCreateUser, ')
@@ -2278,6 +2303,7 @@ class DbDocumentRecordOnline extends DataClass
   @override
   int get hashCode => Object.hashAll([
         uid,
+        apiId,
         documentId,
         documentCreateDate,
         documentCreateUser,
@@ -2308,6 +2334,7 @@ class DbDocumentRecordOnline extends DataClass
       identical(this, other) ||
       (other is DbDocumentRecordOnline &&
           other.uid == this.uid &&
+          other.apiId == this.apiId &&
           other.documentId == this.documentId &&
           other.documentCreateDate == this.documentCreateDate &&
           other.documentCreateUser == this.documentCreateUser &&
@@ -2337,6 +2364,7 @@ class DbDocumentRecordOnline extends DataClass
 class DocumentRecordOnlinesCompanion
     extends UpdateCompanion<DbDocumentRecordOnline> {
   final Value<int> uid;
+  final Value<int?> apiId;
   final Value<String?> documentId;
   final Value<String?> documentCreateDate;
   final Value<String?> documentCreateUser;
@@ -2363,6 +2391,7 @@ class DocumentRecordOnlinesCompanion
   final Value<String?> updatedAt;
   const DocumentRecordOnlinesCompanion({
     this.uid = const Value.absent(),
+    this.apiId = const Value.absent(),
     this.documentId = const Value.absent(),
     this.documentCreateDate = const Value.absent(),
     this.documentCreateUser = const Value.absent(),
@@ -2390,6 +2419,7 @@ class DocumentRecordOnlinesCompanion
   });
   DocumentRecordOnlinesCompanion.insert({
     this.uid = const Value.absent(),
+    this.apiId = const Value.absent(),
     this.documentId = const Value.absent(),
     this.documentCreateDate = const Value.absent(),
     this.documentCreateUser = const Value.absent(),
@@ -2417,6 +2447,7 @@ class DocumentRecordOnlinesCompanion
   });
   static Insertable<DbDocumentRecordOnline> custom({
     Expression<int>? uid,
+    Expression<int>? apiId,
     Expression<String>? documentId,
     Expression<String>? documentCreateDate,
     Expression<String>? documentCreateUser,
@@ -2444,6 +2475,7 @@ class DocumentRecordOnlinesCompanion
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
+      if (apiId != null) 'apiId': apiId,
       if (documentId != null) 'documentId': documentId,
       if (documentCreateDate != null) 'documentCreateDate': documentCreateDate,
       if (documentCreateUser != null) 'documentCreateUser': documentCreateUser,
@@ -2473,6 +2505,7 @@ class DocumentRecordOnlinesCompanion
 
   DocumentRecordOnlinesCompanion copyWith(
       {Value<int>? uid,
+      Value<int?>? apiId,
       Value<String?>? documentId,
       Value<String?>? documentCreateDate,
       Value<String?>? documentCreateUser,
@@ -2499,6 +2532,7 @@ class DocumentRecordOnlinesCompanion
       Value<String?>? updatedAt}) {
     return DocumentRecordOnlinesCompanion(
       uid: uid ?? this.uid,
+      apiId: apiId ?? this.apiId,
       documentId: documentId ?? this.documentId,
       documentCreateDate: documentCreateDate ?? this.documentCreateDate,
       documentCreateUser: documentCreateUser ?? this.documentCreateUser,
@@ -2531,6 +2565,9 @@ class DocumentRecordOnlinesCompanion
     final map = <String, Expression>{};
     if (uid.present) {
       map['uid'] = Variable<int>(uid.value);
+    }
+    if (apiId.present) {
+      map['apiId'] = Variable<int>(apiId.value);
     }
     if (documentId.present) {
       map['documentId'] = Variable<String>(documentId.value);
@@ -2611,6 +2648,7 @@ class DocumentRecordOnlinesCompanion
   String toString() {
     return (StringBuffer('DocumentRecordOnlinesCompanion(')
           ..write('uid: $uid, ')
+          ..write('apiId: $apiId, ')
           ..write('documentId: $documentId, ')
           ..write('documentCreateDate: $documentCreateDate, ')
           ..write('documentCreateUser: $documentCreateUser, ')
@@ -13372,6 +13410,7 @@ typedef $$DocumentOnlinesTableProcessedTableManager = ProcessedTableManager<
 typedef $$DocumentRecordOnlinesTableCreateCompanionBuilder
     = DocumentRecordOnlinesCompanion Function({
   Value<int> uid,
+  Value<int?> apiId,
   Value<String?> documentId,
   Value<String?> documentCreateDate,
   Value<String?> documentCreateUser,
@@ -13400,6 +13439,7 @@ typedef $$DocumentRecordOnlinesTableCreateCompanionBuilder
 typedef $$DocumentRecordOnlinesTableUpdateCompanionBuilder
     = DocumentRecordOnlinesCompanion Function({
   Value<int> uid,
+  Value<int?> apiId,
   Value<String?> documentId,
   Value<String?> documentCreateDate,
   Value<String?> documentCreateUser,
@@ -13437,6 +13477,9 @@ class $$DocumentRecordOnlinesTableFilterComposer
   });
   ColumnFilters<int> get uid => $composableBuilder(
       column: $table.uid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get apiId => $composableBuilder(
+      column: $table.apiId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get documentId => $composableBuilder(
       column: $table.documentId, builder: (column) => ColumnFilters(column));
@@ -13525,6 +13568,9 @@ class $$DocumentRecordOnlinesTableOrderingComposer
   });
   ColumnOrderings<int> get uid => $composableBuilder(
       column: $table.uid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get apiId => $composableBuilder(
+      column: $table.apiId, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get documentId => $composableBuilder(
       column: $table.documentId, builder: (column) => ColumnOrderings(column));
@@ -13615,6 +13661,9 @@ class $$DocumentRecordOnlinesTableAnnotationComposer
   });
   GeneratedColumn<int> get uid =>
       $composableBuilder(column: $table.uid, builder: (column) => column);
+
+  GeneratedColumn<int> get apiId =>
+      $composableBuilder(column: $table.apiId, builder: (column) => column);
 
   GeneratedColumn<String> get documentId => $composableBuilder(
       column: $table.documentId, builder: (column) => column);
@@ -13721,6 +13770,7 @@ class $$DocumentRecordOnlinesTableTableManager extends RootTableManager<
                   $db: db, $table: table),
           updateCompanionCallback: ({
             Value<int> uid = const Value.absent(),
+            Value<int?> apiId = const Value.absent(),
             Value<String?> documentId = const Value.absent(),
             Value<String?> documentCreateDate = const Value.absent(),
             Value<String?> documentCreateUser = const Value.absent(),
@@ -13748,6 +13798,7 @@ class $$DocumentRecordOnlinesTableTableManager extends RootTableManager<
           }) =>
               DocumentRecordOnlinesCompanion(
             uid: uid,
+            apiId: apiId,
             documentId: documentId,
             documentCreateDate: documentCreateDate,
             documentCreateUser: documentCreateUser,
@@ -13775,6 +13826,7 @@ class $$DocumentRecordOnlinesTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
+            Value<int?> apiId = const Value.absent(),
             Value<String?> documentId = const Value.absent(),
             Value<String?> documentCreateDate = const Value.absent(),
             Value<String?> documentCreateUser = const Value.absent(),
@@ -13802,6 +13854,7 @@ class $$DocumentRecordOnlinesTableTableManager extends RootTableManager<
           }) =>
               DocumentRecordOnlinesCompanion.insert(
             uid: uid,
+            apiId: apiId,
             documentId: documentId,
             documentCreateDate: documentCreateDate,
             documentCreateUser: documentCreateUser,

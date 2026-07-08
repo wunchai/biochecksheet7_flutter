@@ -138,3 +138,55 @@ class CheckSheetDocumentImageResponse {
     );
   }
 }
+
+class OpenCaseHistory {
+  final String? date;
+  final String? user;
+  final int? status;
+  final String? remark;
+
+  OpenCaseHistory({
+    this.date,
+    this.user,
+    this.status,
+    this.remark,
+  });
+
+  factory OpenCaseHistory.fromJson(Map<String, dynamic> json) {
+    return OpenCaseHistory(
+      date: json['date']?.toString() ?? json['Date']?.toString(),
+      user: json['user']?.toString() ?? json['User']?.toString(),
+      status: json['status'] is int ? json['status'] : int.tryParse(json['status']?.toString() ?? json['Status']?.toString() ?? ''),
+      remark: json['remark']?.toString() ?? json['Remark']?.toString(),
+    );
+  }
+}
+
+/// Response model for Open Case (GET)
+class OpenCaseGetResponse {
+  final int? status;
+  final String? remark;
+  final List<OpenCaseHistory>? history;
+
+  OpenCaseGetResponse({
+    this.status,
+    this.remark,
+    this.history,
+  });
+
+  factory OpenCaseGetResponse.fromJson(Map<String, dynamic> json) {
+    var historyList = json['history'] ?? json['History'] as List?;
+    List<OpenCaseHistory>? parsedHistory;
+    
+    if (historyList != null) {
+      parsedHistory = historyList.map((e) => OpenCaseHistory.fromJson(e)).toList();
+    }
+
+    return OpenCaseGetResponse(
+      status: json['status'] is int ? json['status'] : int.tryParse(json['status']?.toString() ?? json['Status']?.toString() ?? ''),
+      remark: json['remark']?.toString() ?? json['Remark']?.toString(),
+      history: parsedHistory,
+    );
+  }
+}
+

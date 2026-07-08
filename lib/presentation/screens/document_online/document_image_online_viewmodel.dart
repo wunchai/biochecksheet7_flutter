@@ -47,8 +47,22 @@ class DocumentImageOnlineViewModel extends ChangeNotifier {
         return;
       }
 
-      // Save metadata to local DB
-      for (var meta in metadataList) {
+      final totalImages = metadataList.length;
+
+      // 3. Loop through metadata, fetch base64 for each, and save to DB
+      for (int i = 0; i < totalImages; i++) {
+        final meta = metadataList[i];
+        
+        _downloadStatus = 'กำลังโหลดรูปภาพ ${i + 1} จาก $totalImages...';
+        _downloadProgress = (i) / totalImages;
+        notifyListeners();
+
+        String base64String = "";
+        if (meta.id > 0) {
+          base64String = await apiService.fetchDocumentImageBase64(meta.id, username);
+        }
+
+        // Save complete data (with base64) to local DB
         await dao.insertImage(
           DocumentImageOnlinesCompanion(
             guid: drift.Value(meta.guid),
@@ -57,33 +71,9 @@ class DocumentImageOnlineViewModel extends ChangeNotifier {
             jobId: drift.Value(meta.jobId),
             tagId: drift.Value(meta.tagId),
             createDate: drift.Value(meta.createDate),
+            picture: drift.Value(base64String.isNotEmpty ? base64String : null),
           )
         );
-      }
-
-      // Re-query to get UIDs from DB
-      final dbImages = await dao.getImagesByDocumentId(documentId);
-      final totalImages = dbImages.length;
-
-      // 3. Loop fetch Base64
-      for (int i = 0; i < totalImages; i++) {
-        final image = dbImages[i];
-        _downloadStatus = 'กำลังโหลดรูปภาพ ${i + 1} จาก $totalImages...';
-        _downloadProgress = (i) / totalImages;
-        notifyListeners();
-
-        // Need the original API ID for the fetch?
-        // Wait, the API needs the `id` to fetch Base64.
-        // We didn't save the original API `id` in the DB!
-        // We should save it. I'll modify the DB schema later if needed, but for now we can find it in metadataList.
-        final originalMeta = metadataList.firstWhere((m) => m.guid == image.guid, orElse: () => metadataList.first);
-
-        if (originalMeta.id > 0) {
-          final base64String = await apiService.fetchDocumentImageBase64(originalMeta.id, username);
-          if (base64String.isNotEmpty) {
-            await dao.updatePictureBase64(image.uid, base64String);
-          }
-        }
       }
 
       _downloadProgress = 1.0;

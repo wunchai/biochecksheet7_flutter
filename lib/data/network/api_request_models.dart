@@ -68,3 +68,27 @@ class RegisterUserRequest {
     };
   }
 }
+
+/// Request model for Open Case (SET)
+class OpenCaseSetRequest {
+  final int apiId;
+  final int status;
+  final String userId;
+  final String remark;
+
+  OpenCaseSetRequest({
+    required this.apiId,
+    required this.status,
+    required this.userId,
+    required this.remark,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      "apiId": apiId,
+      "status": status,
+      "userId": userId,
+      "remark": remark,
+    };
+  }
+}
