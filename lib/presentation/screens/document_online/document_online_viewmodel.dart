@@ -35,7 +35,7 @@ class DocumentOnlineViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> syncOnlineData(String userId, String jobId) async {
+  Future<void> syncOnlineData(String userId, String jobId, {String? documentId}) async {
     isLoading = true;
     errorMessage = null;
     syncMessage = null;
@@ -50,6 +50,7 @@ class DocumentOnlineViewModel extends ChangeNotifier {
       jobId: jobId,
       start: startStr,
       stop: endStr,
+      documentId: documentId, // <<< NEW
     );
 
     if (success) {

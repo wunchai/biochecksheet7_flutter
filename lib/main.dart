@@ -28,6 +28,9 @@ import 'package:workmanager/workmanager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
+// Global key for navigating without BuildContext (e.g., from FCMService)
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 Future<void> main() async {
   // --- <<< 2. เพิ่มโค้ดส่วนนี้เข้าไป ---
   // ตรวจสอบให้แน่ใจว่า Flutter Engine พร้อมทำงานแล้ว
@@ -160,6 +163,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey, // <<< NEW
       title: 'BioCheckSheet',
       theme: appTheme(), // Use the appTheme() function
       initialRoute: initialRoute,

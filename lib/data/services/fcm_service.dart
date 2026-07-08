@@ -1,7 +1,8 @@
 import 'dart:async'; // <<< NEW
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:io'; // <<< NEW
+import 'dart:io';
+import 'package:biochecksheet7_flutter/main.dart'; // <<< NEW: Import navigatorKey
 
 /// Top-level function for handling background messages.
 @pragma('vm:entry-point')
@@ -75,6 +76,25 @@ class FCMService {
     }
   }
 
+  // <<< NEW: ฟังก์ชันจัดการเมื่อกดคลิกที่ Notification
+  void handleNotificationClick(Map<String, dynamic> data) {
+    print('Handling notification click with data: $data');
+    final String? targetScreen = data['target_screen'];
+
+    if (targetScreen == 'am_checksheet' || targetScreen == 'document_online') {
+      navigatorKey.currentState?.pushNamed(
+        '/document_online',
+        arguments: {
+          'title': data['title'] ?? 'Document Online',
+          'jobId': data['jobId']?.toString(),
+          'userId': data['userId']?.toString(),
+          'documentId': data['documentId']?.toString(),
+          'machineId': data['machineId']?.toString(),
+        },
+      );
+    }
+  }
+
   void setupMessageHandlers() {
     // 1. App is in Foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -93,6 +113,7 @@ class FCMService {
       print('A new onMessageOpenedApp event was published!');
       // Broadcast to let ViewModel handle routing or adding to list
       _messageStreamController.add(message);
+      handleNotificationClick(message.data); // <<< NEW
     });
 
     // 3. App is Terminated (and user tapped on the notification to open the app)
@@ -102,6 +123,7 @@ class FCMService {
         // Wait a bit for the app to initialize before broadcasting
         Future.delayed(const Duration(seconds: 2), () {
           _messageStreamController.add(message);
+          handleNotificationClick(message.data); // <<< NEW
         });
       }
     });

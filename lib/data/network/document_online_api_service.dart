@@ -21,6 +21,7 @@ class DocumentOnlineApiService {
     required String jobId,
     required String start,
     required String stop,
+    String? documentId, // <<< NEW
     String pageIndex = "1",
     String pageSize = "20",
   }) async {
@@ -31,6 +32,7 @@ class DocumentOnlineApiService {
       "jobId": jobId,
       "start": start,
       "stop": stop,
+      "documentId": documentId ?? "", // ส่ง String ว่างไปถ้าเป็น null
       "pageIndex": pageIndex,
       "pageSize": pageSize,
     };

@@ -11672,6 +11672,931 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
   }
 }
 
+class $NotificationsTable extends Notifications
+    with TableInfo<$NotificationsTable, Notification> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NotificationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+      'body', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _payloadDataMeta =
+      const VerificationMeta('payloadData');
+  @override
+  late final GeneratedColumn<String> payloadData = GeneratedColumn<String>(
+      'payload_data', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _isReadMeta = const VerificationMeta('isRead');
+  @override
+  late final GeneratedColumn<bool> isRead = GeneratedColumn<bool>(
+      'is_read', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_read" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _timestampMeta =
+      const VerificationMeta('timestamp');
+  @override
+  late final GeneratedColumn<DateTime> timestamp = GeneratedColumn<DateTime>(
+      'timestamp', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, title, body, payloadData, isRead, timestamp];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'notifications';
+  @override
+  VerificationContext validateIntegrity(Insertable<Notification> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+          _bodyMeta, body.isAcceptableOrUnknown(data['body']!, _bodyMeta));
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('payload_data')) {
+      context.handle(
+          _payloadDataMeta,
+          payloadData.isAcceptableOrUnknown(
+              data['payload_data']!, _payloadDataMeta));
+    }
+    if (data.containsKey('is_read')) {
+      context.handle(_isReadMeta,
+          isRead.isAcceptableOrUnknown(data['is_read']!, _isReadMeta));
+    }
+    if (data.containsKey('timestamp')) {
+      context.handle(_timestampMeta,
+          timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta));
+    } else if (isInserting) {
+      context.missing(_timestampMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Notification map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Notification(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      body: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}body'])!,
+      payloadData: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}payload_data']),
+      isRead: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_read'])!,
+      timestamp: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}timestamp'])!,
+    );
+  }
+
+  @override
+  $NotificationsTable createAlias(String alias) {
+    return $NotificationsTable(attachedDatabase, alias);
+  }
+}
+
+class Notification extends DataClass implements Insertable<Notification> {
+  final int id;
+  final String title;
+  final String body;
+  final String? payloadData;
+  final bool isRead;
+  final DateTime timestamp;
+  const Notification(
+      {required this.id,
+      required this.title,
+      required this.body,
+      this.payloadData,
+      required this.isRead,
+      required this.timestamp});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['title'] = Variable<String>(title);
+    map['body'] = Variable<String>(body);
+    if (!nullToAbsent || payloadData != null) {
+      map['payload_data'] = Variable<String>(payloadData);
+    }
+    map['is_read'] = Variable<bool>(isRead);
+    map['timestamp'] = Variable<DateTime>(timestamp);
+    return map;
+  }
+
+  NotificationsCompanion toCompanion(bool nullToAbsent) {
+    return NotificationsCompanion(
+      id: Value(id),
+      title: Value(title),
+      body: Value(body),
+      payloadData: payloadData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(payloadData),
+      isRead: Value(isRead),
+      timestamp: Value(timestamp),
+    );
+  }
+
+  factory Notification.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Notification(
+      id: serializer.fromJson<int>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      body: serializer.fromJson<String>(json['body']),
+      payloadData: serializer.fromJson<String?>(json['payloadData']),
+      isRead: serializer.fromJson<bool>(json['isRead']),
+      timestamp: serializer.fromJson<DateTime>(json['timestamp']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'title': serializer.toJson<String>(title),
+      'body': serializer.toJson<String>(body),
+      'payloadData': serializer.toJson<String?>(payloadData),
+      'isRead': serializer.toJson<bool>(isRead),
+      'timestamp': serializer.toJson<DateTime>(timestamp),
+    };
+  }
+
+  Notification copyWith(
+          {int? id,
+          String? title,
+          String? body,
+          Value<String?> payloadData = const Value.absent(),
+          bool? isRead,
+          DateTime? timestamp}) =>
+      Notification(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        body: body ?? this.body,
+        payloadData: payloadData.present ? payloadData.value : this.payloadData,
+        isRead: isRead ?? this.isRead,
+        timestamp: timestamp ?? this.timestamp,
+      );
+  Notification copyWithCompanion(NotificationsCompanion data) {
+    return Notification(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      body: data.body.present ? data.body.value : this.body,
+      payloadData:
+          data.payloadData.present ? data.payloadData.value : this.payloadData,
+      isRead: data.isRead.present ? data.isRead.value : this.isRead,
+      timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Notification(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('payloadData: $payloadData, ')
+          ..write('isRead: $isRead, ')
+          ..write('timestamp: $timestamp')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, title, body, payloadData, isRead, timestamp);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Notification &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.body == this.body &&
+          other.payloadData == this.payloadData &&
+          other.isRead == this.isRead &&
+          other.timestamp == this.timestamp);
+}
+
+class NotificationsCompanion extends UpdateCompanion<Notification> {
+  final Value<int> id;
+  final Value<String> title;
+  final Value<String> body;
+  final Value<String?> payloadData;
+  final Value<bool> isRead;
+  final Value<DateTime> timestamp;
+  const NotificationsCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    this.payloadData = const Value.absent(),
+    this.isRead = const Value.absent(),
+    this.timestamp = const Value.absent(),
+  });
+  NotificationsCompanion.insert({
+    this.id = const Value.absent(),
+    required String title,
+    required String body,
+    this.payloadData = const Value.absent(),
+    this.isRead = const Value.absent(),
+    required DateTime timestamp,
+  })  : title = Value(title),
+        body = Value(body),
+        timestamp = Value(timestamp);
+  static Insertable<Notification> custom({
+    Expression<int>? id,
+    Expression<String>? title,
+    Expression<String>? body,
+    Expression<String>? payloadData,
+    Expression<bool>? isRead,
+    Expression<DateTime>? timestamp,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
+      if (payloadData != null) 'payload_data': payloadData,
+      if (isRead != null) 'is_read': isRead,
+      if (timestamp != null) 'timestamp': timestamp,
+    });
+  }
+
+  NotificationsCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? title,
+      Value<String>? body,
+      Value<String?>? payloadData,
+      Value<bool>? isRead,
+      Value<DateTime>? timestamp}) {
+    return NotificationsCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      payloadData: payloadData ?? this.payloadData,
+      isRead: isRead ?? this.isRead,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (payloadData.present) {
+      map['payload_data'] = Variable<String>(payloadData.value);
+    }
+    if (isRead.present) {
+      map['is_read'] = Variable<bool>(isRead.value);
+    }
+    if (timestamp.present) {
+      map['timestamp'] = Variable<DateTime>(timestamp.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationsCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('payloadData: $payloadData, ')
+          ..write('isRead: $isRead, ')
+          ..write('timestamp: $timestamp')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DocumentImageOnlinesTable extends DocumentImageOnlines
+    with TableInfo<$DocumentImageOnlinesTable, DbDocumentImageOnline> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentImageOnlinesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uidMeta = const VerificationMeta('uid');
+  @override
+  late final GeneratedColumn<int> uid = GeneratedColumn<int>(
+      'uid', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _guidMeta = const VerificationMeta('guid');
+  @override
+  late final GeneratedColumn<String> guid = GeneratedColumn<String>(
+      'guid', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _imageIndexMeta =
+      const VerificationMeta('imageIndex');
+  @override
+  late final GeneratedColumn<String> imageIndex = GeneratedColumn<String>(
+      'imageIndex', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _pictureMeta =
+      const VerificationMeta('picture');
+  @override
+  late final GeneratedColumn<String> picture = GeneratedColumn<String>(
+      'picture', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _filenameMeta =
+      const VerificationMeta('filename');
+  @override
+  late final GeneratedColumn<String> filename = GeneratedColumn<String>(
+      'filename', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _documentIdMeta =
+      const VerificationMeta('documentId');
+  @override
+  late final GeneratedColumn<String> documentId = GeneratedColumn<String>(
+      'documentId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _jobIdMeta = const VerificationMeta('jobId');
+  @override
+  late final GeneratedColumn<String> jobId = GeneratedColumn<String>(
+      'jobId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _machineIdMeta =
+      const VerificationMeta('machineId');
+  @override
+  late final GeneratedColumn<String> machineId = GeneratedColumn<String>(
+      'machineId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _tagIdMeta = const VerificationMeta('tagId');
+  @override
+  late final GeneratedColumn<String> tagId = GeneratedColumn<String>(
+      'tagId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _problemIdMeta =
+      const VerificationMeta('problemId');
+  @override
+  late final GeneratedColumn<String> problemId = GeneratedColumn<String>(
+      'problemId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createDateMeta =
+      const VerificationMeta('createDate');
+  @override
+  late final GeneratedColumn<String> createDate = GeneratedColumn<String>(
+      'createDate', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+      'status', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  @override
+  List<GeneratedColumn> get $columns => [
+        uid,
+        guid,
+        imageIndex,
+        picture,
+        filename,
+        documentId,
+        jobId,
+        machineId,
+        tagId,
+        problemId,
+        createDate,
+        status
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'document_image_onlines';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<DbDocumentImageOnline> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uid')) {
+      context.handle(
+          _uidMeta, uid.isAcceptableOrUnknown(data['uid']!, _uidMeta));
+    }
+    if (data.containsKey('guid')) {
+      context.handle(
+          _guidMeta, guid.isAcceptableOrUnknown(data['guid']!, _guidMeta));
+    }
+    if (data.containsKey('imageIndex')) {
+      context.handle(
+          _imageIndexMeta,
+          imageIndex.isAcceptableOrUnknown(
+              data['imageIndex']!, _imageIndexMeta));
+    }
+    if (data.containsKey('picture')) {
+      context.handle(_pictureMeta,
+          picture.isAcceptableOrUnknown(data['picture']!, _pictureMeta));
+    }
+    if (data.containsKey('filename')) {
+      context.handle(_filenameMeta,
+          filename.isAcceptableOrUnknown(data['filename']!, _filenameMeta));
+    }
+    if (data.containsKey('documentId')) {
+      context.handle(
+          _documentIdMeta,
+          documentId.isAcceptableOrUnknown(
+              data['documentId']!, _documentIdMeta));
+    }
+    if (data.containsKey('jobId')) {
+      context.handle(
+          _jobIdMeta, jobId.isAcceptableOrUnknown(data['jobId']!, _jobIdMeta));
+    }
+    if (data.containsKey('machineId')) {
+      context.handle(_machineIdMeta,
+          machineId.isAcceptableOrUnknown(data['machineId']!, _machineIdMeta));
+    }
+    if (data.containsKey('tagId')) {
+      context.handle(
+          _tagIdMeta, tagId.isAcceptableOrUnknown(data['tagId']!, _tagIdMeta));
+    }
+    if (data.containsKey('problemId')) {
+      context.handle(_problemIdMeta,
+          problemId.isAcceptableOrUnknown(data['problemId']!, _problemIdMeta));
+    }
+    if (data.containsKey('createDate')) {
+      context.handle(
+          _createDateMeta,
+          createDate.isAcceptableOrUnknown(
+              data['createDate']!, _createDateMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uid};
+  @override
+  DbDocumentImageOnline map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DbDocumentImageOnline(
+      uid: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}uid'])!,
+      guid: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}guid']),
+      imageIndex: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}imageIndex']),
+      picture: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}picture']),
+      filename: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}filename']),
+      documentId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}documentId']),
+      jobId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}jobId']),
+      machineId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}machineId']),
+      tagId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tagId']),
+      problemId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}problemId']),
+      createDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}createDate']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}status'])!,
+    );
+  }
+
+  @override
+  $DocumentImageOnlinesTable createAlias(String alias) {
+    return $DocumentImageOnlinesTable(attachedDatabase, alias);
+  }
+}
+
+class DbDocumentImageOnline extends DataClass
+    implements Insertable<DbDocumentImageOnline> {
+  final int uid;
+  final String? guid;
+  final String? imageIndex;
+  final String? picture;
+  final String? filename;
+  final String? documentId;
+  final String? jobId;
+  final String? machineId;
+  final String? tagId;
+  final String? problemId;
+  final String? createDate;
+  final int status;
+  const DbDocumentImageOnline(
+      {required this.uid,
+      this.guid,
+      this.imageIndex,
+      this.picture,
+      this.filename,
+      this.documentId,
+      this.jobId,
+      this.machineId,
+      this.tagId,
+      this.problemId,
+      this.createDate,
+      required this.status});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uid'] = Variable<int>(uid);
+    if (!nullToAbsent || guid != null) {
+      map['guid'] = Variable<String>(guid);
+    }
+    if (!nullToAbsent || imageIndex != null) {
+      map['imageIndex'] = Variable<String>(imageIndex);
+    }
+    if (!nullToAbsent || picture != null) {
+      map['picture'] = Variable<String>(picture);
+    }
+    if (!nullToAbsent || filename != null) {
+      map['filename'] = Variable<String>(filename);
+    }
+    if (!nullToAbsent || documentId != null) {
+      map['documentId'] = Variable<String>(documentId);
+    }
+    if (!nullToAbsent || jobId != null) {
+      map['jobId'] = Variable<String>(jobId);
+    }
+    if (!nullToAbsent || machineId != null) {
+      map['machineId'] = Variable<String>(machineId);
+    }
+    if (!nullToAbsent || tagId != null) {
+      map['tagId'] = Variable<String>(tagId);
+    }
+    if (!nullToAbsent || problemId != null) {
+      map['problemId'] = Variable<String>(problemId);
+    }
+    if (!nullToAbsent || createDate != null) {
+      map['createDate'] = Variable<String>(createDate);
+    }
+    map['status'] = Variable<int>(status);
+    return map;
+  }
+
+  DocumentImageOnlinesCompanion toCompanion(bool nullToAbsent) {
+    return DocumentImageOnlinesCompanion(
+      uid: Value(uid),
+      guid: guid == null && nullToAbsent ? const Value.absent() : Value(guid),
+      imageIndex: imageIndex == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imageIndex),
+      picture: picture == null && nullToAbsent
+          ? const Value.absent()
+          : Value(picture),
+      filename: filename == null && nullToAbsent
+          ? const Value.absent()
+          : Value(filename),
+      documentId: documentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(documentId),
+      jobId:
+          jobId == null && nullToAbsent ? const Value.absent() : Value(jobId),
+      machineId: machineId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(machineId),
+      tagId:
+          tagId == null && nullToAbsent ? const Value.absent() : Value(tagId),
+      problemId: problemId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(problemId),
+      createDate: createDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createDate),
+      status: Value(status),
+    );
+  }
+
+  factory DbDocumentImageOnline.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DbDocumentImageOnline(
+      uid: serializer.fromJson<int>(json['uid']),
+      guid: serializer.fromJson<String?>(json['guid']),
+      imageIndex: serializer.fromJson<String?>(json['imageIndex']),
+      picture: serializer.fromJson<String?>(json['picture']),
+      filename: serializer.fromJson<String?>(json['filename']),
+      documentId: serializer.fromJson<String?>(json['documentId']),
+      jobId: serializer.fromJson<String?>(json['jobId']),
+      machineId: serializer.fromJson<String?>(json['machineId']),
+      tagId: serializer.fromJson<String?>(json['tagId']),
+      problemId: serializer.fromJson<String?>(json['problemId']),
+      createDate: serializer.fromJson<String?>(json['createDate']),
+      status: serializer.fromJson<int>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uid': serializer.toJson<int>(uid),
+      'guid': serializer.toJson<String?>(guid),
+      'imageIndex': serializer.toJson<String?>(imageIndex),
+      'picture': serializer.toJson<String?>(picture),
+      'filename': serializer.toJson<String?>(filename),
+      'documentId': serializer.toJson<String?>(documentId),
+      'jobId': serializer.toJson<String?>(jobId),
+      'machineId': serializer.toJson<String?>(machineId),
+      'tagId': serializer.toJson<String?>(tagId),
+      'problemId': serializer.toJson<String?>(problemId),
+      'createDate': serializer.toJson<String?>(createDate),
+      'status': serializer.toJson<int>(status),
+    };
+  }
+
+  DbDocumentImageOnline copyWith(
+          {int? uid,
+          Value<String?> guid = const Value.absent(),
+          Value<String?> imageIndex = const Value.absent(),
+          Value<String?> picture = const Value.absent(),
+          Value<String?> filename = const Value.absent(),
+          Value<String?> documentId = const Value.absent(),
+          Value<String?> jobId = const Value.absent(),
+          Value<String?> machineId = const Value.absent(),
+          Value<String?> tagId = const Value.absent(),
+          Value<String?> problemId = const Value.absent(),
+          Value<String?> createDate = const Value.absent(),
+          int? status}) =>
+      DbDocumentImageOnline(
+        uid: uid ?? this.uid,
+        guid: guid.present ? guid.value : this.guid,
+        imageIndex: imageIndex.present ? imageIndex.value : this.imageIndex,
+        picture: picture.present ? picture.value : this.picture,
+        filename: filename.present ? filename.value : this.filename,
+        documentId: documentId.present ? documentId.value : this.documentId,
+        jobId: jobId.present ? jobId.value : this.jobId,
+        machineId: machineId.present ? machineId.value : this.machineId,
+        tagId: tagId.present ? tagId.value : this.tagId,
+        problemId: problemId.present ? problemId.value : this.problemId,
+        createDate: createDate.present ? createDate.value : this.createDate,
+        status: status ?? this.status,
+      );
+  DbDocumentImageOnline copyWithCompanion(DocumentImageOnlinesCompanion data) {
+    return DbDocumentImageOnline(
+      uid: data.uid.present ? data.uid.value : this.uid,
+      guid: data.guid.present ? data.guid.value : this.guid,
+      imageIndex:
+          data.imageIndex.present ? data.imageIndex.value : this.imageIndex,
+      picture: data.picture.present ? data.picture.value : this.picture,
+      filename: data.filename.present ? data.filename.value : this.filename,
+      documentId:
+          data.documentId.present ? data.documentId.value : this.documentId,
+      jobId: data.jobId.present ? data.jobId.value : this.jobId,
+      machineId: data.machineId.present ? data.machineId.value : this.machineId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+      problemId: data.problemId.present ? data.problemId.value : this.problemId,
+      createDate:
+          data.createDate.present ? data.createDate.value : this.createDate,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DbDocumentImageOnline(')
+          ..write('uid: $uid, ')
+          ..write('guid: $guid, ')
+          ..write('imageIndex: $imageIndex, ')
+          ..write('picture: $picture, ')
+          ..write('filename: $filename, ')
+          ..write('documentId: $documentId, ')
+          ..write('jobId: $jobId, ')
+          ..write('machineId: $machineId, ')
+          ..write('tagId: $tagId, ')
+          ..write('problemId: $problemId, ')
+          ..write('createDate: $createDate, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(uid, guid, imageIndex, picture, filename,
+      documentId, jobId, machineId, tagId, problemId, createDate, status);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DbDocumentImageOnline &&
+          other.uid == this.uid &&
+          other.guid == this.guid &&
+          other.imageIndex == this.imageIndex &&
+          other.picture == this.picture &&
+          other.filename == this.filename &&
+          other.documentId == this.documentId &&
+          other.jobId == this.jobId &&
+          other.machineId == this.machineId &&
+          other.tagId == this.tagId &&
+          other.problemId == this.problemId &&
+          other.createDate == this.createDate &&
+          other.status == this.status);
+}
+
+class DocumentImageOnlinesCompanion
+    extends UpdateCompanion<DbDocumentImageOnline> {
+  final Value<int> uid;
+  final Value<String?> guid;
+  final Value<String?> imageIndex;
+  final Value<String?> picture;
+  final Value<String?> filename;
+  final Value<String?> documentId;
+  final Value<String?> jobId;
+  final Value<String?> machineId;
+  final Value<String?> tagId;
+  final Value<String?> problemId;
+  final Value<String?> createDate;
+  final Value<int> status;
+  const DocumentImageOnlinesCompanion({
+    this.uid = const Value.absent(),
+    this.guid = const Value.absent(),
+    this.imageIndex = const Value.absent(),
+    this.picture = const Value.absent(),
+    this.filename = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.machineId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.problemId = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.status = const Value.absent(),
+  });
+  DocumentImageOnlinesCompanion.insert({
+    this.uid = const Value.absent(),
+    this.guid = const Value.absent(),
+    this.imageIndex = const Value.absent(),
+    this.picture = const Value.absent(),
+    this.filename = const Value.absent(),
+    this.documentId = const Value.absent(),
+    this.jobId = const Value.absent(),
+    this.machineId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.problemId = const Value.absent(),
+    this.createDate = const Value.absent(),
+    this.status = const Value.absent(),
+  });
+  static Insertable<DbDocumentImageOnline> custom({
+    Expression<int>? uid,
+    Expression<String>? guid,
+    Expression<String>? imageIndex,
+    Expression<String>? picture,
+    Expression<String>? filename,
+    Expression<String>? documentId,
+    Expression<String>? jobId,
+    Expression<String>? machineId,
+    Expression<String>? tagId,
+    Expression<String>? problemId,
+    Expression<String>? createDate,
+    Expression<int>? status,
+  }) {
+    return RawValuesInsertable({
+      if (uid != null) 'uid': uid,
+      if (guid != null) 'guid': guid,
+      if (imageIndex != null) 'imageIndex': imageIndex,
+      if (picture != null) 'picture': picture,
+      if (filename != null) 'filename': filename,
+      if (documentId != null) 'documentId': documentId,
+      if (jobId != null) 'jobId': jobId,
+      if (machineId != null) 'machineId': machineId,
+      if (tagId != null) 'tagId': tagId,
+      if (problemId != null) 'problemId': problemId,
+      if (createDate != null) 'createDate': createDate,
+      if (status != null) 'status': status,
+    });
+  }
+
+  DocumentImageOnlinesCompanion copyWith(
+      {Value<int>? uid,
+      Value<String?>? guid,
+      Value<String?>? imageIndex,
+      Value<String?>? picture,
+      Value<String?>? filename,
+      Value<String?>? documentId,
+      Value<String?>? jobId,
+      Value<String?>? machineId,
+      Value<String?>? tagId,
+      Value<String?>? problemId,
+      Value<String?>? createDate,
+      Value<int>? status}) {
+    return DocumentImageOnlinesCompanion(
+      uid: uid ?? this.uid,
+      guid: guid ?? this.guid,
+      imageIndex: imageIndex ?? this.imageIndex,
+      picture: picture ?? this.picture,
+      filename: filename ?? this.filename,
+      documentId: documentId ?? this.documentId,
+      jobId: jobId ?? this.jobId,
+      machineId: machineId ?? this.machineId,
+      tagId: tagId ?? this.tagId,
+      problemId: problemId ?? this.problemId,
+      createDate: createDate ?? this.createDate,
+      status: status ?? this.status,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uid.present) {
+      map['uid'] = Variable<int>(uid.value);
+    }
+    if (guid.present) {
+      map['guid'] = Variable<String>(guid.value);
+    }
+    if (imageIndex.present) {
+      map['imageIndex'] = Variable<String>(imageIndex.value);
+    }
+    if (picture.present) {
+      map['picture'] = Variable<String>(picture.value);
+    }
+    if (filename.present) {
+      map['filename'] = Variable<String>(filename.value);
+    }
+    if (documentId.present) {
+      map['documentId'] = Variable<String>(documentId.value);
+    }
+    if (jobId.present) {
+      map['jobId'] = Variable<String>(jobId.value);
+    }
+    if (machineId.present) {
+      map['machineId'] = Variable<String>(machineId.value);
+    }
+    if (tagId.present) {
+      map['tagId'] = Variable<String>(tagId.value);
+    }
+    if (problemId.present) {
+      map['problemId'] = Variable<String>(problemId.value);
+    }
+    if (createDate.present) {
+      map['createDate'] = Variable<String>(createDate.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentImageOnlinesCompanion(')
+          ..write('uid: $uid, ')
+          ..write('guid: $guid, ')
+          ..write('imageIndex: $imageIndex, ')
+          ..write('picture: $picture, ')
+          ..write('filename: $filename, ')
+          ..write('documentId: $documentId, ')
+          ..write('jobId: $jobId, ')
+          ..write('machineId: $machineId, ')
+          ..write('tagId: $tagId, ')
+          ..write('problemId: $problemId, ')
+          ..write('createDate: $createDate, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -11696,6 +12621,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DraftJobsTable draftJobs = $DraftJobsTable(this);
   late final $DraftMachinesTable draftMachines = $DraftMachinesTable(this);
   late final $DraftTagsTable draftTags = $DraftTagsTable(this);
+  late final $NotificationsTable notifications = $NotificationsTable(this);
+  late final $DocumentImageOnlinesTable documentImageOnlines =
+      $DocumentImageOnlinesTable(this);
   late final JobDao jobDao = JobDao(this as AppDatabase);
   late final DocumentDao documentDao = DocumentDao(this as AppDatabase);
   late final DocumentOnlineDao documentOnlineDao =
@@ -11715,6 +12643,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final ChecksheetMasterImageDao checksheetMasterImageDao =
       ChecksheetMasterImageDao(this as AppDatabase);
   late final DraftJobDao draftJobDao = DraftJobDao(this as AppDatabase);
+  late final NotificationDao notificationDao =
+      NotificationDao(this as AppDatabase);
+  late final DocumentImageOnlineDao documentImageOnlineDao =
+      DocumentImageOnlineDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -11735,7 +12667,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         checkSheetMasterImages,
         draftJobs,
         draftMachines,
-        draftTags
+        draftTags,
+        notifications,
+        documentImageOnlines
       ];
 }
 
@@ -16854,6 +17788,466 @@ typedef $$DraftTagsTableProcessedTableManager = ProcessedTableManager<
     (DbDraftTag, BaseReferences<_$AppDatabase, $DraftTagsTable, DbDraftTag>),
     DbDraftTag,
     PrefetchHooks Function()>;
+typedef $$NotificationsTableCreateCompanionBuilder = NotificationsCompanion
+    Function({
+  Value<int> id,
+  required String title,
+  required String body,
+  Value<String?> payloadData,
+  Value<bool> isRead,
+  required DateTime timestamp,
+});
+typedef $$NotificationsTableUpdateCompanionBuilder = NotificationsCompanion
+    Function({
+  Value<int> id,
+  Value<String> title,
+  Value<String> body,
+  Value<String?> payloadData,
+  Value<bool> isRead,
+  Value<DateTime> timestamp,
+});
+
+class $$NotificationsTableFilterComposer
+    extends Composer<_$AppDatabase, $NotificationsTable> {
+  $$NotificationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get body => $composableBuilder(
+      column: $table.body, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get payloadData => $composableBuilder(
+      column: $table.payloadData, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isRead => $composableBuilder(
+      column: $table.isRead, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get timestamp => $composableBuilder(
+      column: $table.timestamp, builder: (column) => ColumnFilters(column));
+}
+
+class $$NotificationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $NotificationsTable> {
+  $$NotificationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get body => $composableBuilder(
+      column: $table.body, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get payloadData => $composableBuilder(
+      column: $table.payloadData, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isRead => $composableBuilder(
+      column: $table.isRead, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get timestamp => $composableBuilder(
+      column: $table.timestamp, builder: (column) => ColumnOrderings(column));
+}
+
+class $$NotificationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NotificationsTable> {
+  $$NotificationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get payloadData => $composableBuilder(
+      column: $table.payloadData, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRead =>
+      $composableBuilder(column: $table.isRead, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get timestamp =>
+      $composableBuilder(column: $table.timestamp, builder: (column) => column);
+}
+
+class $$NotificationsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $NotificationsTable,
+    Notification,
+    $$NotificationsTableFilterComposer,
+    $$NotificationsTableOrderingComposer,
+    $$NotificationsTableAnnotationComposer,
+    $$NotificationsTableCreateCompanionBuilder,
+    $$NotificationsTableUpdateCompanionBuilder,
+    (
+      Notification,
+      BaseReferences<_$AppDatabase, $NotificationsTable, Notification>
+    ),
+    Notification,
+    PrefetchHooks Function()> {
+  $$NotificationsTableTableManager(_$AppDatabase db, $NotificationsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NotificationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NotificationsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NotificationsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<String> body = const Value.absent(),
+            Value<String?> payloadData = const Value.absent(),
+            Value<bool> isRead = const Value.absent(),
+            Value<DateTime> timestamp = const Value.absent(),
+          }) =>
+              NotificationsCompanion(
+            id: id,
+            title: title,
+            body: body,
+            payloadData: payloadData,
+            isRead: isRead,
+            timestamp: timestamp,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String title,
+            required String body,
+            Value<String?> payloadData = const Value.absent(),
+            Value<bool> isRead = const Value.absent(),
+            required DateTime timestamp,
+          }) =>
+              NotificationsCompanion.insert(
+            id: id,
+            title: title,
+            body: body,
+            payloadData: payloadData,
+            isRead: isRead,
+            timestamp: timestamp,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$NotificationsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $NotificationsTable,
+    Notification,
+    $$NotificationsTableFilterComposer,
+    $$NotificationsTableOrderingComposer,
+    $$NotificationsTableAnnotationComposer,
+    $$NotificationsTableCreateCompanionBuilder,
+    $$NotificationsTableUpdateCompanionBuilder,
+    (
+      Notification,
+      BaseReferences<_$AppDatabase, $NotificationsTable, Notification>
+    ),
+    Notification,
+    PrefetchHooks Function()>;
+typedef $$DocumentImageOnlinesTableCreateCompanionBuilder
+    = DocumentImageOnlinesCompanion Function({
+  Value<int> uid,
+  Value<String?> guid,
+  Value<String?> imageIndex,
+  Value<String?> picture,
+  Value<String?> filename,
+  Value<String?> documentId,
+  Value<String?> jobId,
+  Value<String?> machineId,
+  Value<String?> tagId,
+  Value<String?> problemId,
+  Value<String?> createDate,
+  Value<int> status,
+});
+typedef $$DocumentImageOnlinesTableUpdateCompanionBuilder
+    = DocumentImageOnlinesCompanion Function({
+  Value<int> uid,
+  Value<String?> guid,
+  Value<String?> imageIndex,
+  Value<String?> picture,
+  Value<String?> filename,
+  Value<String?> documentId,
+  Value<String?> jobId,
+  Value<String?> machineId,
+  Value<String?> tagId,
+  Value<String?> problemId,
+  Value<String?> createDate,
+  Value<int> status,
+});
+
+class $$DocumentImageOnlinesTableFilterComposer
+    extends Composer<_$AppDatabase, $DocumentImageOnlinesTable> {
+  $$DocumentImageOnlinesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get guid => $composableBuilder(
+      column: $table.guid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get imageIndex => $composableBuilder(
+      column: $table.imageIndex, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get picture => $composableBuilder(
+      column: $table.picture, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get filename => $composableBuilder(
+      column: $table.filename, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get jobId => $composableBuilder(
+      column: $table.jobId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tagId => $composableBuilder(
+      column: $table.tagId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get problemId => $composableBuilder(
+      column: $table.problemId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+}
+
+class $$DocumentImageOnlinesTableOrderingComposer
+    extends Composer<_$AppDatabase, $DocumentImageOnlinesTable> {
+  $$DocumentImageOnlinesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get uid => $composableBuilder(
+      column: $table.uid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get guid => $composableBuilder(
+      column: $table.guid, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get imageIndex => $composableBuilder(
+      column: $table.imageIndex, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get picture => $composableBuilder(
+      column: $table.picture, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get filename => $composableBuilder(
+      column: $table.filename, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get jobId => $composableBuilder(
+      column: $table.jobId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get machineId => $composableBuilder(
+      column: $table.machineId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tagId => $composableBuilder(
+      column: $table.tagId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get problemId => $composableBuilder(
+      column: $table.problemId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+}
+
+class $$DocumentImageOnlinesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DocumentImageOnlinesTable> {
+  $$DocumentImageOnlinesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get uid =>
+      $composableBuilder(column: $table.uid, builder: (column) => column);
+
+  GeneratedColumn<String> get guid =>
+      $composableBuilder(column: $table.guid, builder: (column) => column);
+
+  GeneratedColumn<String> get imageIndex => $composableBuilder(
+      column: $table.imageIndex, builder: (column) => column);
+
+  GeneratedColumn<String> get picture =>
+      $composableBuilder(column: $table.picture, builder: (column) => column);
+
+  GeneratedColumn<String> get filename =>
+      $composableBuilder(column: $table.filename, builder: (column) => column);
+
+  GeneratedColumn<String> get documentId => $composableBuilder(
+      column: $table.documentId, builder: (column) => column);
+
+  GeneratedColumn<String> get jobId =>
+      $composableBuilder(column: $table.jobId, builder: (column) => column);
+
+  GeneratedColumn<String> get machineId =>
+      $composableBuilder(column: $table.machineId, builder: (column) => column);
+
+  GeneratedColumn<String> get tagId =>
+      $composableBuilder(column: $table.tagId, builder: (column) => column);
+
+  GeneratedColumn<String> get problemId =>
+      $composableBuilder(column: $table.problemId, builder: (column) => column);
+
+  GeneratedColumn<String> get createDate => $composableBuilder(
+      column: $table.createDate, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+}
+
+class $$DocumentImageOnlinesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $DocumentImageOnlinesTable,
+    DbDocumentImageOnline,
+    $$DocumentImageOnlinesTableFilterComposer,
+    $$DocumentImageOnlinesTableOrderingComposer,
+    $$DocumentImageOnlinesTableAnnotationComposer,
+    $$DocumentImageOnlinesTableCreateCompanionBuilder,
+    $$DocumentImageOnlinesTableUpdateCompanionBuilder,
+    (
+      DbDocumentImageOnline,
+      BaseReferences<_$AppDatabase, $DocumentImageOnlinesTable,
+          DbDocumentImageOnline>
+    ),
+    DbDocumentImageOnline,
+    PrefetchHooks Function()> {
+  $$DocumentImageOnlinesTableTableManager(
+      _$AppDatabase db, $DocumentImageOnlinesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DocumentImageOnlinesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DocumentImageOnlinesTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DocumentImageOnlinesTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            Value<String?> guid = const Value.absent(),
+            Value<String?> imageIndex = const Value.absent(),
+            Value<String?> picture = const Value.absent(),
+            Value<String?> filename = const Value.absent(),
+            Value<String?> documentId = const Value.absent(),
+            Value<String?> jobId = const Value.absent(),
+            Value<String?> machineId = const Value.absent(),
+            Value<String?> tagId = const Value.absent(),
+            Value<String?> problemId = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<int> status = const Value.absent(),
+          }) =>
+              DocumentImageOnlinesCompanion(
+            uid: uid,
+            guid: guid,
+            imageIndex: imageIndex,
+            picture: picture,
+            filename: filename,
+            documentId: documentId,
+            jobId: jobId,
+            machineId: machineId,
+            tagId: tagId,
+            problemId: problemId,
+            createDate: createDate,
+            status: status,
+          ),
+          createCompanionCallback: ({
+            Value<int> uid = const Value.absent(),
+            Value<String?> guid = const Value.absent(),
+            Value<String?> imageIndex = const Value.absent(),
+            Value<String?> picture = const Value.absent(),
+            Value<String?> filename = const Value.absent(),
+            Value<String?> documentId = const Value.absent(),
+            Value<String?> jobId = const Value.absent(),
+            Value<String?> machineId = const Value.absent(),
+            Value<String?> tagId = const Value.absent(),
+            Value<String?> problemId = const Value.absent(),
+            Value<String?> createDate = const Value.absent(),
+            Value<int> status = const Value.absent(),
+          }) =>
+              DocumentImageOnlinesCompanion.insert(
+            uid: uid,
+            guid: guid,
+            imageIndex: imageIndex,
+            picture: picture,
+            filename: filename,
+            documentId: documentId,
+            jobId: jobId,
+            machineId: machineId,
+            tagId: tagId,
+            problemId: problemId,
+            createDate: createDate,
+            status: status,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$DocumentImageOnlinesTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $DocumentImageOnlinesTable,
+        DbDocumentImageOnline,
+        $$DocumentImageOnlinesTableFilterComposer,
+        $$DocumentImageOnlinesTableOrderingComposer,
+        $$DocumentImageOnlinesTableAnnotationComposer,
+        $$DocumentImageOnlinesTableCreateCompanionBuilder,
+        $$DocumentImageOnlinesTableUpdateCompanionBuilder,
+        (
+          DbDocumentImageOnline,
+          BaseReferences<_$AppDatabase, $DocumentImageOnlinesTable,
+              DbDocumentImageOnline>
+        ),
+        DbDocumentImageOnline,
+        PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -16890,4 +18284,8 @@ class $AppDatabaseManager {
       $$DraftMachinesTableTableManager(_db, _db.draftMachines);
   $$DraftTagsTableTableManager get draftTags =>
       $$DraftTagsTableTableManager(_db, _db.draftTags);
+  $$NotificationsTableTableManager get notifications =>
+      $$NotificationsTableTableManager(_db, _db.notifications);
+  $$DocumentImageOnlinesTableTableManager get documentImageOnlines =>
+      $$DocumentImageOnlinesTableTableManager(_db, _db.documentImageOnlines);
 }

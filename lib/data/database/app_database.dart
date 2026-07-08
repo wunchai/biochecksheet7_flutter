@@ -24,6 +24,8 @@ import 'package:biochecksheet7_flutter/data/database/tables/checksheet_master_im
 import 'package:biochecksheet7_flutter/data/database/tables/draft_job_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/draft_machine_table.dart';
 import 'package:biochecksheet7_flutter/data/database/tables/draft_tag_table.dart';
+import 'package:biochecksheet7_flutter/data/database/tables/notification_table.dart';
+import 'package:biochecksheet7_flutter/data/database/tables/image_online_table.dart'; // <<< NEW
 
 // Import DAO definitions
 import 'package:biochecksheet7_flutter/data/database/daos/job_dao.dart';
@@ -40,6 +42,8 @@ import 'package:biochecksheet7_flutter/data/database/daos/user_dao.dart';
 import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart'; // <<< NEW: Import ImageDao
 import 'package:biochecksheet7_flutter/data/database/daos/checksheet_master_image_dao.dart'; // <<< NEW: Import ImageDao
 import 'package:biochecksheet7_flutter/data/database/daos/draft_job_dao.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/notification_dao.dart'; // <<< NEW
+import 'package:biochecksheet7_flutter/data/database/daos/image_online_dao.dart'; // <<< NEW
 
 // This line tells drift to generate a file named app_database.g.dart
 part 'app_database.g.dart';
@@ -62,6 +66,8 @@ part 'app_database.g.dart';
     DraftJobs,
     DraftMachines,
     DraftTags,
+    Notifications, // <<< NEW
+    DocumentImageOnlines, // <<< NEW
   ],
   daos: [
     JobDao,
@@ -78,6 +84,8 @@ part 'app_database.g.dart';
     ImageDao,
     ChecksheetMasterImageDao, // <<< NEW: Add ImageDao
     DraftJobDao,
+    NotificationDao, // <<< NEW
+    DocumentImageOnlineDao, // <<< NEW
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -104,9 +112,13 @@ class AppDatabase extends _$AppDatabase {
       ChecksheetMasterImageDao(this);
   @override
   DraftJobDao get draftJobDao => DraftJobDao(this);
+  @override
+  NotificationDao get notificationDao => NotificationDao(this); // <<< NEW
+  @override
+  DocumentImageOnlineDao get documentImageOnlineDao => DocumentImageOnlineDao(this); // <<< NEW
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 19; // <<< UPDATED
 
   // Define the migration strategy.
   @override
@@ -209,6 +221,14 @@ class AppDatabase extends _$AppDatabase {
             // Added machineCode to DraftMachines and DraftTags
             await m.addColumn(draftMachines, draftMachines.machineCode);
             await m.addColumn(draftTags, draftTags.machineCode);
+          }
+          if (from < 18) {
+            // Added Notifications table
+            await m.createTable(notifications);
+          }
+          if (from < 19) {
+            // Added DocumentImageOnlines table
+            await m.createTable(documentImageOnlines);
           }
         },
       );

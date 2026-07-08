@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:biochecksheet7_flutter/data/services/fcm_service.dart';
 import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/notifications/notifications_viewmodel.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
 
 class NotificationsScreen extends StatefulWidget {
   final String title;
@@ -68,9 +70,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   borderRadius: BorderRadius.circular(12),
                   side: BorderSide(color: Colors.grey.shade300),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    if (item.payloadData != null && item.payloadData!.isNotEmpty) {
+                      try {
+                        final payload = jsonDecode(item.payloadData!);
+                        fcmService.handleNotificationClick(payload);
+                      } catch (e) {
+                        debugPrint('Error parsing notification payload: $e');
+                      }
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
@@ -113,7 +127,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ],
                   ),
                 ),
-              );
+              ), // Close InkWell
+              ); // Close Card
             },
           );
         },

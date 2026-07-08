@@ -1,77 +1,68 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:flutter/material.dart' hide Notification;
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:biochecksheet7_flutter/data/services/fcm_service.dart';
-
-class NotificationItem {
-  final String title;
-  final String body;
-  final DateTime timestamp;
-  bool isRead;
-
-  NotificationItem({
-    required this.title,
-    required this.body,
-    required this.timestamp,
-    this.isRead = false,
-  });
-}
+import 'package:biochecksheet7_flutter/data/database/app_database.dart';
+import 'package:biochecksheet7_flutter/data/database/daos/notification_dao.dart';
 
 class NotificationsViewModel extends ChangeNotifier {
-  final List<NotificationItem> _notifications = [];
+  final NotificationDao dao;
+  
+  List<Notification> _notifications = [];
   int _unreadCount = 0;
-  bool _isLoading = false;
-  late StreamSubscription<RemoteMessage> _subscription;
+  
+  late StreamSubscription<List<Notification>> _dbSubscription;
+  late StreamSubscription<int> _unreadSubscription;
+  late StreamSubscription<RemoteMessage> _fcmSubscription;
 
-  List<NotificationItem> get notifications => _notifications;
+  List<Notification> get notifications => _notifications;
   int get unreadCount => _unreadCount;
-  bool get isLoading => _isLoading;
+  bool get isLoading => false;
 
-  NotificationsViewModel() {
-    // Listen to incoming FCM messages
-    _subscription = fcmService.messageStream.listen((message) {
+  NotificationsViewModel({required this.dao}) {
+    // Listen to DB changes
+    _dbSubscription = dao.watchAllNotifications().listen((data) {
+      _notifications = data;
+      notifyListeners();
+    });
+
+    _unreadSubscription = dao.watchUnreadCount().listen((count) {
+      _unreadCount = count;
+      notifyListeners();
+    });
+
+    // Listen to incoming FCM messages and insert to DB
+    _fcmSubscription = fcmService.messageStream.listen((message) {
       if (message.notification != null) {
-        _addNotification(
-          message.notification?.title ?? 'No Title',
-          message.notification?.body ?? 'No Content',
+        dao.insertNotification(
+          NotificationsCompanion.insert(
+            title: message.notification?.title ?? 'No Title',
+            body: message.notification?.body ?? 'No Content',
+            timestamp: DateTime.now(),
+            isRead: const drift.Value(false),
+            payloadData: drift.Value(jsonEncode(message.data)),
+          ),
         );
       }
     });
   }
 
-  void _addNotification(String title, String body) {
-    // Add to the top of the list
-    _notifications.insert(
-      0,
-      NotificationItem(
-        title: title,
-        body: body,
-        timestamp: DateTime.now(),
-      ),
-    );
-    _unreadCount++;
-    notifyListeners();
-  }
-
-  void markAllAsRead() {
+  Future<void> markAllAsRead() async {
     if (_unreadCount == 0) return;
-    
-    for (var item in _notifications) {
-      item.isRead = true;
-    }
-    _unreadCount = 0;
-    notifyListeners();
+    await dao.markAllAsRead();
   }
 
-  void clearAll() {
-    _notifications.clear();
-    _unreadCount = 0;
-    notifyListeners();
+  Future<void> clearAll() async {
+    await dao.clearAllNotifications();
   }
 
   @override
   void dispose() {
-    _subscription.cancel();
+    _dbSubscription.cancel();
+    _unreadSubscription.cancel();
+    _fcmSubscription.cancel();
     super.dispose();
   }
 }

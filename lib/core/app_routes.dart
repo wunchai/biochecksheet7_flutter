@@ -18,6 +18,7 @@ import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/am_chec
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_machine_online_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_record_online_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/am_checksheet_online_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_online_screen.dart'; // <<< NEW
 import 'package:biochecksheet7_flutter/presentation/screens/draft_job/draft_job_list_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/draft_job/draft_machine_list_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/draft_job/draft_tag_list_screen.dart';
@@ -101,6 +102,15 @@ Map<String, WidgetBuilder> appRoutes() {
         title: args?['title'] ?? 'AM Checksheet (Online)',
         documentId: args?['documentId'] ?? '',
         machineId: args?['machineId'] ?? '',
+      );
+    },
+    '/document_online': (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      return DocumentOnlineScreen(
+        title: args?['title'] ?? 'Document Online',
+        jobId: args?['jobId'],
+        userId: args?['userId'],
+        documentId: args?['documentId'], // <<< NEW
       );
     },
     '/draft_job_list': (context) => const DraftJobListScreen(),

@@ -11,8 +11,10 @@ class DocumentOnlineScreen extends StatefulWidget {
   final String title;
   final String? jobId;
   final String? userId; // Need user ID for the API call
+  final String? documentId; // <<< NEW
+  final String? machineId;  // <<< NEW
 
-  const DocumentOnlineScreen({super.key, required this.title, this.jobId, this.userId});
+  const DocumentOnlineScreen({super.key, required this.title, this.jobId, this.userId, this.documentId, this.machineId});
 
   @override
   State<DocumentOnlineScreen> createState() => _DocumentOnlineScreenState();
@@ -24,8 +26,16 @@ class _DocumentOnlineScreenState extends State<DocumentOnlineScreen> {
     super.initState();
     // Use post frame callback to not trigger state changes during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = Provider.of<DocumentOnlineViewModel>(context, listen: false);
       // Clear old data when entering screen
-      Provider.of<DocumentOnlineViewModel>(context, listen: false).clearOnlineData();
+      viewModel.clearOnlineData();
+
+      // Auto-sync if documentId is provided from notification
+      if (widget.documentId != null) {
+        final uId = widget.userId ?? '600201';
+        final jId = widget.jobId ?? '0';
+        viewModel.syncOnlineData(uId, jId, documentId: widget.documentId);
+      }
     });
   }
 

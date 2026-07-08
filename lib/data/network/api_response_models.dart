@@ -106,3 +106,35 @@ class CheckSheetMasterImageResponse {
     );
   }
 }
+
+class CheckSheetDocumentImageResponse {
+  final int id;
+  final String? documentId;
+  final String? machineId;
+  final String? jobId;
+  final String? tagId;
+  final String? guid;
+  final String? createDate;
+
+  CheckSheetDocumentImageResponse({
+    required this.id,
+    this.documentId,
+    this.machineId,
+    this.jobId,
+    this.tagId,
+    this.guid,
+    this.createDate,
+  });
+
+  factory CheckSheetDocumentImageResponse.fromJson(Map<String, dynamic> json) {
+    return CheckSheetDocumentImageResponse(
+      id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      documentId: json['DocumentId']?.toString(),
+      machineId: json['MachineId']?.toString(),
+      jobId: json['JobId']?.toString(),
+      tagId: json['TagId']?.toString(),
+      guid: json['Guid']?.toString(),
+      createDate: json['CreateDate']?.toString(),
+    );
+  }
+}

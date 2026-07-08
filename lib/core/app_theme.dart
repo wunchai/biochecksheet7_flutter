@@ -53,6 +53,9 @@ ThemeData appTheme() {
       backgroundColor: scaffoldBackgroundLightGrey,
     ).copyWith(secondary: accentThemeAmber),
     scaffoldBackgroundColor: scaffoldBackgroundLightGrey,
+    snackBarTheme: const SnackBarThemeData(
+      behavior: SnackBarBehavior.floating, // ทำให้ SnackBar ลอยขึ้นมา ไม่บังปุ่มด้านล่าง
+    ),
     appBarTheme: const AppBarTheme(
       backgroundColor: primaryThemeBlue,
       foregroundColor: lightText,

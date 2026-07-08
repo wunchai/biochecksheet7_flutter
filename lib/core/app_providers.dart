@@ -22,13 +22,15 @@ import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_vi
 import 'package:biochecksheet7_flutter/presentation/screens/problem/problem_viewmodel.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/am_checksheet_viewmodel.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_online_viewmodel.dart';
+import 'package:biochecksheet7_flutter/data/network/document_online_api_service.dart';
+import 'package:biochecksheet7_flutter/data/network/document_image_online_api_service.dart'; // <<< NEW
 import 'package:biochecksheet7_flutter/data/repositories/document_online_repository.dart';
 
-import 'package:biochecksheet7_flutter/data/network/document_online_api_service.dart';
 import 'package:biochecksheet7_flutter/data/repositories/document_record_online_repository.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_machine_online_viewmodel.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/am_checksheet_online_viewmodel.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_record_online_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_image_online_viewmodel.dart';
 import 'package:biochecksheet7_flutter/data/repositories/draft_job_repository.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/draft_job/draft_job_viewmodel.dart';
 import 'package:biochecksheet7_flutter/data/network/draft_api_service.dart';
@@ -82,6 +84,8 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
   final draftApiService = DraftApiService();
   final draftJobRepository = DraftJobRepository(appDatabase.draftJobDao, draftApiService);
 
+  final documentImageOnlineApiService = DocumentImageOnlineApiService(); // <<< NEW
+
   return [
     // Repositories (provided as value as they are singletons)
     Provider<LoginRepository>.value(value: loginRepository),
@@ -93,7 +97,7 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
         create: (_) => HomeViewModel(
             appDatabase: appDatabase, loginRepository: loginRepository)),
     ChangeNotifierProvider(create: (_) => DashboardViewModel()),
-    ChangeNotifierProvider(create: (_) => NotificationsViewModel()),
+    ChangeNotifierProvider(create: (_) => NotificationsViewModel(dao: appDatabase.notificationDao)),
     ChangeNotifierProvider(
         create: (_) => DocumentViewModel(appDatabase: appDatabase)),
     ChangeNotifierProvider(
@@ -136,6 +140,8 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
         create: (_) => AMChecksheetOnlineViewModel(repository: documentRecordOnlineRepository)),
     ChangeNotifierProvider(
         create: (_) => DocumentRecordOnlineViewModel(repository: documentRecordOnlineRepository)),
+    ChangeNotifierProvider(
+        create: (_) => DocumentImageOnlineViewModel(appDatabase: appDatabase, apiService: documentImageOnlineApiService)), // <<< NEW
 
     // Custom Job Draft ViewModel
     ChangeNotifierProvider(

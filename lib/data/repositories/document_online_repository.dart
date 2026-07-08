@@ -25,6 +25,7 @@ class DocumentOnlineRepository {
     required String jobId,
     required String start,
     required String stop,
+    String? documentId, // <<< NEW
   }) async {
     try {
       // 1. Fetch from API
@@ -33,6 +34,7 @@ class DocumentOnlineRepository {
         jobId: jobId,
         start: start,
         stop: stop,
+        documentId: documentId, // <<< NEW
       );
 
       // 2. Convert to companions
