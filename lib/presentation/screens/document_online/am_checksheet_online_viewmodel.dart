@@ -12,4 +12,8 @@ class AMChecksheetOnlineViewModel extends ChangeNotifier {
   Stream<List<DbDocumentRecordOnline>> getRecordsForMachine(String documentId, String machineId) {
     return _repository.watchRecordsForMachine(documentId, machineId);
   }
+
+  Future<void> refreshData(String userId, String jobId, String documentId) async {
+    await _repository.fetchAndSaveAllOnlineRecords(userId, jobId, documentId);
+  }
 }

@@ -23,8 +23,23 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
   // List of screens to display in the Bottom Navigation Bar.
   final List<Widget> _screens = [
     const HomeScreen(title: 'Home'),
-    const ProblemScreen(
-        title: 'Problem List'), // <<< CHANGED: Dashboard to Problem
+    Builder(
+      builder: (context) => HomeScreen(
+        title: 'เลือกงานเพื่อดู Case',
+        showFullMenu: false, // ซ่อนเมนู Sync/Upload/Logout ฯลฯ เพื่อให้ชื่อเรื่องมีพื้นที่แสดงเต็มๆ
+        onJobTapped: (context, job) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProblemScreen(
+                title: 'Case ของงาน: ${job.jobName ?? ''}',
+                jobId: job.jobId,
+              ),
+            ),
+          );
+        },
+      ),
+    ),
     const DataSummaryScreen(
         title: 'สรุปข้อมูล'), // <<< CHANGED: Notifications to DataSummaryScreen
   ];
@@ -118,7 +133,7 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.warning_amber_rounded),
                 activeIcon: Icon(Icons.warning_rounded),
-                label: 'Problem',
+                label: 'Case',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.summarize_outlined),

@@ -13,8 +13,15 @@ import 'package:biochecksheet7_flutter/presentation/widgets/sync_progress_dialog
 
 class HomeScreen extends StatefulWidget {
   final String title;
-  // Constructor for HomeScreen, takes a 'title' string.
-  const HomeScreen({super.key, this.title = 'Home'});
+  final void Function(BuildContext context, DbJob job)? onJobTapped;
+  final bool showFullMenu;
+
+  const HomeScreen({
+    super.key,
+    required this.title,
+    this.onJobTapped,
+    this.showFullMenu = true,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -101,6 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.grey[100], // New light background
         appBar: HomeAppBar(
           title: widget.title,
+          showFullMenu: widget.showFullMenu,
           searchController: TextEditingController(),
           onRefreshPressed: () async {
             final viewModel =
@@ -228,15 +236,19 @@ class _HomeScreenState extends State<HomeScreen> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DocumentScreen(
-                title: 'เอกสารของงาน: ${job.jobName ?? ''}',
-                jobId: job.jobId,
+          if (widget.onJobTapped != null) {
+            widget.onJobTapped!(context, job);
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DocumentScreen(
+                  title: 'เอกสารของงาน: ${job.jobName ?? ''}',
+                  jobId: job.jobId,
+                ),
               ),
-            ),
-          );
+            );
+          }
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),

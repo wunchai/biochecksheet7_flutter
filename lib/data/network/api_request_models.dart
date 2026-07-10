@@ -73,22 +73,25 @@ class RegisterUserRequest {
 class OpenCaseSetRequest {
   final int apiId;
   final int status;
-  final String userId;
+  final String userCode;
   final String remark;
+  final String datetime;
 
   OpenCaseSetRequest({
     required this.apiId,
     required this.status,
-    required this.userId,
+    required this.userCode,
     required this.remark,
+    required this.datetime,
   });
 
   Map<String, dynamic> toJson() {
     return {
       "apiId": apiId,
       "status": status,
-      "userId": userId,
+      "userCode": userCode,
       "remark": remark,
+      "datetime": datetime,
     };
   }
 }

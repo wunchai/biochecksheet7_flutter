@@ -110,6 +110,7 @@ class _DocumentMachineOnlineScreenState extends State<DocumentMachineOnlineScree
                                       'title': detailTitle,
                                       'documentId': widget.documentId,
                                       'machineId': machine.machineId,
+                                      'jobId': widget.jobId,
                                     },
                                   );
                                 },

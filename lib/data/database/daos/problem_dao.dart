@@ -34,10 +34,15 @@ class ProblemDao extends DatabaseAccessor<AppDatabase> with _$ProblemDaoMixin {
   // Deletes a specific problem record.
   Future<int> deleteProblem(DbProblem entry) => delete(problems).delete(entry);
 
-  // Watches a stream of problem records filtered by their status.
-  Stream<List<DbProblem>> watchProblemsByStatus(List<int> statuses) {
-    return (select(problems)..where((tbl) => tbl.problemStatus.isIn(statuses)))
-        .watch();
+  // Watches a stream of problem records filtered by their status and optionally jobId.
+  Stream<List<DbProblem>> watchProblemsByStatus(List<int> statuses, {String? jobId}) {
+    return (select(problems)..where((tbl) {
+      var predicate = tbl.problemStatus.isIn(statuses);
+      if (jobId != null) {
+        predicate = predicate & tbl.jobId.equals(jobId);
+      }
+      return predicate;
+    })).watch();
   }
 
   // Gets a single problem record by its UID.

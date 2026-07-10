@@ -154,8 +154,8 @@ class OpenCaseHistory {
 
   factory OpenCaseHistory.fromJson(Map<String, dynamic> json) {
     return OpenCaseHistory(
-      date: json['date']?.toString() ?? json['Date']?.toString(),
-      user: json['user']?.toString() ?? json['User']?.toString(),
+      date: json['datetime']?.toString() ?? json['date']?.toString() ?? json['Date']?.toString(),
+      user: json['userCode']?.toString() ?? json['user']?.toString() ?? json['User']?.toString(),
       status: json['status'] is int ? json['status'] : int.tryParse(json['status']?.toString() ?? json['Status']?.toString() ?? ''),
       remark: json['remark']?.toString() ?? json['Remark']?.toString(),
     );
@@ -175,16 +175,24 @@ class OpenCaseGetResponse {
   });
 
   factory OpenCaseGetResponse.fromJson(Map<String, dynamic> json) {
-    var historyList = json['history'] ?? json['History'] as List?;
+    var historyList = json['Table'] as List?;
     List<OpenCaseHistory>? parsedHistory;
     
-    if (historyList != null) {
+    int? currentStatus;
+    String? currentRemark;
+
+    if (historyList != null && historyList.isNotEmpty) {
       parsedHistory = historyList.map((e) => OpenCaseHistory.fromJson(e)).toList();
+      
+      // ดึงสถานะและหมายเหตุล่าสุดมาแสดงเป็นค่าเริ่มต้น
+      final latest = parsedHistory.last;
+      currentStatus = latest.status;
+      currentRemark = latest.remark;
     }
 
     return OpenCaseGetResponse(
-      status: json['status'] is int ? json['status'] : int.tryParse(json['status']?.toString() ?? json['Status']?.toString() ?? ''),
-      remark: json['remark']?.toString() ?? json['Remark']?.toString(),
+      status: currentStatus ?? (json['status'] is int ? json['status'] : int.tryParse(json['status']?.toString() ?? json['Status']?.toString() ?? '')),
+      remark: currentRemark ?? json['remark']?.toString() ?? json['Remark']?.toString(),
       history: parsedHistory,
     );
   }

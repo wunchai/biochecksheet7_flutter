@@ -52,6 +52,7 @@ class DocumentRecordOnlineDao extends DatabaseAccessor<AppDatabase> with _$Docum
           documentId: row.read<String>('documentId'),
           status: 0,
           unReadable: 'false',
+          verify: 0,
         );
       }).toList();
     });

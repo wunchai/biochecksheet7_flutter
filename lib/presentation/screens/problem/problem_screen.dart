@@ -13,8 +13,9 @@ import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // Import
 
 class ProblemScreen extends StatefulWidget {
   final String title;
+  final String? jobId;
 
-  const ProblemScreen({super.key, required this.title});
+  const ProblemScreen({super.key, required this.title, this.jobId});
 
   @override
   State<ProblemScreen> createState() => _ProblemScreenState();
@@ -28,7 +29,7 @@ class _ProblemScreenState extends State<ProblemScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProblemViewModel>(context, listen: false).loadProblems();
+      Provider.of<ProblemViewModel>(context, listen: false).loadProblems(jobId: widget.jobId);
     });
   }
 

@@ -15,9 +15,9 @@ class ProblemRepository {
       : _problemDao = appDatabase.problemDao,
         _problemApiService = ProblemApiService();
 
-  /// Watches a stream of problem records filtered by their status (0, 1, 2).
-  Stream<List<DbProblem>> watchProblemsByStatus(List<int> statuses) {
-    return _problemDao.watchProblemsByStatus(statuses);
+  /// Watches a stream of problem records filtered by their status and optionally jobId.
+  Stream<List<DbProblem>> watchProblemsByStatus(List<int> statuses, {String? jobId}) {
+    return _problemDao.watchProblemsByStatus(statuses, jobId: jobId);
   }
 
 // NEW: Gets a single problem record by its problemId (from API/backend).

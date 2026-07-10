@@ -180,8 +180,10 @@ class DocumentOnlineApiService {
             syncDate: json['SyncDate']?.toString(),
             uiType: json['uiType'] is int
                 ? json['uiType']
-                : int.tryParse(json['uiType']?.toString() ?? '0') ??
-                    0, // NEW field requested
+                : int.tryParse(json['uiType']?.toString() ?? '0') ?? 0,
+            verify: json['Verify'] is int
+                ? json['Verify']
+                : int.tryParse(json['Verify']?.toString() ?? '0') ?? 0,
             updatedAt: null,
           );
         }).toList();
@@ -203,7 +205,12 @@ class DocumentOnlineApiService {
   // --- NEW: Open Case API Methods ---
   Future<OpenCaseGetResponse?> getOpenCase(int apiId) async {
     final url = Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_OPEN_CASE_GET');
-    final body = {"apiId": apiId};
+    //final body = {"apiId": apiId};
+    final body = jsonEncode({
+      "ServiceName": "CHECKSHEET_OPEN_CASE_GET",
+      "Paremeter":
+          jsonEncode({"apiId": apiId}) // Assuming this parameter is used
+    });
 
     print('DEBUG getOpenCase REQUEST: url=$url, body=$body');
 
@@ -211,7 +218,7 @@ class DocumentOnlineApiService {
       final response = await http.post(
         url,
         headers: {'accept': 'text/plain', 'Content-Type': 'application/json'},
-        body: jsonEncode(body),
+        body: body,
       );
 
       print('DEBUG getOpenCase RESPONSE: statusCode=${response.statusCode}');
@@ -220,7 +227,7 @@ class DocumentOnlineApiService {
         final decodedBody = utf8.decode(response.bodyBytes);
         final responseData = jsonDecode(decodedBody);
         print('DEBUG GET OPEN CASE JSON: $responseData');
-        
+
         // Map to model
         return OpenCaseGetResponse.fromJson(responseData);
       } else {
@@ -236,12 +243,22 @@ class DocumentOnlineApiService {
   Future<bool> setOpenCase(OpenCaseSetRequest request) async {
     final url = Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_OPEN_CASE_SET');
 
+    final body = jsonEncode({
+      "ServiceName": "CHECKSHEET_OPEN_CASE_SET",
+      "Paremeter":
+          jsonEncode(request.toJson()) // Assuming this parameter is used
+    });
+
     try {
       final response = await http.post(
         url,
         headers: {'accept': 'text/plain', 'Content-Type': 'application/json'},
-        body: jsonEncode(request.toJson()),
+        body: body,
       );
+
+      print('DEBUG SET OPEN CASE BODY: $body');
+      print('DEBUG SET OPEN CASE RESPONSE: statusCode=${response.statusCode}');
+      print('DEBUG SET OPEN CASE RESPONSE: body=${response.body}');
 
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {

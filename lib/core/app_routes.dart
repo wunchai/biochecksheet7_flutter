@@ -102,6 +102,7 @@ Map<String, WidgetBuilder> appRoutes() {
         title: args?['title'] ?? 'AM Checksheet (Online)',
         documentId: args?['documentId'] ?? '',
         machineId: args?['machineId'] ?? '',
+        jobId: args?['jobId'] ?? '',
       );
     },
     '/document_online': (context) {

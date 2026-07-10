@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
@@ -17,12 +18,14 @@ class AMChecksheetOnlineScreen extends StatefulWidget {
   final String title;
   final String documentId;
   final String machineId;
+  final String jobId;
 
   const AMChecksheetOnlineScreen({
     super.key,
     required this.title,
     required this.documentId,
     required this.machineId,
+    required this.jobId,
   });
 
   @override
@@ -35,151 +38,180 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
 
   void _showImageDialog(String tagName, List<DbDocumentImageOnline> images) {
     int currentIndex = 0;
-    
+
     showDialog(
       context: context,
-      useSafeArea: false, // เพื่อให้แสดงผลเต็มจอไปจนถึงขอบโทรศัพท์ (Full Screen)
+      useSafeArea:
+          false, // เพื่อให้แสดงผลเต็มจอไปจนถึงขอบโทรศัพท์ (Full Screen)
       builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Dialog(
-              backgroundColor: Colors.transparent,
-              insetPadding: EdgeInsets.zero, // ไม่มีขอบขาวรอบๆ
-              child: Stack(
-                children: [
-                  // 1. พื้นหลังสีดำแบบกึ่งโปร่งใส
-                  Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    color: Colors.black.withValues(alpha: 0.95),
-                  ),
-                  
-                  // 2. โซนแสดงรูปภาพ (PhotoViewGallery)
-                  PhotoViewGallery.builder(
-                    scrollPhysics: const BouncingScrollPhysics(),
-                    builder: (BuildContext context, int index) {
-                      final base64String = images[index].picture;
-                      if (base64String == null || base64String.isEmpty) {
-                        return PhotoViewGalleryPageOptions.customChild(
-                          child: const Center(
-                            child: Text('รูปภาพไม่สมบูรณ์', style: TextStyle(color: Colors.white54, fontSize: 16)),
-                          ),
-                          initialScale: PhotoViewComputedScale.contained,
-                        );
-                      }
-                      return PhotoViewGalleryPageOptions(
-                        imageProvider: MemoryImage(base64Decode(base64String)),
-                        initialScale: PhotoViewComputedScale.contained,
-                        minScale: PhotoViewComputedScale.contained,
-                        maxScale: PhotoViewComputedScale.covered * 4.1,
-                        heroAttributes: PhotoViewHeroAttributes(tag: images[index].uid.toString()),
-                      );
-                    },
-                    itemCount: images.length,
-                    loadingBuilder: (context, event) => const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    ),
-                    backgroundDecoration: const BoxDecoration(
-                      color: Colors.transparent,
-                    ),
-                    onPageChanged: (index) {
-                      setState(() {
-                        currentIndex = index;
-                      });
-                    },
-                  ),
-                  
-                  // 3. แถบด้านบน (ชื่อ Tag และปุ่มปิด) มี Gradient สีดำเพื่อให้อ่านตัวหนังสือชัด
-                  Positioned(
-                    top: 0, left: 0, right: 0,
-                    child: Container(
-                      padding: EdgeInsets.only(
-                        top: MediaQuery.of(context).padding.top + 16, // หลบติ่งหน้าจอ
-                        left: 20, right: 16, bottom: 20,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter, end: Alignment.bottomCenter,
-                          colors: [Colors.black.withValues(alpha: 0.7), Colors.transparent],
-                        ),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                tagName,
-                                style: const TextStyle(
-                                  color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold,
-                                  shadows: [Shadow(blurRadius: 4, color: Colors.black54)],
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white, size: 28),
-                            onPressed: () => Navigator.pop(dialogContext),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+        return StatefulBuilder(builder: (context, setState) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: EdgeInsets.zero, // ไม่มีขอบขาวรอบๆ
+            child: Stack(
+              children: [
+                // 1. พื้นหลังสีดำแบบกึ่งโปร่งใส
+                Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: Colors.black.withValues(alpha: 0.95),
+                ),
 
-                  // 4. แถบตัวเลขบอกหน้าด้านล่าง
-                  Positioned(
-                    bottom: 0, left: 0, right: 0,
-                    child: Container(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).padding.bottom + 24, top: 32,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter, end: Alignment.topCenter,
-                          colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
+                // 2. โซนแสดงรูปภาพ (PhotoViewGallery)
+                PhotoViewGallery.builder(
+                  scrollPhysics: const BouncingScrollPhysics(),
+                  builder: (BuildContext context, int index) {
+                    final base64String = images[index].picture;
+                    if (base64String == null || base64String.isEmpty) {
+                      return PhotoViewGalleryPageOptions.customChild(
+                        child: const Center(
+                          child: Text('รูปภาพไม่สมบูรณ์',
+                              style: TextStyle(
+                                  color: Colors.white54, fontSize: 16)),
                         ),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '${currentIndex + 1} / ${images.length}',
-                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          if (images.length > 1)
-                            const Text(
-                              'ปัดซ้าย-ขวา เพื่อดูรูปถัดไป',
-                              style: TextStyle(color: Colors.white70, fontSize: 13),
-                            ),
+                        initialScale: PhotoViewComputedScale.contained,
+                      );
+                    }
+                    return PhotoViewGalleryPageOptions(
+                      imageProvider: MemoryImage(base64Decode(base64String)),
+                      initialScale: PhotoViewComputedScale.contained,
+                      minScale: PhotoViewComputedScale.contained,
+                      maxScale: PhotoViewComputedScale.covered * 4.1,
+                      heroAttributes: PhotoViewHeroAttributes(
+                          tag: images[index].uid.toString()),
+                    );
+                  },
+                  itemCount: images.length,
+                  loadingBuilder: (context, event) => const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                  backgroundDecoration: const BoxDecoration(
+                    color: Colors.transparent,
+                  ),
+                  onPageChanged: (index) {
+                    setState(() {
+                      currentIndex = index;
+                    });
+                  },
+                ),
+
+                // 3. แถบด้านบน (ชื่อ Tag และปุ่มปิด) มี Gradient สีดำเพื่อให้อ่านตัวหนังสือชัด
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).padding.top +
+                          16, // หลบติ่งหน้าจอ
+                      left: 20, right: 16, bottom: 20,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.7),
+                          Colors.transparent
                         ],
                       ),
                     ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              tagName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                shadows: [
+                                  Shadow(blurRadius: 4, color: Colors.black54)
+                                ],
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close,
+                              color: Colors.white, size: 28),
+                          onPressed: () => Navigator.pop(dialogContext),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            );
-          }
-        );
+                ),
+
+                // 4. แถบตัวเลขบอกหน้าด้านล่าง
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).padding.bottom + 24,
+                      top: 32,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.8),
+                          Colors.transparent
+                        ],
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${currentIndex + 1} / ${images.length}',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        if (images.length > 1)
+                          const Text(
+                            'ปัดซ้าย-ขวา เพื่อดูรูปถัดไป',
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 13),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
       },
     );
   }
 
   void _showActionMenu(DbDocumentRecordOnline item) {
-    final imageViewModel = Provider.of<DocumentImageOnlineViewModel>(context, listen: false);
-    final apiService = Provider.of<DocumentOnlineApiService>(context, listen: false);
+    final imageViewModel =
+        Provider.of<DocumentImageOnlineViewModel>(context, listen: false);
+    final apiService =
+        Provider.of<DocumentOnlineApiService>(context, listen: false);
     final loginViewModel = Provider.of<LoginViewModel>(context, listen: false);
-    final username = loginViewModel.loggedInUser?.userCode ?? 'Unknown';
+    final username = loginViewModel.loggedInUser?.userId ?? 'Unknown';
     final navigator = Navigator.of(context);
 
     showModalBottomSheet(
@@ -222,7 +254,7 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                 title: const Text('เปิด Case'),
                 onTap: () {
                   navigator.pop(); // ปิดเมนูอย่างปลอดภัย
-                  
+
                   print('DEBUG UI ITEM: ${item.toString()}');
                   print('DEBUG UI API_ID: ${item.apiId}');
 
@@ -237,9 +269,12 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
     );
   }
 
-  void _showOpenCaseDialog(BuildContext context, DbDocumentRecordOnline item, DocumentOnlineApiService apiService, String username) {
+  void _showOpenCaseDialog(BuildContext context, DbDocumentRecordOnline item,
+      DocumentOnlineApiService apiService, String username) {
     if (item.apiId == null) {
-      AppToast.show('ไม่สามารถเปิด Case ได้ เนื่องจากไม่มี API ID สำหรับจุดตรวจนี้', isError: true);
+      AppToast.show(
+          'ไม่สามารถเปิด Case ได้ เนื่องจากไม่มี API ID สำหรับจุดตรวจนี้',
+          isError: true);
       return;
     }
 
@@ -272,11 +307,19 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                         history = response.history!;
                       }
                     } else {
-                       // MOCK DATA FOR DEMO PURPOSES
-                       history = [
-                         OpenCaseHistory(date: '2026-07-08 10:00:00', user: 'System (Mock)', status: 1, remark: 'ตรวจสอบครั้งแรก ปกติ'),
-                         OpenCaseHistory(date: '2026-07-08 15:30:00', user: 'Admin (Mock)', status: 2, remark: 'เจอพัดลมเสียงดัง ขอเปิด case ซ่อม'),
-                       ];
+                      // MOCK DATA FOR DEMO PURPOSES
+                      history = [
+                        OpenCaseHistory(
+                            date: '2026-07-08 10:00:00',
+                            user: 'System (Mock)',
+                            status: 1,
+                            remark: 'ตรวจสอบครั้งแรก ปกติ'),
+                        OpenCaseHistory(
+                            date: '2026-07-08 15:30:00',
+                            user: 'Admin (Mock)',
+                            status: 2,
+                            remark: 'เจอพัดลมเสียงดัง ขอเปิด case ซ่อม'),
+                      ];
                     }
                   });
                 }
@@ -284,60 +327,76 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                 if (mounted) {
                   setState(() {
                     isLoading = false;
-                     // MOCK DATA FOR DEMO PURPOSES
-                     history = [
-                       OpenCaseHistory(date: '2026-07-08 10:00:00', user: 'System (Mock)', status: 1, remark: 'ตรวจสอบครั้งแรก ปกติ (Mock Error Case)'),
-                     ];
+                    // MOCK DATA FOR DEMO PURPOSES
+                    history = [
+                      OpenCaseHistory(
+                          date: '2026-07-08 10:00:00',
+                          user: 'System (Mock)',
+                          status: 1,
+                          remark: 'ตรวจสอบครั้งแรก ปกติ (Mock Error Case)'),
+                    ];
                   });
                 }
               });
             }
 
             return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('เปิด Case: ${item.tagName}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text('เปิด Case: ${item.tagName}',
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
                     if (isLoading)
-                      const Center(child: Padding(padding: EdgeInsets.all(32.0), child: CircularProgressIndicator()))
+                      const Center(
+                          child: Padding(
+                              padding: EdgeInsets.all(32.0),
+                              child: CircularProgressIndicator()))
                     else
                       Flexible(
                         child: SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('สถานะการตรวจสอบ', style: TextStyle(fontWeight: FontWeight.w600)),
+                              const Text('สถานะการตรวจสอบ',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.w600)),
                               RadioListTile<int>(
                                 title: const Text('ตรวจสอบแล้วปกติ'),
                                 value: 1,
                                 groupValue: selectedStatus,
-                                onChanged: (val) => setState(() => selectedStatus = val!),
+                                onChanged: (val) =>
+                                    setState(() => selectedStatus = val!),
                                 contentPadding: EdgeInsets.zero,
                               ),
                               RadioListTile<int>(
                                 title: const Text('เปิด Case ซ่อมเอง'),
                                 value: 2,
                                 groupValue: selectedStatus,
-                                onChanged: (val) => setState(() => selectedStatus = val!),
+                                onChanged: (val) =>
+                                    setState(() => selectedStatus = val!),
                                 contentPadding: EdgeInsets.zero,
                               ),
                               RadioListTile<int>(
                                 title: const Text('เปิด Case ใบแจ้งซ่อม'),
                                 value: 3,
                                 groupValue: selectedStatus,
-                                onChanged: (val) => setState(() => selectedStatus = val!),
+                                onChanged: (val) =>
+                                    setState(() => selectedStatus = val!),
                                 contentPadding: EdgeInsets.zero,
                               ),
                               RadioListTile<int>(
                                 title: const Text('ผิดปกติแต่มี case อยู่แล้ว'),
                                 value: 4,
                                 groupValue: selectedStatus,
-                                onChanged: (val) => setState(() => selectedStatus = val!),
+                                onChanged: (val) =>
+                                    setState(() => selectedStatus = val!),
                                 contentPadding: EdgeInsets.zero,
                               ),
                               const SizedBox(height: 16),
@@ -351,56 +410,105 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                               ),
                               if (history.isNotEmpty) ...[
                                 const SizedBox(height: 24),
-                                const Text('ประวัติการตรวจสอบ', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                                const Text('ประวัติการตรวจสอบ',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16)),
                                 const SizedBox(height: 8),
                                 ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: history.length,
-                                  itemBuilder: (context, index) {
-                                    final h = history[index];
-                                    String statusText = '';
-                                    Color statusColor = Colors.grey;
-                                    switch (h.status) {
-                                      case 1: statusText = 'ตรวจสอบแล้วปกติ'; statusColor = Colors.green; break;
-                                      case 2: statusText = 'เปิด Case ซ่อมเอง'; statusColor = Colors.orange; break;
-                                      case 3: statusText = 'เปิด Case ใบแจ้งซ่อม'; statusColor = Colors.red; break;
-                                      case 4: statusText = 'ผิดปกติแต่มี case อยู่แล้ว'; statusColor = Colors.redAccent; break;
-                                      default: statusText = 'ไม่ระบุ';
-                                    }
-                                    return Card(
-                                      elevation: 0,
-                                      color: Colors.grey[100],
-                                      margin: const EdgeInsets.symmetric(vertical: 4),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12.0),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(h.user ?? 'Unknown User', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                                Text(h.date ?? '-', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                              decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
-                                              child: Text(statusText, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
-                                            ),
-                                            if (h.remark != null && h.remark!.isNotEmpty)
-                                              Padding(
-                                                padding: const EdgeInsets.only(top: 6),
-                                                child: Text(h.remark!, style: TextStyle(fontSize: 13, color: Colors.grey[800])),
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: history.length,
+                                    itemBuilder: (context, index) {
+                                      final h = history[index];
+                                      String statusText = '';
+                                      Color statusColor = Colors.grey;
+                                      switch (h.status) {
+                                        case 1:
+                                          statusText = 'ตรวจสอบแล้วปกติ';
+                                          statusColor = Colors.green;
+                                          break;
+                                        case 2:
+                                          statusText = 'เปิด Case ซ่อมเอง';
+                                          statusColor = Colors.orange;
+                                          break;
+                                        case 3:
+                                          statusText = 'เปิด Case ใบแจ้งซ่อม';
+                                          statusColor = Colors.red;
+                                          break;
+                                        case 4:
+                                          statusText =
+                                              'ผิดปกติแต่มี case อยู่แล้ว';
+                                          statusColor = Colors.redAccent;
+                                          break;
+                                        default:
+                                          statusText = 'ไม่ระบุ';
+                                      }
+                                      return Card(
+                                        elevation: 0,
+                                        color: Colors.grey[100],
+                                        margin: const EdgeInsets.symmetric(
+                                            vertical: 4),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(h.user ?? 'Unknown User',
+                                                      style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 13)),
+                                                  Text(h.date ?? '-',
+                                                      style: TextStyle(
+                                                          color:
+                                                              Colors.grey[600],
+                                                          fontSize: 12)),
+                                                ],
                                               ),
-                                          ],
+                                              const SizedBox(height: 6),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2),
+                                                decoration: BoxDecoration(
+                                                    color: statusColor
+                                                        .withValues(alpha: 0.1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4)),
+                                                child: Text(statusText,
+                                                    style: TextStyle(
+                                                        color: statusColor,
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.bold)),
+                                              ),
+                                              if (h.remark != null &&
+                                                  h.remark!.isNotEmpty)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 6),
+                                                  child: Text(h.remark!,
+                                                      style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: Colors
+                                                              .grey[800])),
+                                                ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  }
-                                )
+                                      );
+                                    })
                               ]
                             ],
                           ),
@@ -411,8 +519,11 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
-                          onPressed: isSaving ? null : () => Navigator.pop(dialogContext),
-                          child: const Text('ยกเลิก', style: TextStyle(color: Colors.grey)),
+                          onPressed: isSaving
+                              ? null
+                              : () => Navigator.pop(dialogContext),
+                          child: const Text('ยกเลิก',
+                              style: TextStyle(color: Colors.grey)),
                         ),
                         const SizedBox(width: 8),
                         ElevatedButton(
@@ -420,23 +531,31 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                               ? null
                               : () async {
                                   setState(() => isSaving = true);
-                                  
+
+                                  final now = DateTime.now();
+                                  final formattedDate =
+                                      "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
                                   final request = OpenCaseSetRequest(
                                     apiId: item.apiId!,
                                     status: selectedStatus,
-                                    userId: username,
+                                    userCode: username,
                                     remark: remarkController.text,
+                                    datetime: formattedDate,
                                   );
 
-                                  final success = await apiService.setOpenCase(request);
-                                  
+                                  final success =
+                                      await apiService.setOpenCase(request);
+
                                   if (mounted) {
                                     setState(() => isSaving = false);
                                     if (success) {
                                       Navigator.pop(dialogContext);
-                                      AppToast.show('บันทึก Case เรียบร้อยแล้ว');
+                                      AppToast.show(
+                                          'บันทึก Case เรียบร้อยแล้ว');
                                     } else {
-                                      AppToast.show('เกิดข้อผิดพลาดในการบันทึก Case', isError: true);
+                                      AppToast.show(
+                                          'เกิดข้อผิดพลาดในการบันทึก Case',
+                                          isError: true);
                                     }
                                   }
                                 },
@@ -445,7 +564,11 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                             foregroundColor: Colors.white,
                           ),
                           child: isSaving
-                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white))
                               : const Text('บันทึก'),
                         ),
                       ],
@@ -577,7 +700,21 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
               } else if (snapshot.hasError) {
                 return Center(child: Text('ข้อผิดพลาด: ${snapshot.error}'));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('ไม่พบรายการสำหรับเครื่องนี้'));
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    final userId = context.read<LoginViewModel>().loggedInUser?.userId ?? '';
+                    if (userId.isNotEmpty && widget.jobId.isNotEmpty) {
+                      await viewModel.refreshData(userId, widget.jobId, widget.documentId);
+                    }
+                  },
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                      const Center(child: Text('ไม่พบรายการสำหรับเครื่องนี้')),
+                    ],
+                  ),
+                );
               }
 
               var records = snapshot.data!;
@@ -591,19 +728,28 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                 }).toList();
 
                 if (records.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      final userId = context.read<LoginViewModel>().loggedInUser?.userId ?? '';
+                      if (userId.isNotEmpty && widget.jobId.isNotEmpty) {
+                        await viewModel.refreshData(userId, widget.jobId, widget.documentId);
+                      }
+                    },
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       children: [
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.3),
                         const Icon(Icons.check_circle,
                             size: 80, color: Colors.green),
                         const SizedBox(height: 16),
-                        Text(
-                          'ไม่มีรายการที่ผิดปกติ 🎉',
-                          style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.green[700],
-                              fontWeight: FontWeight.bold),
+                        Center(
+                          child: Text(
+                            'ไม่มีรายการที่ผิดปกติ 🎉',
+                            style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.green[700],
+                                fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ],
                     ),
@@ -614,7 +760,14 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
               final groupedRecords = groupBy(records,
                   (DbDocumentRecordOnline r) => r.tagGroupName ?? 'อื่นๆ');
 
-              return ListView.builder(
+              return RefreshIndicator(
+                onRefresh: () async {
+                  final userId = context.read<LoginViewModel>().loggedInUser?.userId ?? '';
+                  if (userId.isNotEmpty && widget.jobId.isNotEmpty) {
+                    await viewModel.refreshData(userId, widget.jobId, widget.documentId);
+                  }
+                },
+                child: ListView.builder(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
                 itemCount: groupedRecords.keys.length,
@@ -679,8 +832,8 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                                 }
 
                                 return InkWell(
-                                  onTap: () => _showActionMenu(
-                                      item), // <<< NEW MENU
+                                  onTap: () =>
+                                      _showActionMenu(item), // <<< NEW MENU
                                   child: Container(
                                     padding: const EdgeInsets.all(12.0),
                                     child: Row(
@@ -711,35 +864,72 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Wrap(
-                                                crossAxisAlignment: WrapCrossAlignment.center,
+                                                crossAxisAlignment:
+                                                    WrapCrossAlignment.center,
                                                 spacing: 6.0,
                                                 runSpacing: 4.0,
                                                 children: [
                                                   Text(
-                                                    item.tagName ?? 'Unknown Tag',
+                                                    item.tagName ??
+                                                        'Unknown Tag',
                                                     style: const TextStyle(
-                                                        fontWeight: FontWeight.w600,
+                                                        fontWeight:
+                                                            FontWeight.w600,
                                                         fontSize: 15),
                                                   ),
                                                   if (item.apiId != null)
                                                     Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 6,
+                                                          vertical: 2),
                                                       decoration: BoxDecoration(
                                                         color: Colors.blue[50],
-                                                        borderRadius: BorderRadius.circular(6),
-                                                        border: Border.all(color: Colors.blue[200]!),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(6),
+                                                        border: Border.all(
+                                                            color: Colors
+                                                                .blue[200]!),
                                                       ),
                                                       child: Text(
                                                         'API ID: ${item.apiId}',
                                                         style: TextStyle(
                                                           fontSize: 10,
-                                                          fontWeight: FontWeight.bold,
-                                                          color: Colors.blue[700],
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color:
+                                                              Colors.blue[700],
                                                         ),
                                                       ),
                                                     ),
                                                 ],
                                               ),
+                                              if (item.verify > 0)
+                                                Container(
+                                                  margin: const EdgeInsets.only(top: 4),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.green[50],
+                                                    borderRadius: BorderRadius.circular(4),
+                                                    border: Border.all(color: Colors.green[400]!),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(Icons.check_circle, size: 12, color: Colors.green[700]),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        'ตรวจสอบแล้ว',
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: Colors.green[700],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
                                               if (item.description != null &&
                                                   item.description!.isNotEmpty)
                                                 Padding(
@@ -817,7 +1007,8 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                         ),
                       ));
                 },
-              );
+              ),
+            );
             },
           );
         },

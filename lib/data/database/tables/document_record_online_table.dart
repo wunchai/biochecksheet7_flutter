@@ -32,6 +32,7 @@ class DocumentRecordOnlines extends Table {
   
   // Custom API additions
   IntColumn get uiType => integer().named('uiType').nullable()(); // Added in API
+  IntColumn get verify => integer().named('verify').withDefault(const Constant(0))(); // 1 = verified, 0 = not
 
   TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
 }

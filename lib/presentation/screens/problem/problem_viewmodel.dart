@@ -23,6 +23,8 @@ class ProblemViewModel extends ChangeNotifier {
   Stream<List<DbProblem>>? _problemsStream;
   Stream<List<DbProblem>>? get problemsStream => _problemsStream;
 
+  String? currentJobId; // <<< NEW: Store current jobId for sync
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -52,15 +54,16 @@ class ProblemViewModel extends ChangeNotifier {
         _dataSyncService = DataSyncService(appDatabase: appDatabase),
         _imageDao = appDatabase.imageDao; // <<< NEW: Initialize ImageDao
 
-  /// โหลดรายการปัญหาตาม Status (0, 1, 2)
-  Future<void> loadProblems() async {
+  /// โหลดรายการปัญหาตาม Status (0, 1, 2) และ optionally กรองตาม jobId
+  Future<void> loadProblems({String? jobId}) async {
+    currentJobId = jobId; // Store it for later use in refresh
     _isLoading = true;
     _statusMessage = "กำลังดึงรายการปัญหา...";
     notifyListeners();
 
     try {
       _problemsStream = _problemRepository.watchProblemsByStatus(
-          [0, 1, 2]); // Load problems with status 0, 1, 2
+          [0, 1, 2], jobId: jobId); // Load problems with status 0, 1, 2 and optional jobId
       _statusMessage = "รายการปัญหาโหลดแล้ว.";
     } catch (e) {
       _statusMessage = "ไม่สามารถโหลดรายการปัญหาได้: $e";
@@ -82,7 +85,7 @@ class ProblemViewModel extends ChangeNotifier {
       // NEW: Call API sync for problems first
       print('ProblemViewModel: กำลังซิงค์ปัญหาจาก API (เฉพาะ Problems)...');
       final syncResult =
-          await _dataSyncService.performProblemsSync(); // Calls full sync
+          await _dataSyncService.performProblemsSync(jobId: currentJobId); // Calls sync with jobId
       print(
           'ProblemViewModel: syncResult runtimeType is ${syncResult.runtimeType}'); // <<< NEW: Debugging print
 
@@ -108,9 +111,8 @@ class ProblemViewModel extends ChangeNotifier {
       notifyListeners(); // <<< CRUCIAL FIX: Notify listeners IMMEDIATELY after setting _syncMessage
       // This ensures the UI gets the error/success message.
 
-      await loadProblems(); // Reload from Local DB after sync
+      await loadProblems(jobId: currentJobId); // Reload from Local DB after sync with same jobId
       // resultStatus is already assigned before returning.
-      //await loadProblems(); // Reload from DB
     } catch (e) {
       resultStatus = SyncError(
           exception: e,

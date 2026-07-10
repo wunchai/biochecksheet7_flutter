@@ -61,6 +61,7 @@ class DocumentRecordOnlineRepository {
             remark: drift.Value(record.remark),
             syncDate: drift.Value(record.syncDate),
             uiType: drift.Value(record.uiType),
+            verify: drift.Value(record.verify),
           )).toList();
 
           await _dao.insertMultipleRecords(companions);

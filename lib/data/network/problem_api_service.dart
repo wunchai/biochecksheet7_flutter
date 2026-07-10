@@ -12,15 +12,18 @@ final String _baseUrl = AppConfig.baseUrl;
 
 class ProblemApiService {
   /// Syncs problem data from API.
-  Future<List<DbProblem>> syncProblems() async {
+  Future<List<DbProblem>> syncProblems({String? jobId}) async {
     final uri =
         Uri.parse("$_baseUrl/CHECKSHEET_PROBLEM_SYNC"); // Assumed API Endpoint
-    print("Syncing problems with URL: $uri");
+    print("Syncing problems with URL: $uri, jobId: $jobId");
     final headers = {"Content-Type": "application/json"};
     final Map<String, dynamic> parameterObject = {
       "username": "000000"
       // ถ้ามี Password ก็เพิ่ม Password: "your_password"
     };
+    if (jobId != null && jobId.isNotEmpty) {
+      parameterObject["jobId"] = jobId;
+    }
     final body = jsonEncode({
       "ServiceName": "CHECKSHEET_PROBLEM_SYNC",
       "Paremeter": jsonEncode(parameterObject) // <<< แก้ไขตรงนี้

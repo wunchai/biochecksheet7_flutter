@@ -118,7 +118,7 @@ class AppDatabase extends _$AppDatabase {
   DocumentImageOnlineDao get documentImageOnlineDao => DocumentImageOnlineDao(this); // <<< NEW
 
   @override
-  int get schemaVersion => 20; // <<< UPDATED to 20 for adding apiId
+  int get schemaVersion => 21; // <<< UPDATED to 21 for adding verify
 
   // Define the migration strategy.
   @override
@@ -233,6 +233,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 20) {
             // Added apiId to DocumentRecordOnlines
             await m.addColumn(documentRecordOnlines, documentRecordOnlines.apiId);
+          }
+          if (from < 21) {
+            // Added verify to DocumentRecordOnlines
+            await m.addColumn(documentRecordOnlines, documentRecordOnlines.verify);
           }
         },
       );

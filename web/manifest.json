@@ -1,6 +1,6 @@
 {
-    "name": "biochecksheet7_flutter",
-    "short_name": "biochecksheet7_flutter",
+    "name": "BioCheckSheet",
+    "short_name": "BioCheckSheet",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

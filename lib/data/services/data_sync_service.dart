@@ -259,10 +259,10 @@ class DataSyncService {
 
   /// Performs a synchronization of problem data only.
   /// CRUCIAL FIX: Directly return the result from _syncProblemsData().
-  Future<SyncStatus> performProblemsSync() async {
+  Future<SyncStatus> performProblemsSync({String? jobId}) async {
     try {
       final result =
-          await _syncProblemsData(); // _syncProblemsData already returns SyncStatus (Success or Error)
+          await _syncProblemsData(jobId: jobId); // _syncProblemsData already returns SyncStatus (Success or Error)
       return result; // <<< CRUCIAL FIX: Directly return the result
     } on Exception catch (e) {
       // This catch block is for unexpected exceptions thrown by _syncProblemsData
@@ -377,10 +377,10 @@ class DataSyncService {
   }
 
   // Corrected: Private method for Problem sync - now handles conditional update/insert
-  Future<SyncStatus> _syncProblemsData() async {
+  Future<SyncStatus> _syncProblemsData({String? jobId}) async {
     try {
       final problemsFromApi =
-          await _problemApiService.syncProblems(); // Gets all problems from API
+          await _problemApiService.syncProblems(jobId: jobId); // Gets all problems from API
 
       for (final apiProblem in problemsFromApi) {
         print(

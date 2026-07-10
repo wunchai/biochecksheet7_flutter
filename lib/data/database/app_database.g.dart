@@ -1650,6 +1650,13 @@ class $DocumentRecordOnlinesTable extends DocumentRecordOnlines
   late final GeneratedColumn<int> uiType = GeneratedColumn<int>(
       'uiType', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _verifyMeta = const VerificationMeta('verify');
+  @override
+  late final GeneratedColumn<int> verify = GeneratedColumn<int>(
+      'verify', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _updatedAtMeta =
       const VerificationMeta('updatedAt');
   @override
@@ -1683,6 +1690,7 @@ class $DocumentRecordOnlinesTable extends DocumentRecordOnlines
         remark,
         syncDate,
         uiType,
+        verify,
         updatedAt
       ];
   @override
@@ -1814,6 +1822,10 @@ class $DocumentRecordOnlinesTable extends DocumentRecordOnlines
       context.handle(_uiTypeMeta,
           uiType.isAcceptableOrUnknown(data['uiType']!, _uiTypeMeta));
     }
+    if (data.containsKey('verify')) {
+      context.handle(_verifyMeta,
+          verify.isAcceptableOrUnknown(data['verify']!, _verifyMeta));
+    }
     if (data.containsKey('updatedAt')) {
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
@@ -1877,6 +1889,8 @@ class $DocumentRecordOnlinesTable extends DocumentRecordOnlines
           .read(DriftSqlType.string, data['${effectivePrefix}syncDate']),
       uiType: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}uiType']),
+      verify: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}verify'])!,
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
     );
@@ -1915,6 +1929,7 @@ class DbDocumentRecordOnline extends DataClass
   final String? remark;
   final String? syncDate;
   final int? uiType;
+  final int verify;
   final String? updatedAt;
   const DbDocumentRecordOnline(
       {required this.uid,
@@ -1942,6 +1957,7 @@ class DbDocumentRecordOnline extends DataClass
       this.remark,
       this.syncDate,
       this.uiType,
+      required this.verify,
       this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2015,6 +2031,7 @@ class DbDocumentRecordOnline extends DataClass
     if (!nullToAbsent || uiType != null) {
       map['uiType'] = Variable<int>(uiType);
     }
+    map['verify'] = Variable<int>(verify);
     if (!nullToAbsent || updatedAt != null) {
       map['updatedAt'] = Variable<String>(updatedAt);
     }
@@ -2084,6 +2101,7 @@ class DbDocumentRecordOnline extends DataClass
           : Value(syncDate),
       uiType:
           uiType == null && nullToAbsent ? const Value.absent() : Value(uiType),
+      verify: Value(verify),
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
@@ -2122,6 +2140,7 @@ class DbDocumentRecordOnline extends DataClass
       remark: serializer.fromJson<String?>(json['remark']),
       syncDate: serializer.fromJson<String?>(json['syncDate']),
       uiType: serializer.fromJson<int?>(json['uiType']),
+      verify: serializer.fromJson<int>(json['verify']),
       updatedAt: serializer.fromJson<String?>(json['updatedAt']),
     );
   }
@@ -2154,6 +2173,7 @@ class DbDocumentRecordOnline extends DataClass
       'remark': serializer.toJson<String?>(remark),
       'syncDate': serializer.toJson<String?>(syncDate),
       'uiType': serializer.toJson<int?>(uiType),
+      'verify': serializer.toJson<int>(verify),
       'updatedAt': serializer.toJson<String?>(updatedAt),
     };
   }
@@ -2184,6 +2204,7 @@ class DbDocumentRecordOnline extends DataClass
           Value<String?> remark = const Value.absent(),
           Value<String?> syncDate = const Value.absent(),
           Value<int?> uiType = const Value.absent(),
+          int? verify,
           Value<String?> updatedAt = const Value.absent()}) =>
       DbDocumentRecordOnline(
         uid: uid ?? this.uid,
@@ -2219,6 +2240,7 @@ class DbDocumentRecordOnline extends DataClass
         remark: remark.present ? remark.value : this.remark,
         syncDate: syncDate.present ? syncDate.value : this.syncDate,
         uiType: uiType.present ? uiType.value : this.uiType,
+        verify: verify ?? this.verify,
         updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
   DbDocumentRecordOnline copyWithCompanion(
@@ -2263,6 +2285,7 @@ class DbDocumentRecordOnline extends DataClass
       remark: data.remark.present ? data.remark.value : this.remark,
       syncDate: data.syncDate.present ? data.syncDate.value : this.syncDate,
       uiType: data.uiType.present ? data.uiType.value : this.uiType,
+      verify: data.verify.present ? data.verify.value : this.verify,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -2295,6 +2318,7 @@ class DbDocumentRecordOnline extends DataClass
           ..write('remark: $remark, ')
           ..write('syncDate: $syncDate, ')
           ..write('uiType: $uiType, ')
+          ..write('verify: $verify, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -2327,6 +2351,7 @@ class DbDocumentRecordOnline extends DataClass
         remark,
         syncDate,
         uiType,
+        verify,
         updatedAt
       ]);
   @override
@@ -2358,6 +2383,7 @@ class DbDocumentRecordOnline extends DataClass
           other.remark == this.remark &&
           other.syncDate == this.syncDate &&
           other.uiType == this.uiType &&
+          other.verify == this.verify &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -2388,6 +2414,7 @@ class DocumentRecordOnlinesCompanion
   final Value<String?> remark;
   final Value<String?> syncDate;
   final Value<int?> uiType;
+  final Value<int> verify;
   final Value<String?> updatedAt;
   const DocumentRecordOnlinesCompanion({
     this.uid = const Value.absent(),
@@ -2415,6 +2442,7 @@ class DocumentRecordOnlinesCompanion
     this.remark = const Value.absent(),
     this.syncDate = const Value.absent(),
     this.uiType = const Value.absent(),
+    this.verify = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   DocumentRecordOnlinesCompanion.insert({
@@ -2443,6 +2471,7 @@ class DocumentRecordOnlinesCompanion
     this.remark = const Value.absent(),
     this.syncDate = const Value.absent(),
     this.uiType = const Value.absent(),
+    this.verify = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   static Insertable<DbDocumentRecordOnline> custom({
@@ -2471,6 +2500,7 @@ class DocumentRecordOnlinesCompanion
     Expression<String>? remark,
     Expression<String>? syncDate,
     Expression<int>? uiType,
+    Expression<int>? verify,
     Expression<String>? updatedAt,
   }) {
     return RawValuesInsertable({
@@ -2499,6 +2529,7 @@ class DocumentRecordOnlinesCompanion
       if (remark != null) 'remark': remark,
       if (syncDate != null) 'syncDate': syncDate,
       if (uiType != null) 'uiType': uiType,
+      if (verify != null) 'verify': verify,
       if (updatedAt != null) 'updatedAt': updatedAt,
     });
   }
@@ -2529,6 +2560,7 @@ class DocumentRecordOnlinesCompanion
       Value<String?>? remark,
       Value<String?>? syncDate,
       Value<int?>? uiType,
+      Value<int>? verify,
       Value<String?>? updatedAt}) {
     return DocumentRecordOnlinesCompanion(
       uid: uid ?? this.uid,
@@ -2556,6 +2588,7 @@ class DocumentRecordOnlinesCompanion
       remark: remark ?? this.remark,
       syncDate: syncDate ?? this.syncDate,
       uiType: uiType ?? this.uiType,
+      verify: verify ?? this.verify,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -2638,6 +2671,9 @@ class DocumentRecordOnlinesCompanion
     if (uiType.present) {
       map['uiType'] = Variable<int>(uiType.value);
     }
+    if (verify.present) {
+      map['verify'] = Variable<int>(verify.value);
+    }
     if (updatedAt.present) {
       map['updatedAt'] = Variable<String>(updatedAt.value);
     }
@@ -2672,6 +2708,7 @@ class DocumentRecordOnlinesCompanion
           ..write('remark: $remark, ')
           ..write('syncDate: $syncDate, ')
           ..write('uiType: $uiType, ')
+          ..write('verify: $verify, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -13434,6 +13471,7 @@ typedef $$DocumentRecordOnlinesTableCreateCompanionBuilder
   Value<String?> remark,
   Value<String?> syncDate,
   Value<int?> uiType,
+  Value<int> verify,
   Value<String?> updatedAt,
 });
 typedef $$DocumentRecordOnlinesTableUpdateCompanionBuilder
@@ -13463,6 +13501,7 @@ typedef $$DocumentRecordOnlinesTableUpdateCompanionBuilder
   Value<String?> remark,
   Value<String?> syncDate,
   Value<int?> uiType,
+  Value<int> verify,
   Value<String?> updatedAt,
 });
 
@@ -13552,6 +13591,9 @@ class $$DocumentRecordOnlinesTableFilterComposer
 
   ColumnFilters<int> get uiType => $composableBuilder(
       column: $table.uiType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get verify => $composableBuilder(
+      column: $table.verify, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
@@ -13646,6 +13688,9 @@ class $$DocumentRecordOnlinesTableOrderingComposer
   ColumnOrderings<int> get uiType => $composableBuilder(
       column: $table.uiType, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get verify => $composableBuilder(
+      column: $table.verify, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
@@ -13734,6 +13779,9 @@ class $$DocumentRecordOnlinesTableAnnotationComposer
   GeneratedColumn<int> get uiType =>
       $composableBuilder(column: $table.uiType, builder: (column) => column);
 
+  GeneratedColumn<int> get verify =>
+      $composableBuilder(column: $table.verify, builder: (column) => column);
+
   GeneratedColumn<String> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
@@ -13794,6 +13842,7 @@ class $$DocumentRecordOnlinesTableTableManager extends RootTableManager<
             Value<String?> remark = const Value.absent(),
             Value<String?> syncDate = const Value.absent(),
             Value<int?> uiType = const Value.absent(),
+            Value<int> verify = const Value.absent(),
             Value<String?> updatedAt = const Value.absent(),
           }) =>
               DocumentRecordOnlinesCompanion(
@@ -13822,6 +13871,7 @@ class $$DocumentRecordOnlinesTableTableManager extends RootTableManager<
             remark: remark,
             syncDate: syncDate,
             uiType: uiType,
+            verify: verify,
             updatedAt: updatedAt,
           ),
           createCompanionCallback: ({
@@ -13850,6 +13900,7 @@ class $$DocumentRecordOnlinesTableTableManager extends RootTableManager<
             Value<String?> remark = const Value.absent(),
             Value<String?> syncDate = const Value.absent(),
             Value<int?> uiType = const Value.absent(),
+            Value<int> verify = const Value.absent(),
             Value<String?> updatedAt = const Value.absent(),
           }) =>
               DocumentRecordOnlinesCompanion.insert(
@@ -13878,6 +13929,7 @@ class $$DocumentRecordOnlinesTableTableManager extends RootTableManager<
             remark: remark,
             syncDate: syncDate,
             uiType: uiType,
+            verify: verify,
             updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
