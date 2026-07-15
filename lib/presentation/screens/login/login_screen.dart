@@ -7,6 +7,8 @@ import 'package:biochecksheet7_flutter/presentation/screens/main_wrapper/main_wr
 import 'package:biochecksheet7_flutter/presentation/widgets/error_dialog.dart';
 import 'package:biochecksheet7_flutter/data/models/login_result.dart'; // <<< NEW: Import LoginResult
 import 'package:biochecksheet7_flutter/presentation/screens/login/widgets/register_dialog.dart'; // <<< NEW: Import RegisterDialog
+import 'package:biochecksheet7_flutter/data/services/data_sync_service.dart';
+import 'package:biochecksheet7_flutter/data/network/sync_status.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -56,10 +58,46 @@ class _LoginScreenState extends State<LoginScreen> {
     if (mounted) {
       // Ensure widget is still mounted before navigating or showing dialog
       if (loginResult is LoginSuccess) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const MainWrapperScreen()),
-          (Route<dynamic> route) => false,
+        // Show loading dialog for Metadata Sync
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Dialog(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(width: 20),
+                    Text("กำลังเตรียมข้อมูลอุปกรณ์..."),
+                  ],
+                ),
+              ),
+            );
+          },
         );
+
+        final dataSyncService = Provider.of<DataSyncService>(context, listen: false);
+        final syncResult = await dataSyncService.performMetadataActionsSync(
+            userId: loginResult.loggedInUser.userId);
+
+        if (mounted) {
+          // Close loading dialog
+          Navigator.of(context).pop();
+
+          if (syncResult is SyncError) {
+             ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(content: Text(syncResult.message ?? 'Unknown error')),
+             );
+          }
+
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const MainWrapperScreen()),
+            (Route<dynamic> route) => false,
+          );
+        }
       } else if (loginResult is LoginFailed) {
         showDialog(
           context: context,

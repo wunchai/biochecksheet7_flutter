@@ -175,6 +175,8 @@ class _DeviceInfoScreenState extends State<DeviceInfoScreen> {
                       ),
                     ),
                   ),
+                  // เว้นระยะด้านล่างเพื่อให้เลื่อนพ้น FAB และ Navigation Bar
+                  SizedBox(height: MediaQuery.paddingOf(context).bottom + 80),
                 ],
               ),
             );

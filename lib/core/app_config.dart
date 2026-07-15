@@ -13,8 +13,8 @@ class AppConfig {
   // แก้ไข URL นี้ให้เป็นที่อยู่ของ Server ของคุณ
   // ตัวอย่าง: 'http://192.168.1.100:8080' หรือ 'https://api.yourdomain.com'
   //static const String baseUrl = 'http://10.1.200.26/ServiceJson/Service4.svc';
-  static const String baseUrl = 'http://10.1.200.26:94';
-  //static const String baseUrl = 'http://10.1.2.42:93';
+  //static const String baseUrl = 'http://10.1.200.26:94';
+  static const String baseUrl = 'http://10.1.2.42:93';
   //static const String baseUrl = 'http://10.1.1.66:5029';
   static const String databaseName = 'biochecksheet7_db.sqlite';
   // --- การตั้งค่าอื่นๆ (สามารถเพิ่มได้ในอนาคต) ---

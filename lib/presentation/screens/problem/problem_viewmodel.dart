@@ -245,7 +245,7 @@ class ProblemViewModel extends ChangeNotifier {
       _statusMessage = "บันทึกข้อมูลล้มเหลว.";
     }
     notifyListeners();
-    await loadProblems(); // Reload to reflect changes
+    await loadProblems(jobId: currentJobId); // Reload to reflect changes, keeping jobId
     return allProblemsValid;
   }
 

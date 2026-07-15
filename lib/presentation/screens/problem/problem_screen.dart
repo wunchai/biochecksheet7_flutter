@@ -22,34 +22,19 @@ class ProblemScreen extends StatefulWidget {
 }
 
 class _ProblemScreenState extends State<ProblemScreen> {
-  // REMOVED: final Map<int, TextEditingController> _solvingDescControllers = {}; // Moved to ProblemListItem
-  // REMOVED: bool _isShowingDialog = false; // Flag for dialog timing, now managed by onPressed callbacks
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProblemViewModel>(context, listen: false).loadProblems(jobId: widget.jobId);
+      Provider.of<ProblemViewModel>(context, listen: false)
+          .loadProblems(jobId: widget.jobId);
     });
   }
 
   @override
   void dispose() {
-    // _solvingDescControllers.forEach((key, controller) => controller.dispose()); // Managed by ProblemListItem
     super.dispose();
   }
-
-  // REMOVED: Helper method to get/create and update the TextEditingController // Moved to ProblemListItem
-  /*
-  TextEditingController _getOrCreateAndSyncSolvingDescController(int uid, String? value) {
-    final controller = _solvingDescControllers.putIfAbsent(uid, () => TextEditingController());
-    if (controller.text != (value ?? '')) {
-      controller.text = value ?? '';
-      controller.selection = TextSelection.fromPosition(TextPosition(offset: controller.text.length));
-    }
-    return controller;
-  }
-  */
 
   // Show dialog for Online Chart display (reusing RecordLineChart)
   void _showOnlineChartDialog(
@@ -286,7 +271,7 @@ class _ProblemScreenState extends State<ProblemScreen> {
                                           children: [
                                             Expanded(
                                               child: Text(
-                                                problem.problemName ?? 'N/A',
+                                                problem.tagName ?? 'N/A',
                                                 style: Theme.of(context)
                                                     .textTheme
                                                     .titleMedium
@@ -295,43 +280,74 @@ class _ProblemScreenState extends State<ProblemScreen> {
                                                             FontWeight.bold),
                                               ),
                                             ),
-                                            IconButton(
-                                              icon: const Icon(Icons.image),
-                                              onPressed: () {
-                                                final bool
-                                                    isImageScreenReadOnly =
-                                                    problem.problemStatus ==
-                                                            1 ||
-                                                        problem.problemStatus ==
-                                                            2;
-                                                Navigator.pushNamed(
-                                                  context,
-                                                  '/image_record',
-                                                  arguments: {
-                                                    'title':
-                                                        'รูปภาพปัญหา: ${problem.problemName ?? 'N/A'}',
-                                                    'documentId':
-                                                        problem.documentId ??
-                                                            '',
-                                                    'machineId':
-                                                        problem.machineId ?? '',
-                                                    'jobId':
-                                                        problem.jobId ?? '',
-                                                    'tagId':
-                                                        problem.tagId ?? '',
-                                                    'problemId': problem
-                                                            .problemId
-                                                            ?.toString() ??
-                                                        '',
-                                                    'isReadOnly':
-                                                        isImageScreenReadOnly,
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(
+                                                      Icons.description,
+                                                      color: Colors.blue),
+                                                  tooltip: 'เปิดเอกสาร',
+                                                  onPressed: () {
+                                                    Navigator.pushNamed(
+                                                      context,
+                                                      '/document_online',
+                                                      arguments: {
+                                                        'title': problem
+                                                                .problemName ??
+                                                            'Document Online',
+                                                        'jobId': problem.jobId
+                                                            ?.toString(),
+                                                        'userId': '000000',
+                                                        'documentId': problem
+                                                            .documentId
+                                                            ?.toString(),
+                                                        'machineId': problem
+                                                            .machineId
+                                                            ?.toString(),
+                                                      },
+                                                    );
                                                   },
-                                                );
-                                              },
+                                                ),
+                                                IconButton(
+                                                  icon: const Icon(Icons.image),
+                                                  onPressed: () {
+                                                    final bool
+                                                        isImageScreenReadOnly =
+                                                        problem.problemStatus ==
+                                                                1 ||
+                                                            problem.problemStatus ==
+                                                                2;
+                                                    Navigator.pushNamed(
+                                                      context,
+                                                      '/image_record',
+                                                      arguments: {
+                                                        'title':
+                                                            'รูปภาพปัญหา: ${problem.problemName ?? 'N/A'}',
+                                                        'documentId': problem
+                                                                .documentId ??
+                                                            '',
+                                                        'machineId':
+                                                            problem.machineId ??
+                                                                '',
+                                                        'jobId':
+                                                            problem.jobId ?? '',
+                                                        'tagId':
+                                                            problem.tagId ?? '',
+                                                        'problemId': problem
+                                                                .problemId
+                                                                ?.toString() ??
+                                                            '',
+                                                        'isReadOnly':
+                                                            isImageScreenReadOnly,
+                                                      },
+                                                    );
+                                                  },
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
-
                                         const SizedBox(height: 4.0),
                                         Text(
                                             'Problem ID: ${problem.problemId ?? 'N/A'}',
@@ -343,8 +359,9 @@ class _ProblemScreenState extends State<ProblemScreen> {
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .bodySmall),
+
                                         Text(
-                                            'Machine Name: ${problem.machineName ?? 'N/A'}',
+                                            'Machine / Process: ${problem.machineName ?? 'N/A'}',
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .bodySmall),

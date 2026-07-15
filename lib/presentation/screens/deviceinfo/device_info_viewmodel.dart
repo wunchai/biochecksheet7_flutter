@@ -99,49 +99,11 @@ class DeviceInfoViewModel extends ChangeNotifier {
 
       // 2. Call checkSyncMetadata API
       final String username = _loginRepository.loggedInUser?.userId ?? 'unknown_user'; // <<< NEW
-      final List<SyncMetadataResponse> syncMetadataResults =
-          await _dataSyncService.checkSyncMetadata(
-        username: username, // <<< FIX
-        deviceId: _deviceId,
-        serialNo: _serialNo,
-        version: _appVersion,
-        ipAddress: _ipAddress,
-        wifiStrength: _wifiStrength,
-        fcmToken: await fcmService.getDeviceToken(), // <<< NEW
+      final SyncStatus result = await _dataSyncService.performMetadataActionsSync(
+        userId: username,
       );
 
-      // 3. Process actions from server response
-      bool allActionsSuccessful = true;
-      for (final action in syncMetadataResults) {
-        print(
-            "DeviceInfoViewModel: Processing action: ${action.actionType} (ID: ${action.actionId})");
-        switch (action.actionType) {
-          case "transferDB":
-            final result = await _dataSyncService.databaseMaintenanceService
-                .backupAndUploadDb(
-                    userId: username, // <<< FIX
-                    deviceId: _deviceId); 
-            if (result is SyncError) allActionsSuccessful = false;
-            break;
-          case "update":
-            if (action.actionSql != null && action.actionSql!.isNotEmpty) {
-              final result = await _dataSyncService.databaseMaintenanceService
-                  .executeRawSqlQuery(action.actionSql!);
-              if (result is SyncError) allActionsSuccessful = false;
-            }
-            break;
-          case "cleanEndData":
-            final result =
-                await _dataSyncService.dataCleanupService.cleanEndData();
-            if (result is SyncError) allActionsSuccessful = false;
-            break;
-          default:
-            print(
-                "DeviceInfoViewModel: Unknown actionType: ${action.actionType}");
-            // allActionsSuccessful = false;
-            break;
-        }
-      }
+      bool allActionsSuccessful = result is SyncSuccess;
       // After processing actions, perform regular data syncs (download new master data)
       // await _dataSyncService.performFullSync(); // Or specific syncs
 

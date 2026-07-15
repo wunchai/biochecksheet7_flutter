@@ -12,22 +12,23 @@ final String _baseUrl = AppConfig.baseUrl;
 
 class ProblemApiService {
   /// Syncs problem data from API.
-  Future<List<DbProblem>> syncProblems({String? jobId}) async {
-    final uri =
-        Uri.parse("$_baseUrl/CHECKSHEET_PROBLEM_SYNC"); // Assumed API Endpoint
-    print("Syncing problems with URL: $uri, jobId: $jobId");
+  Future<List<DbProblem>> syncProblems(
+      {String? jobId, int pageIndex = 1, int pageSize = 500}) async {
+    final uri = Uri.parse("$_baseUrl/CHECKSHEET_PROBLEM_PAGED_SYNC");
+    print("Syncing problems with URL: $uri, jobId: $jobId, page: $pageIndex");
     final headers = {"Content-Type": "application/json"};
-    final Map<String, dynamic> parameterObject = {
-      "username": "000000"
-      // ถ้ามี Password ก็เพิ่ม Password: "your_password"
+    
+    final Map<String, dynamic> bodyMap = {
+      "userId": "000000",
+      "username": "000000",
+      "pageIndex": pageIndex.toString(),
+      "pageSize": pageSize.toString(),
     };
     if (jobId != null && jobId.isNotEmpty) {
-      parameterObject["jobId"] = jobId;
+      bodyMap["jobId"] = jobId;
     }
-    final body = jsonEncode({
-      "ServiceName": "CHECKSHEET_PROBLEM_SYNC",
-      "Paremeter": jsonEncode(parameterObject) // <<< แก้ไขตรงนี้
-    });
+    
+    final body = jsonEncode(bodyMap);
     print("Request body: $body");
 
     try {
@@ -42,17 +43,23 @@ class ProblemApiService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
-        if (responseJson['Table'] != null && responseJson['Table'] is List) {
-          final List<dynamic> problemList = responseJson['Table'];
+        
+        dynamic rawProblemList = responseJson['Table'] ?? responseJson['Problems'] ?? responseJson['Jobs'];
+        
+        if (rawProblemList is String) {
+          rawProblemList = jsonDecode(rawProblemList);
+        }
+
+        if (rawProblemList != null && rawProblemList is List) {
+          final List<dynamic> problemList = rawProblemList;
           final List<DbProblem> syncedProblems = problemList.map((problemData) {
             print(
                 'ProblemApiService: Mapping API problemData for problemId: "${problemData['problemId']}", documentId: "${problemData['documentId']}"'); // <<< Debugging
             return DbProblem(
               uid: 0, // Auto-increment
               problemId: problemData['problemId']?.toString(),
-              problemName: problemData['problemName'],
-              problemDescription: problemData[
-                  'problemDescription'], // <<< Corrected: Use ProblemDescription
+              problemName: problemData['problemName'] ?? problemData['ProblemName'],
+              problemDescription: problemData['problemDescription'] ?? problemData['ProblemDescription'] ?? problemData['description'] ?? problemData['Description'],
               problemStatus: int.tryParse(
                       problemData['problemStatus']?.toString() ?? '0') ??
                   0,

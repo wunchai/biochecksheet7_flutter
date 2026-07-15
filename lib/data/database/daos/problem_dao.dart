@@ -58,6 +58,15 @@ class ProblemDao extends DatabaseAccessor<AppDatabase> with _$ProblemDaoMixin {
         .get();
   }
 
+  /// NEW: Gets all problem records for a specific jobId (or all if jobId is null).
+  Future<List<DbProblem>> getProblemsByJobId(String? jobId) {
+    if (jobId == null) {
+      return select(problems).get();
+    } else {
+      return (select(problems)..where((tbl) => tbl.jobId.equals(jobId))).get();
+    }
+  }
+
   // NEW: Gets a single problem record by its problemId (from API/backend).
   Future<DbProblem?> getProblemByProblemId(String problemId) {
     return (select(problems)..where((tbl) => tbl.problemId.equals(problemId)))

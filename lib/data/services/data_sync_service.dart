@@ -11,6 +11,8 @@ import 'package:biochecksheet7_flutter/data/network/problem_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/sync_metadata_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/document_api_service.dart';
 import 'package:biochecksheet7_flutter/data/network/checksheet_image_api_service.dart';
+import 'package:biochecksheet7_flutter/data/services/device_info_service.dart';
+import 'package:biochecksheet7_flutter/data/services/fcm_service.dart';
 
 // Import all DAOs
 import 'package:biochecksheet7_flutter/data/database/daos/user_dao.dart';
@@ -169,6 +171,8 @@ class DataSyncService {
       */
 
       SyncStatus result;
+      result = await performMetadataActionsSync();
+      if (result is SyncError) return result;
 
       result = await _syncUsersData();
       if (result is SyncError) return result;
@@ -185,8 +189,8 @@ class DataSyncService {
       result = await _syncJobTagsData();
       if (result is SyncError) return result;
 
-      result = await _syncProblemsData();
-      if (result is SyncError) return result;
+      // result = await _syncProblemsData();
+      // if (result is SyncError) return result;
 
       /*
       result = await _syncMasterImages();
@@ -379,38 +383,86 @@ class DataSyncService {
   // Corrected: Private method for Problem sync - now handles conditional update/insert
   Future<SyncStatus> _syncProblemsData({String? jobId}) async {
     try {
-      final problemsFromApi =
-          await _problemApiService.syncProblems(jobId: jobId); // Gets all problems from API
+      int pageIndex = 1;
+      const int pageSize = 500;
+      bool hasMoreData = true;
+      final Set<String> allApiProblemIds = {};
+      int totalProcessed = 0;
 
-      for (final apiProblem in problemsFromApi) {
-        print(
-            'DataSyncService: Processing API problem for ProblemId: "${apiProblem.problemId}", DocumentId: "${apiProblem.documentId}"'); // <<< Debugging
-        // Try to find the existing local problem by problemId
-        final existingLocalProblem =
-            await _problemDao.getProblemByProblemId(apiProblem.problemId ?? '');
+      print("Starting paged problem sync...");
 
-        if (existingLocalProblem != null) {
-          // If local problem exists, check its status
-          if (existingLocalProblem.problemStatus == 0) {
-            // Only update if local status is 0 (pending/initial)
-            print(
-                'DataSyncService: Updating local problem UID ${existingLocalProblem.uid} (Status 0) with API data for ProblemId: ${apiProblem.problemId}, DocumentId: ${apiProblem.documentId}'); // <<< Debuggingawait _problemDao.updateProblem(
-            await _problemDao.updateProblem(
+      while (hasMoreData) {
+        print("Fetching problems page $pageIndex...");
+        final problemsPage = await _problemApiService.syncProblems(
+            jobId: jobId, pageIndex: pageIndex, pageSize: pageSize);
+
+        if (problemsPage.isEmpty) {
+          hasMoreData = false;
+          break;
+        }
+
+        // Process this page
+        for (final apiProblem in problemsPage) {
+          final pId = apiProblem.problemId ?? '';
+          if (pId.isNotEmpty) allApiProblemIds.add(pId);
+          
+          print('DataSyncService: Processing API problem for ProblemId: "$pId", DocumentId: "${apiProblem.documentId}"');
+          
+          // Try to find the existing local problem by problemId
+          final existingLocalProblem = await _problemDao.getProblemByProblemId(pId);
+
+          if (existingLocalProblem != null) {
+            // If local problem exists, check its status
+            if (existingLocalProblem.problemStatus == 0) {
+              // Only update if local status is 0 (pending/initial)
+              print('DataSyncService: Updating local problem UID ${existingLocalProblem.uid} (Status 0) with API data for ProblemId: $pId');
+              await _problemDao.updateProblem(
+                ProblemsCompanion(
+                  uid: drift.Value(existingLocalProblem.uid),
+                  problemId: drift.Value(apiProblem.problemId),
+                  problemName: drift.Value(apiProblem.problemName),
+                  problemDescription: drift.Value(apiProblem.problemDescription),
+                  problemStatus: drift.Value(apiProblem.problemStatus),
+                  problemSolvingDescription: drift.Value(apiProblem.problemSolvingDescription),
+                  machineId: drift.Value(apiProblem.machineId),
+                  machineName: drift.Value(apiProblem.machineName),
+                  jobId: drift.Value(apiProblem.jobId),
+                  documentId: drift.Value(apiProblem.documentId),
+                  tagId: drift.Value(apiProblem.tagId),
+                  tagName: drift.Value(apiProblem.tagName),
+                  tagType: drift.Value(apiProblem.tagType),
+                  description: drift.Value(apiProblem.description),
+                  note: drift.Value(apiProblem.note),
+                  specification: drift.Value(apiProblem.specification),
+                  specMin: drift.Value(apiProblem.specMin),
+                  specMax: drift.Value(apiProblem.specMax),
+                  unit: drift.Value(apiProblem.unit),
+                  value: drift.Value(apiProblem.value),
+                  remark: drift.Value(apiProblem.remark),
+                  unReadable: drift.Value(apiProblem.unReadable),
+                  lastSync: drift.Value(DateTime.now().toIso8601String()),
+                  problemSolvingBy: drift.Value(apiProblem.problemSolvingBy),
+                  syncStatus: drift.Value(apiProblem.syncStatus),
+                ),
+              );
+            } else {
+              print('DataSyncService: Skipping update for local problem UID ${existingLocalProblem.uid} (ProblemId: $pId) because its status is ${existingLocalProblem.problemStatus} (not 0).');
+            }
+          } else {
+            // If local problem does not exist, insert it as a new record
+            print('Inserting new local problem for ProblemId: $pId');
+            await _problemDao.insertProblem(
               ProblemsCompanion(
-                uid: drift.Value(
-                    existingLocalProblem.uid), // Specify UID for update
+                uid: drift.Value.absent(),
                 problemId: drift.Value(apiProblem.problemId),
                 problemName: drift.Value(apiProblem.problemName),
                 problemDescription: drift.Value(apiProblem.problemDescription),
-                problemStatus: drift.Value(
-                    apiProblem.problemStatus), // Use API status (should be 0)
-                problemSolvingDescription:
-                    drift.Value(apiProblem.problemSolvingDescription),
+                problemStatus: drift.Value(apiProblem.problemStatus),
+                problemSolvingDescription: drift.Value(apiProblem.problemSolvingDescription),
+                documentId: drift.Value(apiProblem.documentId),
                 machineId: drift.Value(apiProblem.machineId),
                 machineName: drift.Value(apiProblem.machineName),
                 jobId: drift.Value(apiProblem.jobId),
-                documentId: drift.Value(
-                    apiProblem.documentId), // <<< Ensure this is passed
                 tagId: drift.Value(apiProblem.tagId),
                 tagName: drift.Value(apiProblem.tagName),
                 tagType: drift.Value(apiProblem.tagType),
@@ -423,59 +475,40 @@ class DataSyncService {
                 value: drift.Value(apiProblem.value),
                 remark: drift.Value(apiProblem.remark),
                 unReadable: drift.Value(apiProblem.unReadable),
-                lastSync: drift.Value(
-                    DateTime.now().toIso8601String()), // Update last sync
+                lastSync: drift.Value(DateTime.now().toIso8601String()),
                 problemSolvingBy: drift.Value(apiProblem.problemSolvingBy),
-                syncStatus:
-                    drift.Value(apiProblem.syncStatus), // Use API syncStatus
+                syncStatus: drift.Value(apiProblem.syncStatus),
               ),
             );
-          } else {
-            print(
-                'DataSyncService: Skipping update for local problem UID ${existingLocalProblem.uid} (ProblemId: ${apiProblem.problemId}) because its status is ${existingLocalProblem.problemStatus} (not 0).'); // <<< Debugging
           }
+        }
+        
+        totalProcessed += problemsPage.length;
+        print("Processed ${problemsPage.length} problems from page $pageIndex");
+
+        if (problemsPage.length < pageSize) {
+          hasMoreData = false;
         } else {
-          // If local problem does not exist, insert it as a new record
-          print(
-              'Inserting new local problem for ProblemId: ${apiProblem.problemId}');
-          await _problemDao.insertProblem(
-            ProblemsCompanion(
-              uid: drift.Value.absent(), // Auto-increment
-              problemId: drift.Value(apiProblem.problemId),
-              problemName: drift.Value(apiProblem.problemName),
-              problemDescription: drift.Value(apiProblem.problemDescription),
-              problemStatus:
-                  drift.Value(apiProblem.problemStatus), // Use API status
-              problemSolvingDescription:
-                  drift.Value(apiProblem.problemSolvingDescription),
-              documentId: drift.Value(
-                  apiProblem.documentId), // <<< Ensure this is passed
-              machineId: drift.Value(apiProblem.machineId),
-              machineName: drift.Value(apiProblem.machineName),
-              jobId: drift.Value(apiProblem.jobId),
-              tagId: drift.Value(apiProblem.tagId),
-              tagName: drift.Value(apiProblem.tagName),
-              tagType: drift.Value(apiProblem.tagType),
-              description: drift.Value(apiProblem.description),
-              note: drift.Value(apiProblem.note),
-              specification: drift.Value(apiProblem.specification),
-              specMin: drift.Value(apiProblem.specMin),
-              specMax: drift.Value(apiProblem.specMax),
-              unit: drift.Value(apiProblem.unit),
-              value: drift.Value(apiProblem.value),
-              remark: drift.Value(apiProblem.remark),
-              unReadable: drift.Value(apiProblem.unReadable),
-              lastSync: drift.Value(
-                  DateTime.now().toIso8601String()), // Set last sync
-              problemSolvingBy: drift.Value(apiProblem.problemSolvingBy),
-              syncStatus:
-                  drift.Value(apiProblem.syncStatus), // Use API syncStatus
-            ),
-          );
+          pageIndex++;
         }
       }
-      print(
-          'Problem sync complete. Processed ${problemsFromApi.length} problems from API.');
+
+      // --- Cleanup logic ---
+      // 2. Fetch all local problems for this jobId
+      final localProblems = await _problemDao.getProblemsByJobId(jobId);
+
+      // 3. Find and delete local problems that are NOT in the API response AND have problemStatus == 0
+      int deletedCount = 0;
+      for (final local in localProblems) {
+        if (local.problemStatus == 0 && !allApiProblemIds.contains(local.problemId)) {
+          await _problemDao.deleteProblem(local);
+          deletedCount++;
+          print('DataSyncService: Deleted local problem UID ${local.uid} (ProblemId: ${local.problemId}) because it was removed from server and untouched locally.');
+        }
+      }
+      print('DataSyncService: Deleted $deletedCount obsolete problems.');
+
+      print('Problem sync complete. Processed $totalProcessed problems total across ${pageIndex - 1} pages.');
       return const SyncSuccess(message: 'ซิงค์ข้อมูล Problems สำเร็จ!');
     } on Exception catch (e) {
       print('Error syncing problems on data sync: $e');
@@ -503,6 +536,66 @@ class DataSyncService {
       wifiStrength: wifiStrength,
       fcmToken: fcmToken, // <<< NEW
     );
+  }
+
+  /// NEW: Fetch device info and perform metadata sync actions (transferDB, update, cleanEndData)
+  Future<SyncStatus> performMetadataActionsSync({String? userId}) async {
+    try {
+      final deviceInfoService = DeviceInfoService();
+      final deviceId = await deviceInfoService.getDeviceId();
+      final serialNo = await deviceInfoService.getSerialNo();
+      final appVersion = await deviceInfoService.getAppVersion();
+      final ipAddress = await deviceInfoService.getIpAddress();
+      final wifiStrength = await deviceInfoService.getWifiStrength();
+      final fcmToken = await fcmService.getDeviceToken();
+
+      // If userId is not provided, we can either use a default or fetch it from logged-in user if we have access
+      final username = userId ?? 'unknown_user'; 
+
+      final syncMetadataResults = await checkSyncMetadata(
+        username: username,
+        deviceId: deviceId,
+        serialNo: serialNo,
+        version: appVersion,
+        ipAddress: ipAddress,
+        wifiStrength: wifiStrength,
+        fcmToken: fcmToken,
+      );
+
+      bool allActionsSuccessful = true;
+      for (final action in syncMetadataResults) {
+        print("DataSyncService: Processing action: ${action.actionType} (ID: ${action.actionId})");
+        switch (action.actionType) {
+          case "transferDB":
+            final result = await _databaseMaintenanceService.backupAndUploadDb(
+                userId: username, deviceId: deviceId);
+            if (result is SyncError) allActionsSuccessful = false;
+            break;
+          case "update":
+            if (action.actionSql != null && action.actionSql!.isNotEmpty) {
+              final result = await _databaseMaintenanceService.executeRawSqlQuery(action.actionSql!);
+              if (result is SyncError) allActionsSuccessful = false;
+            }
+            break;
+          case "cleanEndData":
+            final result = await _dataCleanupService.cleanEndData();
+            if (result is SyncError) allActionsSuccessful = false;
+            break;
+          default:
+            print("DataSyncService: Unknown actionType: ${action.actionType}");
+            break;
+        }
+      }
+
+      if (allActionsSuccessful) {
+        return const SyncSuccess(message: 'ซิงค์ Metadata และดำเนินการสำเร็จ!');
+      } else {
+        return const SyncError(message: 'ซิงค์ Metadata และดำเนินการบางส่วนล้มเหลว.', exception: 'Some actions failed');
+      }
+    } catch (e) {
+      print('Error in performMetadataActionsSync: $e');
+      return SyncError(message: 'ข้อผิดพลาดในการซิงค์ Metadata: $e', exception: e);
+    }
   }
 
 /*
