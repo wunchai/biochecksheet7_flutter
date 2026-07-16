@@ -4,12 +4,10 @@ import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 
-
 class DraftApiService {
   final String _baseUrl = AppConfig.baseUrl;
 
-  Future<void> uploadDraftJobs(
-      List<DbDraftJob> jobs) async {
+  Future<void> uploadDraftJobs(List<DbDraftJob> jobs) async {
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTJOB_SYNC");
     print("Uploading draft jobs to API: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -48,7 +46,8 @@ class DraftApiService {
       print("Draft Job Upload API Response body: $decodedBody");
 
       if (response.statusCode != 200) {
-        throw Exception("Upload API failed: Status code ${response.statusCode}");
+        throw Exception(
+            "Upload API failed: Status code ${response.statusCode}");
       }
     } on http.ClientException catch (e) {
       print("Network error uploading draft jobs: ${e.message}");
@@ -59,8 +58,8 @@ class DraftApiService {
     }
   }
 
-  Future<void> uploadDraftMachines(
-      List<DbDraftMachine> machines, {int? recordVersion}) async {
+  Future<void> uploadDraftMachines(List<DbDraftMachine> machines,
+      {int? recordVersion}) async {
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTMACHINE_SYNC");
     print("Uploading draft machines to API: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -96,7 +95,8 @@ class DraftApiService {
       print("Draft Machine Upload API Response body: $decodedBody");
 
       if (response.statusCode != 200) {
-        throw Exception("Upload API failed: Status code ${response.statusCode}");
+        throw Exception(
+            "Upload API failed: Status code ${response.statusCode}");
       }
     } on http.ClientException catch (e) {
       print("Network error uploading draft machines: ${e.message}");
@@ -108,8 +108,8 @@ class DraftApiService {
     }
   }
 
-  Future<void> uploadDraftTags(
-      List<DbDraftTag> tags, {int? recordVersion}) async {
+  Future<void> uploadDraftTags(List<DbDraftTag> tags,
+      {int? recordVersion}) async {
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTTAG_SYNC");
     print("Uploading draft tags to API: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -152,7 +152,8 @@ class DraftApiService {
       print("Draft Tag Upload API Response body: $decodedBody");
 
       if (response.statusCode != 200) {
-        throw Exception("Upload API failed: Status code ${response.statusCode}");
+        throw Exception(
+            "Upload API failed: Status code ${response.statusCode}");
       }
     } on http.ClientException catch (e) {
       print("Network error uploading draft tags: ${e.message}");
@@ -178,9 +179,10 @@ class DraftApiService {
       });
 
       try {
-        final response = await http.post(uri, headers: {'Content-Type': 'application/json'}, body: body);
+        final response = await http.post(uri,
+            headers: {'Content-Type': 'application/json'}, body: body);
         final String decodedBody = utf8.decode(response.bodyBytes);
-        
+
         if (response.statusCode == 200) {
           final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
           if (responseJson['Jobs'] != null) {
@@ -244,9 +246,10 @@ class DraftApiService {
       });
 
       try {
-        final response = await http.post(uri, headers: {'Content-Type': 'application/json'}, body: body);
+        final response = await http.post(uri,
+            headers: {'Content-Type': 'application/json'}, body: body);
         final String decodedBody = utf8.decode(response.bodyBytes);
-        
+
         if (response.statusCode == 200) {
           final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
           if (responseJson['Jobs'] != null) {
@@ -257,7 +260,8 @@ class DraftApiService {
                 break;
               }
 
-              final List<DbDraftMachine> syncedMachines = decodedMachines.map((machineData) {
+              final List<DbDraftMachine> syncedMachines =
+                  decodedMachines.map((machineData) {
                 return DbDraftMachine(
                   uid: machineData['Uid']?.toString() ?? '',
                   draftJobId: machineData['DraftJobId']?.toString() ?? '',
@@ -306,9 +310,10 @@ class DraftApiService {
       });
 
       try {
-        final response = await http.post(uri, headers: {'Content-Type': 'application/json'}, body: body);
+        final response = await http.post(uri,
+            headers: {'Content-Type': 'application/json'}, body: body);
         final String decodedBody = utf8.decode(response.bodyBytes);
-        
+
         if (response.statusCode == 200) {
           final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
           if (responseJson['Jobs'] != null) {
@@ -359,5 +364,4 @@ class DraftApiService {
     }
     return allTags;
   }
-
 }

@@ -142,7 +142,8 @@ class _DataSummaryScreenState extends State<DataSummaryScreen> {
           final summary = viewModel.summary;
           final int totalPending = summary.pendingDocumentRecordsCount +
               summary.pendingDocumentImageUploadCount +
-              summary.pendingProblemImageUploadCount;
+              summary.pendingProblemImageUploadCount +
+              summary.pendingProblemsCount;
 
           return RefreshIndicator(
             onRefresh: _handleRefresh,
@@ -261,7 +262,7 @@ class _DataSummaryScreenState extends State<DataSummaryScreen> {
                         const SizedBox(height: 4),
                         if (hasPending)
                           Text(
-                            'มีข้อมูลเอกสารและรูปภาพจำนวน $totalPending รายการ ที่ยังไม่ได้ส่งขึ้นระบบ',
+                            'มีข้อมูลเอกสาร ปัญหา และรูปภาพจำนวน $totalPending รายการ ที่ยังไม่ได้ส่งขึ้นระบบ',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[700],

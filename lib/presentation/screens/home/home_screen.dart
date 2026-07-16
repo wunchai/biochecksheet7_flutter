@@ -5,6 +5,7 @@ import 'package:biochecksheet7_flutter/presentation/screens/home/home_viewmodel.
 //import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // สำหรับ DbJob
 import 'package:biochecksheet7_flutter/presentation/screens/document/document_screen.dart'; // <<< Import DocumentScreen
+import 'package:biochecksheet7_flutter/presentation/screens/job_responsible/job_responsible_screen.dart'; // Import JobResponsibleScreen
 import 'package:biochecksheet7_flutter/presentation/screens/home/widgets/home_app_bar.dart'; // <<< NEW: Import HomeAppBar
 //import 'package:biochecksheet7_flutter/ui/deviceinfo/device_info_screen.dart'; // <<< NEW: Import DeviceInfoScreen
 import 'package:biochecksheet7_flutter/presentation/widgets/error_dialog.dart'; // <<< NEW: Import ErrorDialog
@@ -290,6 +291,21 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.person_add_alt_1, color: Colors.blue),
+                    tooltip: 'ตั้งค่าผู้รับการแจ้งเตือน',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => JobResponsibleScreen(
+                            jobId: job.jobId ?? '',
+                            jobName: job.jobName ?? '',
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   _buildStatusBadge(job.jobStatus),
                 ],

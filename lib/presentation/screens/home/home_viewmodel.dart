@@ -242,7 +242,7 @@ class HomeViewModel extends ChangeNotifier {
     // <<< CRUCIAL FIX: Change return type to Future<SyncStatus>
     _isLoading = true;
     _syncMessage = null;
-    _statusMessage = "กำลังอัปโหลด DocumentRecords และรูปภาพ...";
+    _statusMessage = "กำลังอัปโหลดข้อมูล (บันทึก, ปัญหา, รูปภาพ)...";
     notifyListeners();
     SyncStatus finalResultStatus;
 
@@ -251,7 +251,11 @@ class HomeViewModel extends ChangeNotifier {
       final docSyncResult =
           await _dataSyncService.performDocumentRecordUploadSync();
 
-      // 2. Upload associated Images
+      // 2. Upload Problems
+      final problemSyncResult =
+          await _dataSyncService.performProblemUploadSync(); // <<< NEW: Call problem upload
+
+      // 3. Upload associated Images
       final imageSyncResult = await _dataSyncService
           .performImageUploadSync(); // <<< NEW: Call image upload
 
@@ -262,6 +266,13 @@ class HomeViewModel extends ChangeNotifier {
         finalMessage += "อัปโหลดบันทึก: ${docSyncResult.message}\n";
       } else if (docSyncResult is SyncError) {
         finalMessage += "อัปโหลดบันทึกล้มเหลว: ${docSyncResult.exception}\n";
+        allSuccessful = false;
+      }
+
+      if (problemSyncResult is SyncSuccess) {
+        finalMessage += "อัปโหลดปัญหา: ${problemSyncResult.message}\n";
+      } else if (problemSyncResult is SyncError) {
+        finalMessage += "อัปโหลดปัญหาล้มเหลว: ${problemSyncResult.exception}\n";
         allSuccessful = false;
       }
 

@@ -147,7 +147,18 @@ void callbackDispatcher() {
                 break;
             }
           }
-          await dataSyncService.performFullSync(); // Perform regular data syncs
+          // แทนที่จะทำ Full Sync (ดาวน์โหลด Master Data ใหม่หมด) เราเปลี่ยนมาอัปโหลดเฉพาะข้อมูลที่เกิดจากฝั่ง Client
+          print("Background: Uploading DocumentRecords...");
+          final docUploadResult = await dataSyncService.performDocumentRecordUploadSync();
+          if (docUploadResult is SyncError) allActionsSuccessful = false;
+
+          print("Background: Uploading Problems...");
+          final problemUploadResult = await dataSyncService.performProblemUploadSync();
+          if (problemUploadResult is SyncError) allActionsSuccessful = false;
+
+          print("Background: Uploading Images...");
+          final imageUploadResult = await dataSyncService.performImageUploadSync();
+          if (imageUploadResult is SyncError) allActionsSuccessful = false;
 
           if (allActionsSuccessful) {
             print("Background: syncAllTask finished successfully.");

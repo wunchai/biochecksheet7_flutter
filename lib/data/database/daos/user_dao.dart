@@ -46,6 +46,11 @@ class UserDao extends DatabaseAccessor<AppDatabase> with _$UserDaoMixin {
         .getSingleOrNull();
   }
 
+  Future<DbUser?> getUserByUserCode(String userCode) {
+    return (select(users)..where((tbl) => tbl.userCode.equals(userCode)))
+        .getSingleOrNull();
+  }
+
   // Equivalent to suspend fun getLogin(userCode: String, password: String): DbUser?
   Future<DbUser?> getLogin(String userId, String password) {
     print(

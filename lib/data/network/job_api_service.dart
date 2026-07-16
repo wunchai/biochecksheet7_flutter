@@ -69,4 +69,80 @@ class JobApiService {
       throw Exception("An unexpected error occurred during job sync: $e");
     }
   }
+
+  Future<String> setJobResponsible(String jobId, String userId) async {
+    final uri = Uri.parse("$_baseUrl/CHECKSHEET_JOB_RESPONSIBLE_SET");
+    final headers = {"Content-Type": "application/json"};
+    final Map<String, dynamic> parameterObject = {
+      "jobId": jobId,
+      "userId": userId
+    };
+    final body = jsonEncode({
+      "ServiceName": "CHECKSHEET_JOB_RESPONSIBLE_SET",
+      "Paremeter": jsonEncode(parameterObject)
+    });
+
+    try {
+      print("Request Body: $body"); // Debugging log
+
+      final response = await http.post(uri, headers: headers, body: body);
+      final String decodedBody = utf8.decode(response.bodyBytes);
+
+      print("Response Body: $decodedBody"); // Debugging log
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
+
+        String result = '';
+        if (responseJson.containsKey('Table') &&
+            responseJson['Table'] is List &&
+            responseJson['Table'].isNotEmpty) {
+          result = responseJson['Table'][0]['result']?.toString() ?? '';
+        } else {
+          result =
+              responseJson['result']?.toString() ?? ''; // Fallback just in case
+        }
+
+        return result; // Expected to return '1' (success) or '3' (duplicate)
+      } else {
+        throw Exception(
+            "setJobResponsible failed: Status code ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error during setJobResponsible: $e");
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getJobResponsible(
+      String jobId, String userId) async {
+    final uri = Uri.parse("$_baseUrl/CHECKSHEET_JOB_RESPONSIBLE_GET");
+    final headers = {"Content-Type": "application/json"};
+    final Map<String, dynamic> parameterObject = {
+      "jobId": jobId,
+      "userId": userId
+    };
+    final body = jsonEncode({
+      "ServiceName": "CHECKSHEET_JOB_RESPONSIBLE_GET",
+      "Paremeter": jsonEncode(parameterObject)
+    });
+
+    try {
+      print("Request Body: $body"); // Debugging log
+      final response = await http.post(uri, headers: headers, body: body);
+      final String decodedBody = utf8.decode(response.bodyBytes);
+      print("Response Body: $decodedBody"); // Debugging log
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
+        if (responseJson.containsKey('Table') &&
+            responseJson['Table'] is List) {
+          return List<Map<String, dynamic>>.from(responseJson['Table']);
+        }
+        return [];
+      } else {
+        throw Exception(
+            "getJobResponsible failed: Status code ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error during getJobResponsible: $e");
+    }
+  }
 }

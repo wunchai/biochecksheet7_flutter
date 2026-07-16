@@ -58,6 +58,24 @@ class ProblemDao extends DatabaseAccessor<AppDatabase> with _$ProblemDaoMixin {
         .get();
   }
 
+  /// NEW: Counts problems by problemStatus and syncStatus.
+  Future<int> countProblemsByStatusAndSyncStatus(int status, int syncStatus) async {
+    final countExp = problems.uid.count();
+    final query = selectOnly(problems)..addColumns([countExp]);
+    query.where(problems.problemStatus.equals(status) &
+        problems.syncStatus.equals(syncStatus));
+    final result = await query.getSingle();
+    return result.read(countExp) ?? 0;
+  }
+
+  /// NEW: Gets the latest lastSync for specific status and syncStatus.
+  Future<String?> getLastSyncForProblemsByStatusAndSyncStatus(int status, int syncStatus) async {
+    final result = await (customSelect(
+            'SELECT MAX(lastSync) FROM problems WHERE ProblemStatus = $status AND syncStatus = $syncStatus')
+        .getSingleOrNull());
+    return result?.data.values.first?.toString();
+  }
+
   /// NEW: Gets all problem records for a specific jobId (or all if jobId is null).
   Future<List<DbProblem>> getProblemsByJobId(String? jobId) {
     if (jobId == null) {

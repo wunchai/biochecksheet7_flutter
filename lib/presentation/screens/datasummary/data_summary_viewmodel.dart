@@ -131,6 +131,10 @@ class DataSummaryViewModel extends ChangeNotifier {
       final pendingDraftJobs = await _draftJobDao.countDraftJobsByStatus(0);
       final submittedDraftJobs = await _draftJobDao.countDraftJobsByStatus(1);
 
+      // 5. Fetch Pending Problems summary (problemStatus = 2, syncStatus = 0)
+      final pendingProblemsCount = await _problemDao.countProblemsByStatusAndSyncStatus(2, 0);
+      final lastSyncPendingProblems = await _problemDao.getLastSyncForProblemsByStatusAndSyncStatus(2, 0);
+
       _summary = DataSummary(
         lastSyncUser: lastSyncUser,
         lastSyncJob: lastSyncJob,
@@ -145,6 +149,8 @@ class DataSummaryViewModel extends ChangeNotifier {
         lastSyncPendingProblemImageUpload: lastSyncPendingProblemImageUpload,
         pendingDraftJobsCount: pendingDraftJobs,
         submittedDraftJobsCount: submittedDraftJobs,
+        pendingProblemsCount: pendingProblemsCount,
+        lastSyncPendingProblems: lastSyncPendingProblems,
       );
     } catch (e) {
       _errorMessage = 'ข้อผิดพลาดในการโหลดข้อมูลสรุป: $e';

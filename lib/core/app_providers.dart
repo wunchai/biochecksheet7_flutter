@@ -88,6 +88,7 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
 
   return [
     // Repositories (provided as value as they are singletons)
+    Provider<AppDatabase>.value(value: appDatabase),
     Provider<LoginRepository>.value(value: loginRepository),
 
     // ViewModels (provided as ChangeNotifierProvider)

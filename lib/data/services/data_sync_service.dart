@@ -275,6 +275,23 @@ class DataSyncService {
     }
   }
 
+  /// NEW: Performs upload synchronization for problems.
+  Future<SyncStatus> performProblemUploadSync() async {
+    print('DataSyncService: Starting problem upload sync...');
+    try {
+      final success = await _problemRepositoryInstance.uploadProblemsToServer();
+      if (success) {
+        return const SyncSuccess(message: 'อัปโหลดการแจ้งปัญหาสำเร็จ.');
+      } else {
+        return const SyncError(message: 'มีบางการแจ้งปัญหาที่อัปโหลดไม่สำเร็จ.');
+      }
+    } catch (e) {
+      print('Error during problem upload sync: $e');
+      return SyncError(
+          exception: e, message: 'ข้อผิดพลาดในการอัปโหลดการแจ้งปัญหา: $e');
+    }
+  }
+
   Future<SyncStatus> _syncUsersData() async {
     try {
       final users = await _userApiService.syncUsers();
@@ -667,35 +684,46 @@ class DataSyncService {
             'Main document not found for DocumentRecords. Cannot upload.');
       }
 
-      final List<UploadRecordResult> uploadResults =
-          await _documentRecordRepository.uploadDocumentRecordsToServer(
-        recordsToUpload,
-        documentCreateDate: mainDocument.createDate,
-        documentUserId: mainDocument.userId,
-      );
-
-      // 3. Process results and update local DB
       bool allUploadsSuccessful = true;
-      for (final result in uploadResults) {
-        final int recordUid = result.uid;
-        final int apiResultCode = result.result; // Assuming 3 for success
+      final int batchSize = 50;
 
-        if (apiResultCode == 3) {
-          // Success from API
-          final success =
-              await _documentRecordRepository.updateRecordStatusAndSyncStatus(
-                  recordUid,
-                  3,
-                  1); // Status 3 (Uploaded), SyncStatus 1 (Synced)
-          if (!success) {
+      for (int i = 0; i < recordsToUpload.length; i += batchSize) {
+        final int end = (i + batchSize < recordsToUpload.length)
+            ? i + batchSize
+            : recordsToUpload.length;
+        final batch = recordsToUpload.sublist(i, end);
+
+        print('Uploading batch of DocumentRecords: $i to ${end - 1} (Total: ${recordsToUpload.length})');
+
+        final List<UploadRecordResult> uploadResults =
+            await _documentRecordRepository.uploadDocumentRecordsToServer(
+          batch,
+          documentCreateDate: mainDocument.createDate,
+          documentUserId: mainDocument.userId,
+        );
+
+        // 3. Process results for this batch and update local DB
+        for (final result in uploadResults) {
+          final int recordUid = result.uid;
+          final int apiResultCode = result.result; // Assuming 3 for success
+
+          if (apiResultCode == 3) {
+            // Success from API
+            final success =
+                await _documentRecordRepository.updateRecordStatusAndSyncStatus(
+                    recordUid,
+                    3,
+                    1); // Status 3 (Uploaded), SyncStatus 1 (Synced)
+            if (!success) {
+              allUploadsSuccessful = false;
+              print(
+                  'Failed to update local status for DocumentRecord UID $recordUid after successful API upload.');
+            }
+          } else {
             allUploadsSuccessful = false;
             print(
-                'Failed to update local status for DocumentRecord UID $recordUid after successful API upload.');
+                'API reported failure for DocumentRecord UID $recordUid. Result code: $apiResultCode, Message: ${result.message ?? 'No message provided'}');
           }
-        } else {
-          allUploadsSuccessful = false;
-          print(
-              'API reported failure for DocumentRecord UID $recordUid. Result code: $apiResultCode, Message: ${result.message ?? 'No message provided'}');
         }
       }
 
