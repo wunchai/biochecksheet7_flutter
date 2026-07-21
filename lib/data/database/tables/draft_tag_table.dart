@@ -14,6 +14,9 @@ class DraftTags extends Table {
   // Custom generated ID per machine (e.g., TagGroupId running number)
   TextColumn get tagGroupId => text().named('tagGroupId').nullable()();
   
+  // Order ID
+  IntColumn get orderId => integer().named('orderId').withDefault(const Constant(0))();
+  
   // User entered Group Name
   TextColumn get tagGroupName => text().named('tagGroupName').nullable()();
   

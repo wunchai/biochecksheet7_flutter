@@ -28,10 +28,20 @@ import 'package:workmanager/workmanager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+  }
+}
+
 // Global key for navigating without BuildContext (e.g., from FCMService)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
+  HttpOverrides.global = MyHttpOverrides();
   // --- <<< 2. เพิ่มโค้ดส่วนนี้เข้าไป ---
   // ตรวจสอบให้แน่ใจว่า Flutter Engine พร้อมทำงานแล้ว
   WidgetsFlutterBinding.ensureInitialized();

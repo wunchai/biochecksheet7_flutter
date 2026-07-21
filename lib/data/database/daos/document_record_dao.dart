@@ -186,7 +186,6 @@ class DocumentRecordDao extends DatabaseAccessor<AppDatabase>
       ..orderBy([
         drift.OrderingTerm(expression: jobTags.jobId),
         drift.OrderingTerm(expression: jobTags.machineId),
-        drift.OrderingTerm(expression: jobTags.tagGroupId),
         drift.OrderingTerm(
             expression:
                 drift.CustomExpression('CAST(job_tags.OrderId AS INTEGER)')),

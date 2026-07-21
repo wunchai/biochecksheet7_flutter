@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:biochecksheet7_flutter/data/repositories/draft_job_repository.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
+import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
 
 class DraftJobViewModel extends ChangeNotifier {
   final DraftJobRepository _repository;
@@ -20,12 +21,27 @@ class DraftJobViewModel extends ChangeNotifier {
     String? machineName,
     String? documentId,
   }) async {
+    // ดึง userId จาก LoginRepository (อ้างอิงตามที่ user ล็อกอินค้างไว้)
+    final userId = LoginRepository().loggedInUser?.userId;
+
     return await _repository.createDraftJob(
       jobName: jobName,
       location: location,
       machineName: machineName,
       documentId: documentId,
+      userId: userId,
     );
+  }
+
+  Future<void> fixUserIdIfNull(String draftJobId) async {
+    final userId = LoginRepository().loggedInUser?.userId;
+    if (userId != null) {
+      await _repository.updateDraftJobUserId(draftJobId, userId);
+    }
+  }
+
+  Future<void> fixZeroOrderIds(String draftMachineId) async {
+    await _repository.fixZeroOrderIds(draftMachineId);
   }
 
   Future<void> deleteJobAndSync(String jobId) async {
@@ -91,6 +107,7 @@ class DraftJobViewModel extends ChangeNotifier {
     String? selectionValues,
     String? description,
     String? machineCode,
+    int? orderId,
   }) async {
     return await _repository.createDraftTag(
       draftJobId: jobId,
@@ -104,6 +121,7 @@ class DraftJobViewModel extends ChangeNotifier {
       selectionValues: selectionValues,
       description: description,
       machineCode: machineCode,
+      orderId: orderId,
     );
   }
 
@@ -119,6 +137,7 @@ class DraftJobViewModel extends ChangeNotifier {
     String? selectionValues,
     String? description,
     String? machineCode,
+    int? orderId,
   }) async {
     await _repository.updateDraftTagDetails(
       draftTagId: draftTagId,
@@ -132,6 +151,7 @@ class DraftJobViewModel extends ChangeNotifier {
       selectionValues: selectionValues,
       description: description,
       machineCode: machineCode,
+      orderId: orderId,
     );
   }
 

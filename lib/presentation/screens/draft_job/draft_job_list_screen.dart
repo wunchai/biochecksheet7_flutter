@@ -144,6 +144,11 @@ class _DraftJobListScreenState extends State<DraftJobListScreen> {
   }
 
   Widget _buildJobCard(BuildContext context, DbDraftJob job, DraftJobViewModel viewModel) {
+    // กรณี userId เป็น null ให้บันทึก userId ปัจจุบันเข้าไป (Fire and forget)
+    if (job.userId == null) {
+      viewModel.fixUserIdIfNull(job.uid);
+    }
+
     String dateStr = job.createDate ?? '';
     if (dateStr.isNotEmpty) {
       try {
@@ -167,6 +172,7 @@ class _DraftJobListScreenState extends State<DraftJobListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
+            Text('ผู้สร้าง: ${job.userId ?? "กำลังอัปเดต..."}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.w500)),
             Text('Location: ${job.location}'),
             if (job.machineName != null && job.machineName!.isNotEmpty)
               Text('Machine: ${job.machineName}', style: const TextStyle(color: Colors.brown)),

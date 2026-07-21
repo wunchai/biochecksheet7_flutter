@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/draft_job/draft_job_viewmodel.dart';
 
-class DraftTagListScreen extends StatelessWidget {
+class DraftTagListScreen extends StatefulWidget {
   final String jobId;
   final String machineId;
   final String machineName;
@@ -19,16 +19,31 @@ class DraftTagListScreen extends StatelessWidget {
   });
 
   @override
+  State<DraftTagListScreen> createState() => _DraftTagListScreenState();
+}
+
+class _DraftTagListScreenState extends State<DraftTagListScreen> {
+  
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = Provider.of<DraftJobViewModel>(context, listen: false);
+      viewModel.fixZeroOrderIds(widget.machineId);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<DraftJobViewModel>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tags: $machineName'),
+        title: Text('Tags: ${widget.machineName}'),
         backgroundColor: Colors.blueGrey,
       ),
       body: StreamBuilder<List<DbDraftTag>>(
-        stream: viewModel.watchTags(machineId),
+        stream: viewModel.watchTags(widget.machineId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -76,7 +91,7 @@ class DraftTagListScreen extends StatelessWidget {
         backgroundColor: Colors.deepOrange,
         child: const Icon(Icons.add),
         onPressed: () {
-          _showAddTagDialog(context, viewModel, jobId, machineId);
+          _showAddTagDialog(context, viewModel, widget.jobId, widget.machineId);
         },
       ),
     );
@@ -84,7 +99,14 @@ class DraftTagListScreen extends StatelessWidget {
 
   Widget _buildTagTile(BuildContext context, DbDraftTag tag, DraftJobViewModel viewModel) {
     return ListTile(
-      leading: const Icon(Icons.label_outline, color: Colors.black54),
+      leading: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.label_outline, color: Colors.black54),
+          if (tag.orderId > 0) 
+            Text('No.${tag.orderId}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.indigo)),
+        ],
+      ),
       title: Text(tag.tagName ?? 'Unnamed Tag', style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,7 +150,8 @@ class DraftTagListScreen extends StatelessWidget {
     final maxCtrl = TextEditingController();
     final unitCtrl = TextEditingController();
     final descCtrl = TextEditingController();
-    final codeCtrl = TextEditingController(text: machineCode);
+    final codeCtrl = TextEditingController(text: widget.machineCode);
+    final orderCtrl = TextEditingController();
     String selectedType = 'number';
 
     showDialog(
@@ -191,7 +214,14 @@ class DraftTagListScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description (Optional)'), maxLines: 2),
                     const SizedBox(height: 16),
-                    TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Machine Code (MT System Code)')),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Machine Code (MT System)'))),
+                        const SizedBox(width: 12),
+                        Expanded(child: TextField(controller: orderCtrl, decoration: const InputDecoration(labelText: 'Order ID'), keyboardType: TextInputType.number)),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -211,6 +241,7 @@ class DraftTagListScreen extends StatelessWidget {
                         unit: unitCtrl.text.isEmpty ? null : unitCtrl.text,
                         description: descCtrl.text.isEmpty ? null : descCtrl.text,
                         machineCode: codeCtrl.text.trim().isEmpty ? null : codeCtrl.text.trim(),
+                        orderId: orderCtrl.text.isNotEmpty ? int.tryParse(orderCtrl.text) : null,
                       );
                       Navigator.pop(ctx);
                     }
@@ -234,6 +265,7 @@ class DraftTagListScreen extends StatelessWidget {
     final unitCtrl = TextEditingController(text: tag.unit);
     final descCtrl = TextEditingController(text: tag.description);
     final codeCtrl = TextEditingController(text: tag.machineCode);
+    final orderCtrl = TextEditingController(text: tag.orderId.toString());
     String selectedType = tag.tagType ?? 'number';
 
     showDialog(
@@ -288,7 +320,14 @@ class DraftTagListScreen extends StatelessWidget {
                       const SizedBox(height: 16),
                       TextFormField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description (Optional)'), maxLines: 2),
                       const SizedBox(height: 16),
-                      TextFormField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Machine Code (MT System Code)')),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: TextFormField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Machine Code (MT System)'))),
+                          const SizedBox(width: 12),
+                          Expanded(child: TextFormField(controller: orderCtrl, decoration: const InputDecoration(labelText: 'Order ID'), keyboardType: TextInputType.number)),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -311,6 +350,7 @@ class DraftTagListScreen extends StatelessWidget {
                         selectionValues: tag.tagSelectionValue, // Keep unchanged for now
                         description: descCtrl.text.isEmpty ? null : descCtrl.text,
                         machineCode: codeCtrl.text.trim().isEmpty ? null : codeCtrl.text.trim(),
+                        orderId: orderCtrl.text.isNotEmpty ? int.tryParse(orderCtrl.text) : null,
                       );
                       if (ctx.mounted) Navigator.pop(ctx);
                     }

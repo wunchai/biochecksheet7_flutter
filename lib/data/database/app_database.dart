@@ -118,7 +118,7 @@ class AppDatabase extends _$AppDatabase {
   DocumentImageOnlineDao get documentImageOnlineDao => DocumentImageOnlineDao(this); // <<< NEW
 
   @override
-  int get schemaVersion => 21; // <<< UPDATED to 21 for adding verify
+  int get schemaVersion => 23; // <<< UPDATED to 23 for adding orderId to draftTags
 
   // Define the migration strategy.
   @override
@@ -237,6 +237,14 @@ class AppDatabase extends _$AppDatabase {
           if (from < 21) {
             // Added verify to DocumentRecordOnlines
             await m.addColumn(documentRecordOnlines, documentRecordOnlines.verify);
+          }
+          if (from < 22) {
+            // Added userId to DraftJobs
+            await m.addColumn(draftJobs, draftJobs.userId);
+          }
+          if (from < 23) {
+            // Added orderId to DraftTags
+            await m.addColumn(draftTags, draftTags.orderId);
           }
         },
       );

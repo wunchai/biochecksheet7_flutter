@@ -45,6 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>	
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
     <key>NSCameraUsageDescription</key>
     <string>This app needs camera access to take photos of records.</string>
     <key>NSPhotoLibraryUsageDescription</key>

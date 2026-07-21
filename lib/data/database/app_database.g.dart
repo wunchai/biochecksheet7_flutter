@@ -10166,6 +10166,11 @@ class $DraftJobsTable extends DraftJobs
   late final GeneratedColumn<String> location = GeneratedColumn<String>(
       'location', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'userId', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _machineNameMeta =
       const VerificationMeta('machineName');
   @override
@@ -10210,6 +10215,7 @@ class $DraftJobsTable extends DraftJobs
         uid,
         jobName,
         location,
+        userId,
         machineName,
         documentId,
         status,
@@ -10244,6 +10250,10 @@ class $DraftJobsTable extends DraftJobs
           location.isAcceptableOrUnknown(data['location']!, _locationMeta));
     } else if (isInserting) {
       context.missing(_locationMeta);
+    }
+    if (data.containsKey('userId')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['userId']!, _userIdMeta));
     }
     if (data.containsKey('machineName')) {
       context.handle(
@@ -10292,6 +10302,8 @@ class $DraftJobsTable extends DraftJobs
           .read(DriftSqlType.string, data['${effectivePrefix}jobName'])!,
       location: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}location'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}userId']),
       machineName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}machineName']),
       documentId: attachedDatabase.typeMapping
@@ -10317,6 +10329,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
   final String uid;
   final String jobName;
   final String location;
+  final String? userId;
   final String? machineName;
   final String? documentId;
   final int status;
@@ -10327,6 +10340,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
       {required this.uid,
       required this.jobName,
       required this.location,
+      this.userId,
       this.machineName,
       this.documentId,
       required this.status,
@@ -10339,6 +10353,9 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
     map['uid'] = Variable<String>(uid);
     map['jobName'] = Variable<String>(jobName);
     map['location'] = Variable<String>(location);
+    if (!nullToAbsent || userId != null) {
+      map['userId'] = Variable<String>(userId);
+    }
     if (!nullToAbsent || machineName != null) {
       map['machineName'] = Variable<String>(machineName);
     }
@@ -10361,6 +10378,8 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
       uid: Value(uid),
       jobName: Value(jobName),
       location: Value(location),
+      userId:
+          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
       machineName: machineName == null && nullToAbsent
           ? const Value.absent()
           : Value(machineName),
@@ -10385,6 +10404,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
       uid: serializer.fromJson<String>(json['uid']),
       jobName: serializer.fromJson<String>(json['jobName']),
       location: serializer.fromJson<String>(json['location']),
+      userId: serializer.fromJson<String?>(json['userId']),
       machineName: serializer.fromJson<String?>(json['machineName']),
       documentId: serializer.fromJson<String?>(json['documentId']),
       status: serializer.fromJson<int>(json['status']),
@@ -10400,6 +10420,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
       'uid': serializer.toJson<String>(uid),
       'jobName': serializer.toJson<String>(jobName),
       'location': serializer.toJson<String>(location),
+      'userId': serializer.toJson<String?>(userId),
       'machineName': serializer.toJson<String?>(machineName),
       'documentId': serializer.toJson<String?>(documentId),
       'status': serializer.toJson<int>(status),
@@ -10413,6 +10434,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
           {String? uid,
           String? jobName,
           String? location,
+          Value<String?> userId = const Value.absent(),
           Value<String?> machineName = const Value.absent(),
           Value<String?> documentId = const Value.absent(),
           int? status,
@@ -10423,6 +10445,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
         uid: uid ?? this.uid,
         jobName: jobName ?? this.jobName,
         location: location ?? this.location,
+        userId: userId.present ? userId.value : this.userId,
         machineName: machineName.present ? machineName.value : this.machineName,
         documentId: documentId.present ? documentId.value : this.documentId,
         status: status ?? this.status,
@@ -10435,6 +10458,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
       uid: data.uid.present ? data.uid.value : this.uid,
       jobName: data.jobName.present ? data.jobName.value : this.jobName,
       location: data.location.present ? data.location.value : this.location,
+      userId: data.userId.present ? data.userId.value : this.userId,
       machineName:
           data.machineName.present ? data.machineName.value : this.machineName,
       documentId:
@@ -10455,6 +10479,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
           ..write('uid: $uid, ')
           ..write('jobName: $jobName, ')
           ..write('location: $location, ')
+          ..write('userId: $userId, ')
           ..write('machineName: $machineName, ')
           ..write('documentId: $documentId, ')
           ..write('status: $status, ')
@@ -10466,7 +10491,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
   }
 
   @override
-  int get hashCode => Object.hash(uid, jobName, location, machineName,
+  int get hashCode => Object.hash(uid, jobName, location, userId, machineName,
       documentId, status, recordVersion, createDate, updatedAt);
   @override
   bool operator ==(Object other) =>
@@ -10475,6 +10500,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
           other.uid == this.uid &&
           other.jobName == this.jobName &&
           other.location == this.location &&
+          other.userId == this.userId &&
           other.machineName == this.machineName &&
           other.documentId == this.documentId &&
           other.status == this.status &&
@@ -10487,6 +10513,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
   final Value<String> uid;
   final Value<String> jobName;
   final Value<String> location;
+  final Value<String?> userId;
   final Value<String?> machineName;
   final Value<String?> documentId;
   final Value<int> status;
@@ -10498,6 +10525,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
     this.uid = const Value.absent(),
     this.jobName = const Value.absent(),
     this.location = const Value.absent(),
+    this.userId = const Value.absent(),
     this.machineName = const Value.absent(),
     this.documentId = const Value.absent(),
     this.status = const Value.absent(),
@@ -10510,6 +10538,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
     required String uid,
     required String jobName,
     required String location,
+    this.userId = const Value.absent(),
     this.machineName = const Value.absent(),
     this.documentId = const Value.absent(),
     this.status = const Value.absent(),
@@ -10524,6 +10553,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
     Expression<String>? uid,
     Expression<String>? jobName,
     Expression<String>? location,
+    Expression<String>? userId,
     Expression<String>? machineName,
     Expression<String>? documentId,
     Expression<int>? status,
@@ -10536,6 +10566,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
       if (uid != null) 'uid': uid,
       if (jobName != null) 'jobName': jobName,
       if (location != null) 'location': location,
+      if (userId != null) 'userId': userId,
       if (machineName != null) 'machineName': machineName,
       if (documentId != null) 'documentId': documentId,
       if (status != null) 'status': status,
@@ -10550,6 +10581,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
       {Value<String>? uid,
       Value<String>? jobName,
       Value<String>? location,
+      Value<String?>? userId,
       Value<String?>? machineName,
       Value<String?>? documentId,
       Value<int>? status,
@@ -10561,6 +10593,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
       uid: uid ?? this.uid,
       jobName: jobName ?? this.jobName,
       location: location ?? this.location,
+      userId: userId ?? this.userId,
       machineName: machineName ?? this.machineName,
       documentId: documentId ?? this.documentId,
       status: status ?? this.status,
@@ -10582,6 +10615,9 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
     }
     if (location.present) {
       map['location'] = Variable<String>(location.value);
+    }
+    if (userId.present) {
+      map['userId'] = Variable<String>(userId.value);
     }
     if (machineName.present) {
       map['machineName'] = Variable<String>(machineName.value);
@@ -10613,6 +10649,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
           ..write('uid: $uid, ')
           ..write('jobName: $jobName, ')
           ..write('location: $location, ')
+          ..write('userId: $userId, ')
           ..write('machineName: $machineName, ')
           ..write('documentId: $documentId, ')
           ..write('status: $status, ')
@@ -11066,6 +11103,14 @@ class $DraftTagsTable extends DraftTags
   late final GeneratedColumn<String> tagGroupId = GeneratedColumn<String>(
       'tagGroupId', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _orderIdMeta =
+      const VerificationMeta('orderId');
+  @override
+  late final GeneratedColumn<int> orderId = GeneratedColumn<int>(
+      'orderId', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _tagGroupNameMeta =
       const VerificationMeta('tagGroupName');
   @override
@@ -11131,6 +11176,7 @@ class $DraftTagsTable extends DraftTags
         draftJobId,
         draftMachineId,
         tagGroupId,
+        orderId,
         tagGroupName,
         tagName,
         tagType,
@@ -11179,6 +11225,10 @@ class $DraftTagsTable extends DraftTags
           _tagGroupIdMeta,
           tagGroupId.isAcceptableOrUnknown(
               data['tagGroupId']!, _tagGroupIdMeta));
+    }
+    if (data.containsKey('orderId')) {
+      context.handle(_orderIdMeta,
+          orderId.isAcceptableOrUnknown(data['orderId']!, _orderIdMeta));
     }
     if (data.containsKey('tagGroupName')) {
       context.handle(
@@ -11247,6 +11297,8 @@ class $DraftTagsTable extends DraftTags
           .read(DriftSqlType.string, data['${effectivePrefix}draftMachineId'])!,
       tagGroupId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}tagGroupId']),
+      orderId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}orderId'])!,
       tagGroupName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}tagGroupName']),
       tagName: attachedDatabase.typeMapping
@@ -11281,6 +11333,7 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
   final String draftJobId;
   final String draftMachineId;
   final String? tagGroupId;
+  final int orderId;
   final String? tagGroupName;
   final String? tagName;
   final String? tagType;
@@ -11296,6 +11349,7 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
       required this.draftJobId,
       required this.draftMachineId,
       this.tagGroupId,
+      required this.orderId,
       this.tagGroupName,
       this.tagName,
       this.tagType,
@@ -11315,6 +11369,7 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
     if (!nullToAbsent || tagGroupId != null) {
       map['tagGroupId'] = Variable<String>(tagGroupId);
     }
+    map['orderId'] = Variable<int>(orderId);
     if (!nullToAbsent || tagGroupName != null) {
       map['tagGroupName'] = Variable<String>(tagGroupName);
     }
@@ -11356,6 +11411,7 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
       tagGroupId: tagGroupId == null && nullToAbsent
           ? const Value.absent()
           : Value(tagGroupId),
+      orderId: Value(orderId),
       tagGroupName: tagGroupName == null && nullToAbsent
           ? const Value.absent()
           : Value(tagGroupName),
@@ -11395,6 +11451,7 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
       draftJobId: serializer.fromJson<String>(json['draftJobId']),
       draftMachineId: serializer.fromJson<String>(json['draftMachineId']),
       tagGroupId: serializer.fromJson<String?>(json['tagGroupId']),
+      orderId: serializer.fromJson<int>(json['orderId']),
       tagGroupName: serializer.fromJson<String?>(json['tagGroupName']),
       tagName: serializer.fromJson<String?>(json['tagName']),
       tagType: serializer.fromJson<String?>(json['tagType']),
@@ -11416,6 +11473,7 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
       'draftJobId': serializer.toJson<String>(draftJobId),
       'draftMachineId': serializer.toJson<String>(draftMachineId),
       'tagGroupId': serializer.toJson<String?>(tagGroupId),
+      'orderId': serializer.toJson<int>(orderId),
       'tagGroupName': serializer.toJson<String?>(tagGroupName),
       'tagName': serializer.toJson<String?>(tagName),
       'tagType': serializer.toJson<String?>(tagType),
@@ -11434,6 +11492,7 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
           String? draftJobId,
           String? draftMachineId,
           Value<String?> tagGroupId = const Value.absent(),
+          int? orderId,
           Value<String?> tagGroupName = const Value.absent(),
           Value<String?> tagName = const Value.absent(),
           Value<String?> tagType = const Value.absent(),
@@ -11449,6 +11508,7 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
         draftJobId: draftJobId ?? this.draftJobId,
         draftMachineId: draftMachineId ?? this.draftMachineId,
         tagGroupId: tagGroupId.present ? tagGroupId.value : this.tagGroupId,
+        orderId: orderId ?? this.orderId,
         tagGroupName:
             tagGroupName.present ? tagGroupName.value : this.tagGroupName,
         tagName: tagName.present ? tagName.value : this.tagName,
@@ -11473,6 +11533,7 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
           : this.draftMachineId,
       tagGroupId:
           data.tagGroupId.present ? data.tagGroupId.value : this.tagGroupId,
+      orderId: data.orderId.present ? data.orderId.value : this.orderId,
       tagGroupName: data.tagGroupName.present
           ? data.tagGroupName.value
           : this.tagGroupName,
@@ -11500,6 +11561,7 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
           ..write('draftJobId: $draftJobId, ')
           ..write('draftMachineId: $draftMachineId, ')
           ..write('tagGroupId: $tagGroupId, ')
+          ..write('orderId: $orderId, ')
           ..write('tagGroupName: $tagGroupName, ')
           ..write('tagName: $tagName, ')
           ..write('tagType: $tagType, ')
@@ -11520,6 +11582,7 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
       draftJobId,
       draftMachineId,
       tagGroupId,
+      orderId,
       tagGroupName,
       tagName,
       tagType,
@@ -11538,6 +11601,7 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
           other.draftJobId == this.draftJobId &&
           other.draftMachineId == this.draftMachineId &&
           other.tagGroupId == this.tagGroupId &&
+          other.orderId == this.orderId &&
           other.tagGroupName == this.tagGroupName &&
           other.tagName == this.tagName &&
           other.tagType == this.tagType &&
@@ -11555,6 +11619,7 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
   final Value<String> draftJobId;
   final Value<String> draftMachineId;
   final Value<String?> tagGroupId;
+  final Value<int> orderId;
   final Value<String?> tagGroupName;
   final Value<String?> tagName;
   final Value<String?> tagType;
@@ -11571,6 +11636,7 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
     this.draftJobId = const Value.absent(),
     this.draftMachineId = const Value.absent(),
     this.tagGroupId = const Value.absent(),
+    this.orderId = const Value.absent(),
     this.tagGroupName = const Value.absent(),
     this.tagName = const Value.absent(),
     this.tagType = const Value.absent(),
@@ -11588,6 +11654,7 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
     required String draftJobId,
     required String draftMachineId,
     this.tagGroupId = const Value.absent(),
+    this.orderId = const Value.absent(),
     this.tagGroupName = const Value.absent(),
     this.tagName = const Value.absent(),
     this.tagType = const Value.absent(),
@@ -11607,6 +11674,7 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
     Expression<String>? draftJobId,
     Expression<String>? draftMachineId,
     Expression<String>? tagGroupId,
+    Expression<int>? orderId,
     Expression<String>? tagGroupName,
     Expression<String>? tagName,
     Expression<String>? tagType,
@@ -11624,6 +11692,7 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
       if (draftJobId != null) 'draftJobId': draftJobId,
       if (draftMachineId != null) 'draftMachineId': draftMachineId,
       if (tagGroupId != null) 'tagGroupId': tagGroupId,
+      if (orderId != null) 'orderId': orderId,
       if (tagGroupName != null) 'tagGroupName': tagGroupName,
       if (tagName != null) 'tagName': tagName,
       if (tagType != null) 'tagType': tagType,
@@ -11643,6 +11712,7 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
       Value<String>? draftJobId,
       Value<String>? draftMachineId,
       Value<String?>? tagGroupId,
+      Value<int>? orderId,
       Value<String?>? tagGroupName,
       Value<String?>? tagName,
       Value<String?>? tagType,
@@ -11659,6 +11729,7 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
       draftJobId: draftJobId ?? this.draftJobId,
       draftMachineId: draftMachineId ?? this.draftMachineId,
       tagGroupId: tagGroupId ?? this.tagGroupId,
+      orderId: orderId ?? this.orderId,
       tagGroupName: tagGroupName ?? this.tagGroupName,
       tagName: tagName ?? this.tagName,
       tagType: tagType ?? this.tagType,
@@ -11687,6 +11758,9 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
     }
     if (tagGroupId.present) {
       map['tagGroupId'] = Variable<String>(tagGroupId.value);
+    }
+    if (orderId.present) {
+      map['orderId'] = Variable<int>(orderId.value);
     }
     if (tagGroupName.present) {
       map['tagGroupName'] = Variable<String>(tagGroupName.value);
@@ -11731,6 +11805,7 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
           ..write('draftJobId: $draftJobId, ')
           ..write('draftMachineId: $draftMachineId, ')
           ..write('tagGroupId: $tagGroupId, ')
+          ..write('orderId: $orderId, ')
           ..write('tagGroupName: $tagGroupName, ')
           ..write('tagName: $tagName, ')
           ..write('tagType: $tagType, ')
@@ -17163,6 +17238,7 @@ typedef $$DraftJobsTableCreateCompanionBuilder = DraftJobsCompanion Function({
   required String uid,
   required String jobName,
   required String location,
+  Value<String?> userId,
   Value<String?> machineName,
   Value<String?> documentId,
   Value<int> status,
@@ -17175,6 +17251,7 @@ typedef $$DraftJobsTableUpdateCompanionBuilder = DraftJobsCompanion Function({
   Value<String> uid,
   Value<String> jobName,
   Value<String> location,
+  Value<String?> userId,
   Value<String?> machineName,
   Value<String?> documentId,
   Value<int> status,
@@ -17201,6 +17278,9 @@ class $$DraftJobsTableFilterComposer
 
   ColumnFilters<String> get location => $composableBuilder(
       column: $table.location, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get machineName => $composableBuilder(
       column: $table.machineName, builder: (column) => ColumnFilters(column));
@@ -17239,6 +17319,9 @@ class $$DraftJobsTableOrderingComposer
   ColumnOrderings<String> get location => $composableBuilder(
       column: $table.location, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get machineName => $composableBuilder(
       column: $table.machineName, builder: (column) => ColumnOrderings(column));
 
@@ -17276,6 +17359,9 @@ class $$DraftJobsTableAnnotationComposer
 
   GeneratedColumn<String> get location =>
       $composableBuilder(column: $table.location, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<String> get machineName => $composableBuilder(
       column: $table.machineName, builder: (column) => column);
@@ -17322,6 +17408,7 @@ class $$DraftJobsTableTableManager extends RootTableManager<
             Value<String> uid = const Value.absent(),
             Value<String> jobName = const Value.absent(),
             Value<String> location = const Value.absent(),
+            Value<String?> userId = const Value.absent(),
             Value<String?> machineName = const Value.absent(),
             Value<String?> documentId = const Value.absent(),
             Value<int> status = const Value.absent(),
@@ -17334,6 +17421,7 @@ class $$DraftJobsTableTableManager extends RootTableManager<
             uid: uid,
             jobName: jobName,
             location: location,
+            userId: userId,
             machineName: machineName,
             documentId: documentId,
             status: status,
@@ -17346,6 +17434,7 @@ class $$DraftJobsTableTableManager extends RootTableManager<
             required String uid,
             required String jobName,
             required String location,
+            Value<String?> userId = const Value.absent(),
             Value<String?> machineName = const Value.absent(),
             Value<String?> documentId = const Value.absent(),
             Value<int> status = const Value.absent(),
@@ -17358,6 +17447,7 @@ class $$DraftJobsTableTableManager extends RootTableManager<
             uid: uid,
             jobName: jobName,
             location: location,
+            userId: userId,
             machineName: machineName,
             documentId: documentId,
             status: status,
@@ -17593,6 +17683,7 @@ typedef $$DraftTagsTableCreateCompanionBuilder = DraftTagsCompanion Function({
   required String draftJobId,
   required String draftMachineId,
   Value<String?> tagGroupId,
+  Value<int> orderId,
   Value<String?> tagGroupName,
   Value<String?> tagName,
   Value<String?> tagType,
@@ -17610,6 +17701,7 @@ typedef $$DraftTagsTableUpdateCompanionBuilder = DraftTagsCompanion Function({
   Value<String> draftJobId,
   Value<String> draftMachineId,
   Value<String?> tagGroupId,
+  Value<int> orderId,
   Value<String?> tagGroupName,
   Value<String?> tagName,
   Value<String?> tagType,
@@ -17644,6 +17736,9 @@ class $$DraftTagsTableFilterComposer
 
   ColumnFilters<String> get tagGroupId => $composableBuilder(
       column: $table.tagGroupId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get orderId => $composableBuilder(
+      column: $table.orderId, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get tagGroupName => $composableBuilder(
       column: $table.tagGroupName, builder: (column) => ColumnFilters(column));
@@ -17699,6 +17794,9 @@ class $$DraftTagsTableOrderingComposer
   ColumnOrderings<String> get tagGroupId => $composableBuilder(
       column: $table.tagGroupId, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get orderId => $composableBuilder(
+      column: $table.orderId, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get tagGroupName => $composableBuilder(
       column: $table.tagGroupName,
       builder: (column) => ColumnOrderings(column));
@@ -17752,6 +17850,9 @@ class $$DraftTagsTableAnnotationComposer
 
   GeneratedColumn<String> get tagGroupId => $composableBuilder(
       column: $table.tagGroupId, builder: (column) => column);
+
+  GeneratedColumn<int> get orderId =>
+      $composableBuilder(column: $table.orderId, builder: (column) => column);
 
   GeneratedColumn<String> get tagGroupName => $composableBuilder(
       column: $table.tagGroupName, builder: (column) => column);
@@ -17811,6 +17912,7 @@ class $$DraftTagsTableTableManager extends RootTableManager<
             Value<String> draftJobId = const Value.absent(),
             Value<String> draftMachineId = const Value.absent(),
             Value<String?> tagGroupId = const Value.absent(),
+            Value<int> orderId = const Value.absent(),
             Value<String?> tagGroupName = const Value.absent(),
             Value<String?> tagName = const Value.absent(),
             Value<String?> tagType = const Value.absent(),
@@ -17828,6 +17930,7 @@ class $$DraftTagsTableTableManager extends RootTableManager<
             draftJobId: draftJobId,
             draftMachineId: draftMachineId,
             tagGroupId: tagGroupId,
+            orderId: orderId,
             tagGroupName: tagGroupName,
             tagName: tagName,
             tagType: tagType,
@@ -17845,6 +17948,7 @@ class $$DraftTagsTableTableManager extends RootTableManager<
             required String draftJobId,
             required String draftMachineId,
             Value<String?> tagGroupId = const Value.absent(),
+            Value<int> orderId = const Value.absent(),
             Value<String?> tagGroupName = const Value.absent(),
             Value<String?> tagName = const Value.absent(),
             Value<String?> tagType = const Value.absent(),
@@ -17862,6 +17966,7 @@ class $$DraftTagsTableTableManager extends RootTableManager<
             draftJobId: draftJobId,
             draftMachineId: draftMachineId,
             tagGroupId: tagGroupId,
+            orderId: orderId,
             tagGroupName: tagGroupName,
             tagName: tagName,
             tagType: tagType,

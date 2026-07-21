@@ -10,6 +10,7 @@ class DraftJobs extends Table {
   TextColumn get location => text().named('location')();
   
   // Optional Tracking Fields
+  TextColumn get userId => text().named('userId').nullable()();
   TextColumn get machineName => text().named('machineName').nullable()();
   TextColumn get documentId => text().named('documentId').nullable()();
   

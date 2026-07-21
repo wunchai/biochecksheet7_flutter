@@ -332,7 +332,9 @@ class _AmChecksheetPortraitViewState extends State<AmChecksheetPortraitView>
                         ),
                       ),
                     Text(
-                      jobTag?.tagName ?? 'N/A',
+                      jobTag != null && (int.tryParse(jobTag.orderId ?? '') ?? 0) > 0
+                          ? 'No.${jobTag.orderId} - ${jobTag.tagName ?? 'N/A'}'
+                          : jobTag?.tagName ?? 'N/A',
                       style: Theme.of(context)
                           .textTheme
                           .titleLarge

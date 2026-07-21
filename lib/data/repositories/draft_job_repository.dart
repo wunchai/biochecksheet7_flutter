@@ -21,6 +21,7 @@ class DraftJobRepository {
     required String location,
     String? machineName,
     String? documentId,
+    String? userId,
   }) async {
     final jobUid = const Uuid().v4();
     await _dao.insertDraftJob(DraftJobsCompanion(
@@ -29,6 +30,7 @@ class DraftJobRepository {
       location: Value(location),
       machineName: Value(machineName),
       documentId: Value(documentId),
+      userId: Value(userId),
       status: const Value(0),
       createDate: Value(DateTime.now().toIso8601String()),
     ));
@@ -38,6 +40,11 @@ class DraftJobRepository {
   Future<void> updateDraftJobStatus(String draftJobId, int status) async {
     final job = await _dao.getDraftJob(draftJobId);
     await _dao.updateDraftJob(job.copyWith(status: status).toCompanion(true));
+  }
+
+  Future<void> updateDraftJobUserId(String draftJobId, String userId) async {
+    final job = await _dao.getDraftJob(draftJobId);
+    await _dao.updateDraftJob(job.copyWith(userId: Value(userId)).toCompanion(true));
   }
 
   Future<void> _bumpJobVersionAndResetStatus(String draftJobId) async {
@@ -119,6 +126,7 @@ class DraftJobRepository {
     String? selectionValues,
     String? description,
     String? machineCode,
+    int? orderId,
   }) async {
     final existingTags = await _dao.getTagsForMachine(draftMachineId);
     final job = await _dao.getDraftJob(draftJobId);
@@ -137,6 +145,18 @@ class DraftJobRepository {
 
     final tagUid = const Uuid().v4();
 
+    int finalOrderId = orderId ?? 0; 
+    if (orderId != null) {
+      await _dao.shiftDraftTagOrderIdsUp(draftMachineId, orderId);
+    } else {
+      // If no orderId provided, append to the end
+      if (existingTags.isNotEmpty) {
+        finalOrderId = existingTags.map((t) => t.orderId).reduce((a, b) => a > b ? a : b) + 1;
+      } else {
+        finalOrderId = 1;
+      }
+    }
+
     await _dao.insertDraftTag(DraftTagsCompanion(
       uid: Value(tagUid),
       draftJobId: Value(draftJobId),
@@ -152,6 +172,7 @@ class DraftJobRepository {
       description: Value(description),
       documentId: Value(job.documentId), 
       machineCode: Value(machineCode),
+      orderId: Value(finalOrderId),
     ));
     return tagUid;
   }
@@ -168,8 +189,15 @@ class DraftJobRepository {
     String? selectionValues,
     String? description,
     String? machineCode,
+    int? orderId,
   }) async {
     final tag = await _dao.getDraftTag(draftTagId);
+    
+    int finalOrderId = orderId ?? tag.orderId;
+    if (orderId != null && orderId != tag.orderId) {
+      await _dao.shiftDraftTagOrderIdsUp(tag.draftMachineId, orderId);
+    }
+
     await _dao.updateDraftTag(tag.copyWith(
       tagGroupName: Value(groupName),
       tagName: Value(tagName),
@@ -180,8 +208,33 @@ class DraftJobRepository {
       tagSelectionValue: Value(selectionValues),
       description: Value(description),
       machineCode: Value(machineCode),
+      orderId: finalOrderId,
     ).toCompanion(true));
     await _bumpJobVersionAndResetStatus(draftJobId);
+  }
+
+  Future<void> fixZeroOrderIds(String draftMachineId) async {
+    final tags = await _dao.getTagsForMachine(draftMachineId);
+    final zeroTags = tags.where((t) => t.orderId <= 0).toList();
+    if (zeroTags.isEmpty) return;
+
+    // Find max order id currently in use
+    int maxOrderId = tags.map((t) => t.orderId).reduce((a, b) => a > b ? a : b);
+    if (maxOrderId < 0) maxOrderId = 0;
+
+    zeroTags.sort((a, b) {
+      int groupCompare = (a.tagGroupName ?? '').compareTo(b.tagGroupName ?? '');
+      if (groupCompare != 0) return groupCompare;
+      int nameCompare = (a.tagName ?? '').compareTo(b.tagName ?? '');
+      if (nameCompare != 0) return nameCompare;
+      return a.uid.compareTo(b.uid);
+    });
+
+    for (int i = 0; i < zeroTags.length; i++) {
+      final t = zeroTags[i];
+      maxOrderId++;
+      await _dao.updateDraftTag(t.copyWith(orderId: maxOrderId).toCompanion(true));
+    }
   }
 
   Future<void> deleteDraftTag(String draftTagId) => _dao.deleteDraftTag(draftTagId);

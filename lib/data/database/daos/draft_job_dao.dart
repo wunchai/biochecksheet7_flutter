@@ -83,11 +83,17 @@ class DraftJobDao extends DatabaseAccessor<AppDatabase> with _$DraftJobDaoMixin 
 
   // --- Tags ---
   Stream<List<DbDraftTag>> watchTagsForMachine(String draftMachineId) {
-    return (select(draftTags)..where((tbl) => tbl.draftMachineId.equals(draftMachineId))).watch();
+    return (select(draftTags)
+          ..where((tbl) => tbl.draftMachineId.equals(draftMachineId))
+          ..orderBy([(t) => OrderingTerm(expression: t.orderId)]))
+        .watch();
   }
   
   Future<List<DbDraftTag>> getTagsForMachine(String draftMachineId) {
-    return (select(draftTags)..where((tbl) => tbl.draftMachineId.equals(draftMachineId))).get();
+    return (select(draftTags)
+          ..where((tbl) => tbl.draftMachineId.equals(draftMachineId))
+          ..orderBy([(t) => OrderingTerm(expression: t.orderId)]))
+        .get();
   }
 
   Future<DbDraftTag> getDraftTag(String draftTagId) {
@@ -108,6 +114,12 @@ class DraftJobDao extends DatabaseAccessor<AppDatabase> with _$DraftJobDaoMixin 
 
   Future<void> deleteDraftTag(String draftTagId) {
     return (delete(draftTags)..where((tbl) => tbl.uid.equals(draftTagId))).go();
+  }
+
+  Future<void> shiftDraftTagOrderIdsUp(String draftMachineId, int fromOrderId) async {
+    await (update(draftTags)..where((t) => t.draftMachineId.equals(draftMachineId) & t.orderId.isBiggerOrEqualValue(fromOrderId))).write(
+      DraftTagsCompanion.custom(orderId: draftTags.orderId + const Constant(1))
+    );
   }
 
   // --- Auto-complete Sources ---

@@ -19,6 +19,7 @@ class DraftApiService {
         "location": record.location,
         "machineName": record.machineName,
         "documentId": record.documentId,
+        "userId": record.userId,
         "status": record.status,
         "createDate": record.createDate,
         "updatedAt": record.updatedAt,
@@ -129,6 +130,7 @@ class DraftApiService {
         "unit": record.unit,
         "description": record.description,
         "machineCode": record.machineCode,
+        "orderId": record.orderId,
         if (recordVersion != null) "recordVersion": recordVersion,
       };
     }).toList();
@@ -200,6 +202,7 @@ class DraftApiService {
                   location: jobData['Location'] ?? '',
                   machineName: jobData['MachineName'],
                   documentId: jobData['DocumentId'],
+                  userId: jobData['UserId'],
                   status: jobData['Status'] ?? 0,
                   createDate: jobData['CreateDate'] ?? '',
                   updatedAt: jobData['UpdatedAt'],
@@ -339,6 +342,7 @@ class DraftApiService {
                   unit: tagData['Unit'],
                   description: tagData['Description'],
                   machineCode: tagData['MachineCode'],
+                  orderId: tagData['OrderId'] != null ? (int.tryParse(tagData['OrderId'].toString()) ?? 0) : 0,
                 );
               }).toList();
 
