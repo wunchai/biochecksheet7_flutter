@@ -103,8 +103,7 @@ dev_dependencies:
   drift_dev: ^2.17.0 
   build_runner: ^2.4.6 # A general-purpose code generator used by drift_dev and json_serializable
   json_serializable: ^6.7.1 # Code generator for json_annotation
-  
-  
+
 
 
 # The following section is specific to Flutter packages.
@@ -161,3 +160,10 @@ flutter_launcher_icons:
   image_path: "assets/images/logo.png"
   adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/images/logo.png"
+  remove_alpha_ios: true
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: "assets/images/logo.png"
+  android: true
+  ios: true
