@@ -4,11 +4,18 @@ import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/draft_job/draft_job_viewmodel.dart';
 
-class DraftMachineListScreen extends StatelessWidget {
+class DraftMachineListScreen extends StatefulWidget {
   final String jobId;
   final String jobName;
 
   const DraftMachineListScreen({super.key, required this.jobId, required this.jobName});
+
+  @override
+  State<DraftMachineListScreen> createState() => _DraftMachineListScreenState();
+}
+
+class _DraftMachineListScreenState extends State<DraftMachineListScreen> {
+  bool _showDeleted = false;
 
   @override
   Widget build(BuildContext context) {
@@ -16,11 +23,29 @@ class DraftMachineListScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Machines: $jobName'),
+        title: Text('Machines: ${widget.jobName}'),
         backgroundColor: Colors.indigo,
+        actions: [
+          Row(
+            children: [
+              const Text('Show Deleted', style: TextStyle(fontSize: 12)),
+              Switch(
+                value: _showDeleted,
+                onChanged: (val) {
+                  setState(() {
+                    _showDeleted = val;
+                  });
+                },
+                activeColor: Colors.white,
+                activeTrackColor: Colors.redAccent,
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: StreamBuilder<List<DbDraftMachine>>(
-        stream: viewModel.watchMachines(jobId),
+        stream: viewModel.watchMachines(widget.jobId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -29,7 +54,13 @@ class DraftMachineListScreen extends StatelessWidget {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          final machines = snapshot.data ?? [];
+          var machines = snapshot.data ?? [];
+          
+          // Filter deleted items
+          if (!_showDeleted) {
+            machines = machines.where((m) => m.status != 4).toList();
+          }
+
           if (machines.isEmpty) {
             return const Center(
               child: Text('No machines added yet.\nTap + to add one.', textAlign: TextAlign.center),
@@ -41,7 +72,7 @@ class DraftMachineListScreen extends StatelessWidget {
             itemCount: machines.length,
             itemBuilder: (context, index) {
               final machine = machines[index];
-              return _buildMachineCard(context, machine, viewModel);
+              return _buildMachineCard(context, machine, viewModel, widget.jobId);
             },
           );
         },
@@ -50,30 +81,32 @@ class DraftMachineListScreen extends StatelessWidget {
         backgroundColor: Colors.teal,
         child: const Icon(Icons.add),
         onPressed: () {
-          _showAddMachineDialog(context, viewModel, jobId);
+          _showAddMachineDialog(context, viewModel, widget.jobId);
         },
       ),
     );
   }
 
-  Widget _buildMachineCard(BuildContext context, DbDraftMachine machine, DraftJobViewModel viewModel) {
+  Widget _buildMachineCard(BuildContext context, DbDraftMachine machine, DraftJobViewModel viewModel, String jobId) {
+    final isDeleted = machine.status == 4;
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 12),
+      color: isDeleted ? Colors.grey.shade300 : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: Colors.teal.shade100,
-          child: const Icon(Icons.precision_manufacturing, color: Colors.teal),
+          backgroundColor: isDeleted ? Colors.grey : Colors.teal.shade100,
+          child: Icon(Icons.precision_manufacturing, color: isDeleted ? Colors.white : Colors.teal),
         ),
-        title: Text('${(machine.machineId != null && machine.machineId!.length > 8) ? machine.machineId!.substring(0, 8) : machine.machineId} : ${machine.machineName ?? 'Unnamed'}', 
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text('${(machine.machineId != null && machine.machineId!.length > 8) ? machine.machineId!.substring(0, 8) : machine.machineId} : ${machine.machineName ?? 'Unnamed'}${isDeleted ? ' (Deleted)' : ''}', 
+            style: TextStyle(fontWeight: FontWeight.bold, decoration: isDeleted ? TextDecoration.lineThrough : null, color: isDeleted ? Colors.grey.shade700 : Colors.black)),
         subtitle: Text(
           'Code: ${machine.machineCode ?? '-'} | Tap to manage Tags',
-          style: TextStyle(color: Colors.grey.shade600),
+          style: TextStyle(color: isDeleted ? Colors.grey : Colors.grey.shade600),
         ),
-        trailing: Row(
+        trailing: isDeleted ? const Chip(label: Text('Deleted', style: TextStyle(color: Colors.red, fontSize: 10))) : Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
@@ -86,7 +119,7 @@ class DraftMachineListScreen extends StatelessWidget {
             ),
           ],
         ),
-        onTap: () {
+        onTap: isDeleted ? null : () {
           Navigator.pushNamed(context, '/draft_tag_list', arguments: {
             'jobId': jobId,
             'machineId': machine.uid,

@@ -76,8 +76,14 @@ class DraftJobDao extends DatabaseAccessor<AppDatabase> with _$DraftJobDaoMixin 
 
   Future<void> deleteDraftMachine(String draftMachineId) async {
     return transaction(() async {
-      await (delete(draftTags)..where((tbl) => tbl.draftMachineId.equals(draftMachineId))).go();
-      await (delete(draftMachines)..where((tbl) => tbl.uid.equals(draftMachineId))).go();
+      await (update(draftTags)..where((tbl) => tbl.draftMachineId.equals(draftMachineId)))
+          .write(DraftTagsCompanion.custom(
+              status: const Constant(4),
+              recordVersion: draftTags.recordVersion + const Constant(1)));
+      await (update(draftMachines)..where((tbl) => tbl.uid.equals(draftMachineId)))
+          .write(DraftMachinesCompanion.custom(
+              status: const Constant(4),
+              recordVersion: draftMachines.recordVersion + const Constant(1)));
     });
   }
 
@@ -113,7 +119,10 @@ class DraftJobDao extends DatabaseAccessor<AppDatabase> with _$DraftJobDaoMixin 
   }
 
   Future<void> deleteDraftTag(String draftTagId) {
-    return (delete(draftTags)..where((tbl) => tbl.uid.equals(draftTagId))).go();
+    return (update(draftTags)..where((tbl) => tbl.uid.equals(draftTagId)))
+        .write(DraftTagsCompanion.custom(
+            status: const Constant(4),
+            recordVersion: draftTags.recordVersion + const Constant(1)));
   }
 
   Future<void> shiftDraftTagOrderIdsUp(String draftMachineId, int fromOrderId) async {

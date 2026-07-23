@@ -10190,6 +10190,14 @@ class $DraftJobsTable extends DraftJobs
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _statusSyncMeta =
+      const VerificationMeta('statusSync');
+  @override
+  late final GeneratedColumn<int> statusSync = GeneratedColumn<int>(
+      'statusSync', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _recordVersionMeta =
       const VerificationMeta('recordVersion');
   @override
@@ -10219,6 +10227,7 @@ class $DraftJobsTable extends DraftJobs
         machineName,
         documentId,
         status,
+        statusSync,
         recordVersion,
         createDate,
         updatedAt
@@ -10271,6 +10280,12 @@ class $DraftJobsTable extends DraftJobs
       context.handle(_statusMeta,
           status.isAcceptableOrUnknown(data['status']!, _statusMeta));
     }
+    if (data.containsKey('statusSync')) {
+      context.handle(
+          _statusSyncMeta,
+          statusSync.isAcceptableOrUnknown(
+              data['statusSync']!, _statusSyncMeta));
+    }
     if (data.containsKey('recordVersion')) {
       context.handle(
           _recordVersionMeta,
@@ -10310,6 +10325,8 @@ class $DraftJobsTable extends DraftJobs
           .read(DriftSqlType.string, data['${effectivePrefix}documentId']),
       status: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}status'])!,
+      statusSync: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}statusSync'])!,
       recordVersion: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}recordVersion'])!,
       createDate: attachedDatabase.typeMapping
@@ -10333,6 +10350,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
   final String? machineName;
   final String? documentId;
   final int status;
+  final int statusSync;
   final int recordVersion;
   final String? createDate;
   final String? updatedAt;
@@ -10344,6 +10362,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
       this.machineName,
       this.documentId,
       required this.status,
+      required this.statusSync,
       required this.recordVersion,
       this.createDate,
       this.updatedAt});
@@ -10363,6 +10382,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
       map['documentId'] = Variable<String>(documentId);
     }
     map['status'] = Variable<int>(status);
+    map['statusSync'] = Variable<int>(statusSync);
     map['recordVersion'] = Variable<int>(recordVersion);
     if (!nullToAbsent || createDate != null) {
       map['createDate'] = Variable<String>(createDate);
@@ -10387,6 +10407,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
           ? const Value.absent()
           : Value(documentId),
       status: Value(status),
+      statusSync: Value(statusSync),
       recordVersion: Value(recordVersion),
       createDate: createDate == null && nullToAbsent
           ? const Value.absent()
@@ -10408,6 +10429,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
       machineName: serializer.fromJson<String?>(json['machineName']),
       documentId: serializer.fromJson<String?>(json['documentId']),
       status: serializer.fromJson<int>(json['status']),
+      statusSync: serializer.fromJson<int>(json['statusSync']),
       recordVersion: serializer.fromJson<int>(json['recordVersion']),
       createDate: serializer.fromJson<String?>(json['createDate']),
       updatedAt: serializer.fromJson<String?>(json['updatedAt']),
@@ -10424,6 +10446,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
       'machineName': serializer.toJson<String?>(machineName),
       'documentId': serializer.toJson<String?>(documentId),
       'status': serializer.toJson<int>(status),
+      'statusSync': serializer.toJson<int>(statusSync),
       'recordVersion': serializer.toJson<int>(recordVersion),
       'createDate': serializer.toJson<String?>(createDate),
       'updatedAt': serializer.toJson<String?>(updatedAt),
@@ -10438,6 +10461,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
           Value<String?> machineName = const Value.absent(),
           Value<String?> documentId = const Value.absent(),
           int? status,
+          int? statusSync,
           int? recordVersion,
           Value<String?> createDate = const Value.absent(),
           Value<String?> updatedAt = const Value.absent()}) =>
@@ -10449,6 +10473,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
         machineName: machineName.present ? machineName.value : this.machineName,
         documentId: documentId.present ? documentId.value : this.documentId,
         status: status ?? this.status,
+        statusSync: statusSync ?? this.statusSync,
         recordVersion: recordVersion ?? this.recordVersion,
         createDate: createDate.present ? createDate.value : this.createDate,
         updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
@@ -10464,6 +10489,8 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
       documentId:
           data.documentId.present ? data.documentId.value : this.documentId,
       status: data.status.present ? data.status.value : this.status,
+      statusSync:
+          data.statusSync.present ? data.statusSync.value : this.statusSync,
       recordVersion: data.recordVersion.present
           ? data.recordVersion.value
           : this.recordVersion,
@@ -10483,6 +10510,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
           ..write('machineName: $machineName, ')
           ..write('documentId: $documentId, ')
           ..write('status: $status, ')
+          ..write('statusSync: $statusSync, ')
           ..write('recordVersion: $recordVersion, ')
           ..write('createDate: $createDate, ')
           ..write('updatedAt: $updatedAt')
@@ -10492,7 +10520,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
 
   @override
   int get hashCode => Object.hash(uid, jobName, location, userId, machineName,
-      documentId, status, recordVersion, createDate, updatedAt);
+      documentId, status, statusSync, recordVersion, createDate, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -10504,6 +10532,7 @@ class DbDraftJob extends DataClass implements Insertable<DbDraftJob> {
           other.machineName == this.machineName &&
           other.documentId == this.documentId &&
           other.status == this.status &&
+          other.statusSync == this.statusSync &&
           other.recordVersion == this.recordVersion &&
           other.createDate == this.createDate &&
           other.updatedAt == this.updatedAt);
@@ -10517,6 +10546,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
   final Value<String?> machineName;
   final Value<String?> documentId;
   final Value<int> status;
+  final Value<int> statusSync;
   final Value<int> recordVersion;
   final Value<String?> createDate;
   final Value<String?> updatedAt;
@@ -10529,6 +10559,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
     this.machineName = const Value.absent(),
     this.documentId = const Value.absent(),
     this.status = const Value.absent(),
+    this.statusSync = const Value.absent(),
     this.recordVersion = const Value.absent(),
     this.createDate = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -10542,6 +10573,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
     this.machineName = const Value.absent(),
     this.documentId = const Value.absent(),
     this.status = const Value.absent(),
+    this.statusSync = const Value.absent(),
     this.recordVersion = const Value.absent(),
     this.createDate = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -10557,6 +10589,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
     Expression<String>? machineName,
     Expression<String>? documentId,
     Expression<int>? status,
+    Expression<int>? statusSync,
     Expression<int>? recordVersion,
     Expression<String>? createDate,
     Expression<String>? updatedAt,
@@ -10570,6 +10603,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
       if (machineName != null) 'machineName': machineName,
       if (documentId != null) 'documentId': documentId,
       if (status != null) 'status': status,
+      if (statusSync != null) 'statusSync': statusSync,
       if (recordVersion != null) 'recordVersion': recordVersion,
       if (createDate != null) 'createDate': createDate,
       if (updatedAt != null) 'updatedAt': updatedAt,
@@ -10585,6 +10619,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
       Value<String?>? machineName,
       Value<String?>? documentId,
       Value<int>? status,
+      Value<int>? statusSync,
       Value<int>? recordVersion,
       Value<String?>? createDate,
       Value<String?>? updatedAt,
@@ -10597,6 +10632,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
       machineName: machineName ?? this.machineName,
       documentId: documentId ?? this.documentId,
       status: status ?? this.status,
+      statusSync: statusSync ?? this.statusSync,
       recordVersion: recordVersion ?? this.recordVersion,
       createDate: createDate ?? this.createDate,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -10628,6 +10664,9 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
     if (status.present) {
       map['status'] = Variable<int>(status.value);
     }
+    if (statusSync.present) {
+      map['statusSync'] = Variable<int>(statusSync.value);
+    }
     if (recordVersion.present) {
       map['recordVersion'] = Variable<int>(recordVersion.value);
     }
@@ -10653,6 +10692,7 @@ class DraftJobsCompanion extends UpdateCompanion<DbDraftJob> {
           ..write('machineName: $machineName, ')
           ..write('documentId: $documentId, ')
           ..write('status: $status, ')
+          ..write('statusSync: $statusSync, ')
           ..write('recordVersion: $recordVersion, ')
           ..write('createDate: $createDate, ')
           ..write('updatedAt: $updatedAt, ')
@@ -10709,6 +10749,21 @@ class $DraftMachinesTable extends DraftMachines
   late final GeneratedColumn<String> machineCode = GeneratedColumn<String>(
       'machineCode', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+      'status', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
+  static const VerificationMeta _recordVersionMeta =
+      const VerificationMeta('recordVersion');
+  @override
+  late final GeneratedColumn<int> recordVersion = GeneratedColumn<int>(
+      'recordVersion', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -10717,7 +10772,9 @@ class $DraftMachinesTable extends DraftMachines
         machineName,
         machineType,
         documentId,
-        machineCode
+        machineCode,
+        status,
+        recordVersion
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -10771,6 +10828,16 @@ class $DraftMachinesTable extends DraftMachines
           machineCode.isAcceptableOrUnknown(
               data['machineCode']!, _machineCodeMeta));
     }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('recordVersion')) {
+      context.handle(
+          _recordVersionMeta,
+          recordVersion.isAcceptableOrUnknown(
+              data['recordVersion']!, _recordVersionMeta));
+    }
     return context;
   }
 
@@ -10794,6 +10861,10 @@ class $DraftMachinesTable extends DraftMachines
           .read(DriftSqlType.string, data['${effectivePrefix}documentId']),
       machineCode: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}machineCode']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}status'])!,
+      recordVersion: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}recordVersion'])!,
     );
   }
 
@@ -10811,6 +10882,8 @@ class DbDraftMachine extends DataClass implements Insertable<DbDraftMachine> {
   final String? machineType;
   final String? documentId;
   final String? machineCode;
+  final int status;
+  final int recordVersion;
   const DbDraftMachine(
       {required this.uid,
       required this.draftJobId,
@@ -10818,7 +10891,9 @@ class DbDraftMachine extends DataClass implements Insertable<DbDraftMachine> {
       this.machineName,
       this.machineType,
       this.documentId,
-      this.machineCode});
+      this.machineCode,
+      required this.status,
+      required this.recordVersion});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -10839,6 +10914,8 @@ class DbDraftMachine extends DataClass implements Insertable<DbDraftMachine> {
     if (!nullToAbsent || machineCode != null) {
       map['machineCode'] = Variable<String>(machineCode);
     }
+    map['status'] = Variable<int>(status);
+    map['recordVersion'] = Variable<int>(recordVersion);
     return map;
   }
 
@@ -10861,6 +10938,8 @@ class DbDraftMachine extends DataClass implements Insertable<DbDraftMachine> {
       machineCode: machineCode == null && nullToAbsent
           ? const Value.absent()
           : Value(machineCode),
+      status: Value(status),
+      recordVersion: Value(recordVersion),
     );
   }
 
@@ -10875,6 +10954,8 @@ class DbDraftMachine extends DataClass implements Insertable<DbDraftMachine> {
       machineType: serializer.fromJson<String?>(json['machineType']),
       documentId: serializer.fromJson<String?>(json['documentId']),
       machineCode: serializer.fromJson<String?>(json['machineCode']),
+      status: serializer.fromJson<int>(json['status']),
+      recordVersion: serializer.fromJson<int>(json['recordVersion']),
     );
   }
   @override
@@ -10888,6 +10969,8 @@ class DbDraftMachine extends DataClass implements Insertable<DbDraftMachine> {
       'machineType': serializer.toJson<String?>(machineType),
       'documentId': serializer.toJson<String?>(documentId),
       'machineCode': serializer.toJson<String?>(machineCode),
+      'status': serializer.toJson<int>(status),
+      'recordVersion': serializer.toJson<int>(recordVersion),
     };
   }
 
@@ -10898,7 +10981,9 @@ class DbDraftMachine extends DataClass implements Insertable<DbDraftMachine> {
           Value<String?> machineName = const Value.absent(),
           Value<String?> machineType = const Value.absent(),
           Value<String?> documentId = const Value.absent(),
-          Value<String?> machineCode = const Value.absent()}) =>
+          Value<String?> machineCode = const Value.absent(),
+          int? status,
+          int? recordVersion}) =>
       DbDraftMachine(
         uid: uid ?? this.uid,
         draftJobId: draftJobId ?? this.draftJobId,
@@ -10907,6 +10992,8 @@ class DbDraftMachine extends DataClass implements Insertable<DbDraftMachine> {
         machineType: machineType.present ? machineType.value : this.machineType,
         documentId: documentId.present ? documentId.value : this.documentId,
         machineCode: machineCode.present ? machineCode.value : this.machineCode,
+        status: status ?? this.status,
+        recordVersion: recordVersion ?? this.recordVersion,
       );
   DbDraftMachine copyWithCompanion(DraftMachinesCompanion data) {
     return DbDraftMachine(
@@ -10922,6 +11009,10 @@ class DbDraftMachine extends DataClass implements Insertable<DbDraftMachine> {
           data.documentId.present ? data.documentId.value : this.documentId,
       machineCode:
           data.machineCode.present ? data.machineCode.value : this.machineCode,
+      status: data.status.present ? data.status.value : this.status,
+      recordVersion: data.recordVersion.present
+          ? data.recordVersion.value
+          : this.recordVersion,
     );
   }
 
@@ -10934,14 +11025,16 @@ class DbDraftMachine extends DataClass implements Insertable<DbDraftMachine> {
           ..write('machineName: $machineName, ')
           ..write('machineType: $machineType, ')
           ..write('documentId: $documentId, ')
-          ..write('machineCode: $machineCode')
+          ..write('machineCode: $machineCode, ')
+          ..write('status: $status, ')
+          ..write('recordVersion: $recordVersion')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(uid, draftJobId, machineId, machineName,
-      machineType, documentId, machineCode);
+      machineType, documentId, machineCode, status, recordVersion);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -10952,7 +11045,9 @@ class DbDraftMachine extends DataClass implements Insertable<DbDraftMachine> {
           other.machineName == this.machineName &&
           other.machineType == this.machineType &&
           other.documentId == this.documentId &&
-          other.machineCode == this.machineCode);
+          other.machineCode == this.machineCode &&
+          other.status == this.status &&
+          other.recordVersion == this.recordVersion);
 }
 
 class DraftMachinesCompanion extends UpdateCompanion<DbDraftMachine> {
@@ -10963,6 +11058,8 @@ class DraftMachinesCompanion extends UpdateCompanion<DbDraftMachine> {
   final Value<String?> machineType;
   final Value<String?> documentId;
   final Value<String?> machineCode;
+  final Value<int> status;
+  final Value<int> recordVersion;
   final Value<int> rowid;
   const DraftMachinesCompanion({
     this.uid = const Value.absent(),
@@ -10972,6 +11069,8 @@ class DraftMachinesCompanion extends UpdateCompanion<DbDraftMachine> {
     this.machineType = const Value.absent(),
     this.documentId = const Value.absent(),
     this.machineCode = const Value.absent(),
+    this.status = const Value.absent(),
+    this.recordVersion = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DraftMachinesCompanion.insert({
@@ -10982,6 +11081,8 @@ class DraftMachinesCompanion extends UpdateCompanion<DbDraftMachine> {
     this.machineType = const Value.absent(),
     this.documentId = const Value.absent(),
     this.machineCode = const Value.absent(),
+    this.status = const Value.absent(),
+    this.recordVersion = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : uid = Value(uid),
         draftJobId = Value(draftJobId);
@@ -10993,6 +11094,8 @@ class DraftMachinesCompanion extends UpdateCompanion<DbDraftMachine> {
     Expression<String>? machineType,
     Expression<String>? documentId,
     Expression<String>? machineCode,
+    Expression<int>? status,
+    Expression<int>? recordVersion,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -11003,6 +11106,8 @@ class DraftMachinesCompanion extends UpdateCompanion<DbDraftMachine> {
       if (machineType != null) 'machineType': machineType,
       if (documentId != null) 'documentId': documentId,
       if (machineCode != null) 'machineCode': machineCode,
+      if (status != null) 'status': status,
+      if (recordVersion != null) 'recordVersion': recordVersion,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -11015,6 +11120,8 @@ class DraftMachinesCompanion extends UpdateCompanion<DbDraftMachine> {
       Value<String?>? machineType,
       Value<String?>? documentId,
       Value<String?>? machineCode,
+      Value<int>? status,
+      Value<int>? recordVersion,
       Value<int>? rowid}) {
     return DraftMachinesCompanion(
       uid: uid ?? this.uid,
@@ -11024,6 +11131,8 @@ class DraftMachinesCompanion extends UpdateCompanion<DbDraftMachine> {
       machineType: machineType ?? this.machineType,
       documentId: documentId ?? this.documentId,
       machineCode: machineCode ?? this.machineCode,
+      status: status ?? this.status,
+      recordVersion: recordVersion ?? this.recordVersion,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -11052,6 +11161,12 @@ class DraftMachinesCompanion extends UpdateCompanion<DbDraftMachine> {
     if (machineCode.present) {
       map['machineCode'] = Variable<String>(machineCode.value);
     }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (recordVersion.present) {
+      map['recordVersion'] = Variable<int>(recordVersion.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -11068,6 +11183,8 @@ class DraftMachinesCompanion extends UpdateCompanion<DbDraftMachine> {
           ..write('machineType: $machineType, ')
           ..write('documentId: $documentId, ')
           ..write('machineCode: $machineCode, ')
+          ..write('status: $status, ')
+          ..write('recordVersion: $recordVersion, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -11170,6 +11287,21 @@ class $DraftTagsTable extends DraftTags
   late final GeneratedColumn<String> machineCode = GeneratedColumn<String>(
       'machineCode', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<int> status = GeneratedColumn<int>(
+      'status', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
+  static const VerificationMeta _recordVersionMeta =
+      const VerificationMeta('recordVersion');
+  @override
+  late final GeneratedColumn<int> recordVersion = GeneratedColumn<int>(
+      'recordVersion', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -11186,7 +11318,9 @@ class $DraftTagsTable extends DraftTags
         unit,
         description,
         documentId,
-        machineCode
+        machineCode,
+        status,
+        recordVersion
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -11280,6 +11414,16 @@ class $DraftTagsTable extends DraftTags
           machineCode.isAcceptableOrUnknown(
               data['machineCode']!, _machineCodeMeta));
     }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('recordVersion')) {
+      context.handle(
+          _recordVersionMeta,
+          recordVersion.isAcceptableOrUnknown(
+              data['recordVersion']!, _recordVersionMeta));
+    }
     return context;
   }
 
@@ -11319,6 +11463,10 @@ class $DraftTagsTable extends DraftTags
           .read(DriftSqlType.string, data['${effectivePrefix}documentId']),
       machineCode: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}machineCode']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}status'])!,
+      recordVersion: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}recordVersion'])!,
     );
   }
 
@@ -11344,6 +11492,8 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
   final String? description;
   final String? documentId;
   final String? machineCode;
+  final int status;
+  final int recordVersion;
   const DbDraftTag(
       {required this.uid,
       required this.draftJobId,
@@ -11359,7 +11509,9 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
       this.unit,
       this.description,
       this.documentId,
-      this.machineCode});
+      this.machineCode,
+      required this.status,
+      required this.recordVersion});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -11400,6 +11552,8 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
     if (!nullToAbsent || machineCode != null) {
       map['machineCode'] = Variable<String>(machineCode);
     }
+    map['status'] = Variable<int>(status);
+    map['recordVersion'] = Variable<int>(recordVersion);
     return map;
   }
 
@@ -11440,6 +11594,8 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
       machineCode: machineCode == null && nullToAbsent
           ? const Value.absent()
           : Value(machineCode),
+      status: Value(status),
+      recordVersion: Value(recordVersion),
     );
   }
 
@@ -11463,6 +11619,8 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
       description: serializer.fromJson<String?>(json['description']),
       documentId: serializer.fromJson<String?>(json['documentId']),
       machineCode: serializer.fromJson<String?>(json['machineCode']),
+      status: serializer.fromJson<int>(json['status']),
+      recordVersion: serializer.fromJson<int>(json['recordVersion']),
     );
   }
   @override
@@ -11484,6 +11642,8 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
       'description': serializer.toJson<String?>(description),
       'documentId': serializer.toJson<String?>(documentId),
       'machineCode': serializer.toJson<String?>(machineCode),
+      'status': serializer.toJson<int>(status),
+      'recordVersion': serializer.toJson<int>(recordVersion),
     };
   }
 
@@ -11502,7 +11662,9 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
           Value<String?> unit = const Value.absent(),
           Value<String?> description = const Value.absent(),
           Value<String?> documentId = const Value.absent(),
-          Value<String?> machineCode = const Value.absent()}) =>
+          Value<String?> machineCode = const Value.absent(),
+          int? status,
+          int? recordVersion}) =>
       DbDraftTag(
         uid: uid ?? this.uid,
         draftJobId: draftJobId ?? this.draftJobId,
@@ -11522,6 +11684,8 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
         description: description.present ? description.value : this.description,
         documentId: documentId.present ? documentId.value : this.documentId,
         machineCode: machineCode.present ? machineCode.value : this.machineCode,
+        status: status ?? this.status,
+        recordVersion: recordVersion ?? this.recordVersion,
       );
   DbDraftTag copyWithCompanion(DraftTagsCompanion data) {
     return DbDraftTag(
@@ -11551,6 +11715,10 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
           data.documentId.present ? data.documentId.value : this.documentId,
       machineCode:
           data.machineCode.present ? data.machineCode.value : this.machineCode,
+      status: data.status.present ? data.status.value : this.status,
+      recordVersion: data.recordVersion.present
+          ? data.recordVersion.value
+          : this.recordVersion,
     );
   }
 
@@ -11571,7 +11739,9 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
           ..write('unit: $unit, ')
           ..write('description: $description, ')
           ..write('documentId: $documentId, ')
-          ..write('machineCode: $machineCode')
+          ..write('machineCode: $machineCode, ')
+          ..write('status: $status, ')
+          ..write('recordVersion: $recordVersion')
           ..write(')'))
         .toString();
   }
@@ -11592,7 +11762,9 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
       unit,
       description,
       documentId,
-      machineCode);
+      machineCode,
+      status,
+      recordVersion);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -11611,7 +11783,9 @@ class DbDraftTag extends DataClass implements Insertable<DbDraftTag> {
           other.unit == this.unit &&
           other.description == this.description &&
           other.documentId == this.documentId &&
-          other.machineCode == this.machineCode);
+          other.machineCode == this.machineCode &&
+          other.status == this.status &&
+          other.recordVersion == this.recordVersion);
 }
 
 class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
@@ -11630,6 +11804,8 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
   final Value<String?> description;
   final Value<String?> documentId;
   final Value<String?> machineCode;
+  final Value<int> status;
+  final Value<int> recordVersion;
   final Value<int> rowid;
   const DraftTagsCompanion({
     this.uid = const Value.absent(),
@@ -11647,6 +11823,8 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
     this.description = const Value.absent(),
     this.documentId = const Value.absent(),
     this.machineCode = const Value.absent(),
+    this.status = const Value.absent(),
+    this.recordVersion = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DraftTagsCompanion.insert({
@@ -11665,6 +11843,8 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
     this.description = const Value.absent(),
     this.documentId = const Value.absent(),
     this.machineCode = const Value.absent(),
+    this.status = const Value.absent(),
+    this.recordVersion = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : uid = Value(uid),
         draftJobId = Value(draftJobId),
@@ -11685,6 +11865,8 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
     Expression<String>? description,
     Expression<String>? documentId,
     Expression<String>? machineCode,
+    Expression<int>? status,
+    Expression<int>? recordVersion,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -11703,6 +11885,8 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
       if (description != null) 'description': description,
       if (documentId != null) 'documentId': documentId,
       if (machineCode != null) 'machineCode': machineCode,
+      if (status != null) 'status': status,
+      if (recordVersion != null) 'recordVersion': recordVersion,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -11723,6 +11907,8 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
       Value<String?>? description,
       Value<String?>? documentId,
       Value<String?>? machineCode,
+      Value<int>? status,
+      Value<int>? recordVersion,
       Value<int>? rowid}) {
     return DraftTagsCompanion(
       uid: uid ?? this.uid,
@@ -11740,6 +11926,8 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
       description: description ?? this.description,
       documentId: documentId ?? this.documentId,
       machineCode: machineCode ?? this.machineCode,
+      status: status ?? this.status,
+      recordVersion: recordVersion ?? this.recordVersion,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -11792,6 +11980,12 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
     if (machineCode.present) {
       map['machineCode'] = Variable<String>(machineCode.value);
     }
+    if (status.present) {
+      map['status'] = Variable<int>(status.value);
+    }
+    if (recordVersion.present) {
+      map['recordVersion'] = Variable<int>(recordVersion.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -11816,6 +12010,8 @@ class DraftTagsCompanion extends UpdateCompanion<DbDraftTag> {
           ..write('description: $description, ')
           ..write('documentId: $documentId, ')
           ..write('machineCode: $machineCode, ')
+          ..write('status: $status, ')
+          ..write('recordVersion: $recordVersion, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -17242,6 +17438,7 @@ typedef $$DraftJobsTableCreateCompanionBuilder = DraftJobsCompanion Function({
   Value<String?> machineName,
   Value<String?> documentId,
   Value<int> status,
+  Value<int> statusSync,
   Value<int> recordVersion,
   Value<String?> createDate,
   Value<String?> updatedAt,
@@ -17255,6 +17452,7 @@ typedef $$DraftJobsTableUpdateCompanionBuilder = DraftJobsCompanion Function({
   Value<String?> machineName,
   Value<String?> documentId,
   Value<int> status,
+  Value<int> statusSync,
   Value<int> recordVersion,
   Value<String?> createDate,
   Value<String?> updatedAt,
@@ -17290,6 +17488,9 @@ class $$DraftJobsTableFilterComposer
 
   ColumnFilters<int> get status => $composableBuilder(
       column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get statusSync => $composableBuilder(
+      column: $table.statusSync, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get recordVersion => $composableBuilder(
       column: $table.recordVersion, builder: (column) => ColumnFilters(column));
@@ -17330,6 +17531,9 @@ class $$DraftJobsTableOrderingComposer
 
   ColumnOrderings<int> get status => $composableBuilder(
       column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get statusSync => $composableBuilder(
+      column: $table.statusSync, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get recordVersion => $composableBuilder(
       column: $table.recordVersion,
@@ -17372,6 +17576,9 @@ class $$DraftJobsTableAnnotationComposer
   GeneratedColumn<int> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
+  GeneratedColumn<int> get statusSync => $composableBuilder(
+      column: $table.statusSync, builder: (column) => column);
+
   GeneratedColumn<int> get recordVersion => $composableBuilder(
       column: $table.recordVersion, builder: (column) => column);
 
@@ -17412,6 +17619,7 @@ class $$DraftJobsTableTableManager extends RootTableManager<
             Value<String?> machineName = const Value.absent(),
             Value<String?> documentId = const Value.absent(),
             Value<int> status = const Value.absent(),
+            Value<int> statusSync = const Value.absent(),
             Value<int> recordVersion = const Value.absent(),
             Value<String?> createDate = const Value.absent(),
             Value<String?> updatedAt = const Value.absent(),
@@ -17425,6 +17633,7 @@ class $$DraftJobsTableTableManager extends RootTableManager<
             machineName: machineName,
             documentId: documentId,
             status: status,
+            statusSync: statusSync,
             recordVersion: recordVersion,
             createDate: createDate,
             updatedAt: updatedAt,
@@ -17438,6 +17647,7 @@ class $$DraftJobsTableTableManager extends RootTableManager<
             Value<String?> machineName = const Value.absent(),
             Value<String?> documentId = const Value.absent(),
             Value<int> status = const Value.absent(),
+            Value<int> statusSync = const Value.absent(),
             Value<int> recordVersion = const Value.absent(),
             Value<String?> createDate = const Value.absent(),
             Value<String?> updatedAt = const Value.absent(),
@@ -17451,6 +17661,7 @@ class $$DraftJobsTableTableManager extends RootTableManager<
             machineName: machineName,
             documentId: documentId,
             status: status,
+            statusSync: statusSync,
             recordVersion: recordVersion,
             createDate: createDate,
             updatedAt: updatedAt,
@@ -17484,6 +17695,8 @@ typedef $$DraftMachinesTableCreateCompanionBuilder = DraftMachinesCompanion
   Value<String?> machineType,
   Value<String?> documentId,
   Value<String?> machineCode,
+  Value<int> status,
+  Value<int> recordVersion,
   Value<int> rowid,
 });
 typedef $$DraftMachinesTableUpdateCompanionBuilder = DraftMachinesCompanion
@@ -17495,6 +17708,8 @@ typedef $$DraftMachinesTableUpdateCompanionBuilder = DraftMachinesCompanion
   Value<String?> machineType,
   Value<String?> documentId,
   Value<String?> machineCode,
+  Value<int> status,
+  Value<int> recordVersion,
   Value<int> rowid,
 });
 
@@ -17527,6 +17742,12 @@ class $$DraftMachinesTableFilterComposer
 
   ColumnFilters<String> get machineCode => $composableBuilder(
       column: $table.machineCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get recordVersion => $composableBuilder(
+      column: $table.recordVersion, builder: (column) => ColumnFilters(column));
 }
 
 class $$DraftMachinesTableOrderingComposer
@@ -17558,6 +17779,13 @@ class $$DraftMachinesTableOrderingComposer
 
   ColumnOrderings<String> get machineCode => $composableBuilder(
       column: $table.machineCode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get recordVersion => $composableBuilder(
+      column: $table.recordVersion,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$DraftMachinesTableAnnotationComposer
@@ -17589,6 +17817,12 @@ class $$DraftMachinesTableAnnotationComposer
 
   GeneratedColumn<String> get machineCode => $composableBuilder(
       column: $table.machineCode, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get recordVersion => $composableBuilder(
+      column: $table.recordVersion, builder: (column) => column);
 }
 
 class $$DraftMachinesTableTableManager extends RootTableManager<
@@ -17624,6 +17858,8 @@ class $$DraftMachinesTableTableManager extends RootTableManager<
             Value<String?> machineType = const Value.absent(),
             Value<String?> documentId = const Value.absent(),
             Value<String?> machineCode = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<int> recordVersion = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               DraftMachinesCompanion(
@@ -17634,6 +17870,8 @@ class $$DraftMachinesTableTableManager extends RootTableManager<
             machineType: machineType,
             documentId: documentId,
             machineCode: machineCode,
+            status: status,
+            recordVersion: recordVersion,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -17644,6 +17882,8 @@ class $$DraftMachinesTableTableManager extends RootTableManager<
             Value<String?> machineType = const Value.absent(),
             Value<String?> documentId = const Value.absent(),
             Value<String?> machineCode = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<int> recordVersion = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               DraftMachinesCompanion.insert(
@@ -17654,6 +17894,8 @@ class $$DraftMachinesTableTableManager extends RootTableManager<
             machineType: machineType,
             documentId: documentId,
             machineCode: machineCode,
+            status: status,
+            recordVersion: recordVersion,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -17694,6 +17936,8 @@ typedef $$DraftTagsTableCreateCompanionBuilder = DraftTagsCompanion Function({
   Value<String?> description,
   Value<String?> documentId,
   Value<String?> machineCode,
+  Value<int> status,
+  Value<int> recordVersion,
   Value<int> rowid,
 });
 typedef $$DraftTagsTableUpdateCompanionBuilder = DraftTagsCompanion Function({
@@ -17712,6 +17956,8 @@ typedef $$DraftTagsTableUpdateCompanionBuilder = DraftTagsCompanion Function({
   Value<String?> description,
   Value<String?> documentId,
   Value<String?> machineCode,
+  Value<int> status,
+  Value<int> recordVersion,
   Value<int> rowid,
 });
 
@@ -17770,6 +18016,12 @@ class $$DraftTagsTableFilterComposer
 
   ColumnFilters<String> get machineCode => $composableBuilder(
       column: $table.machineCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get recordVersion => $composableBuilder(
+      column: $table.recordVersion, builder: (column) => ColumnFilters(column));
 }
 
 class $$DraftTagsTableOrderingComposer
@@ -17828,6 +18080,13 @@ class $$DraftTagsTableOrderingComposer
 
   ColumnOrderings<String> get machineCode => $composableBuilder(
       column: $table.machineCode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get recordVersion => $composableBuilder(
+      column: $table.recordVersion,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$DraftTagsTableAnnotationComposer
@@ -17883,6 +18142,12 @@ class $$DraftTagsTableAnnotationComposer
 
   GeneratedColumn<String> get machineCode => $composableBuilder(
       column: $table.machineCode, builder: (column) => column);
+
+  GeneratedColumn<int> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<int> get recordVersion => $composableBuilder(
+      column: $table.recordVersion, builder: (column) => column);
 }
 
 class $$DraftTagsTableTableManager extends RootTableManager<
@@ -17923,6 +18188,8 @@ class $$DraftTagsTableTableManager extends RootTableManager<
             Value<String?> description = const Value.absent(),
             Value<String?> documentId = const Value.absent(),
             Value<String?> machineCode = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<int> recordVersion = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               DraftTagsCompanion(
@@ -17941,6 +18208,8 @@ class $$DraftTagsTableTableManager extends RootTableManager<
             description: description,
             documentId: documentId,
             machineCode: machineCode,
+            status: status,
+            recordVersion: recordVersion,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -17959,6 +18228,8 @@ class $$DraftTagsTableTableManager extends RootTableManager<
             Value<String?> description = const Value.absent(),
             Value<String?> documentId = const Value.absent(),
             Value<String?> machineCode = const Value.absent(),
+            Value<int> status = const Value.absent(),
+            Value<int> recordVersion = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               DraftTagsCompanion.insert(
@@ -17977,6 +18248,8 @@ class $$DraftTagsTableTableManager extends RootTableManager<
             description: description,
             documentId: documentId,
             machineCode: machineCode,
+            status: status,
+            recordVersion: recordVersion,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

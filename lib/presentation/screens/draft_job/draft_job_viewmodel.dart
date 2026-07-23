@@ -159,6 +159,10 @@ class DraftJobViewModel extends ChangeNotifier {
     await _repository.deleteDraftTag(tagId);
   }
 
+  Future<void> depromoteJob(String masterJobId) async {
+    await _repository.depromoteJob(masterJobId);
+  }
+
   // --- Auto-complete queries ---
   Future<List<String>> getDistinctGroupNames(String draftJobId) => _repository.getDistinctGroupNames(draftJobId);
   Future<List<String>> getDistinctTagNames(String draftJobId) => _repository.getDistinctTagNames(draftJobId);

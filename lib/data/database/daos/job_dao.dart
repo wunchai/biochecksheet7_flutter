@@ -45,6 +45,10 @@ class JobDao extends DatabaseAccessor<AppDatabase> with _$JobDaoMixin {
         .getSingleOrNull();
   }
 
+  Future<List<DbJob>> getAllJobs() {
+    return select(jobs).get();
+  }
+
   // NEW: Deletes all job records.
   Future<int> deleteAllJobs() {
     return delete(jobs).go();

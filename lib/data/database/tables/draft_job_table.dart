@@ -17,6 +17,9 @@ class DraftJobs extends Table {
   // Status: 0 = Draft (editing), 1 = Ready/Submitted
   IntColumn get status => integer().named('status').withDefault(const Constant(0))();
   
+  // StatusSync: 0 = Not Synced, 1 = Synced
+  IntColumn get statusSync => integer().named('statusSync').withDefault(const Constant(0))();
+  
   IntColumn get recordVersion => integer().named('recordVersion').withDefault(const Constant(1))();
   
   TextColumn get createDate => text().named('createDate').nullable()();

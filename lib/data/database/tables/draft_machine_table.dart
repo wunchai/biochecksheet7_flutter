@@ -21,4 +21,10 @@ class DraftMachines extends Table {
   
   // MT System Code
   TextColumn get machineCode => text().named('machineCode').nullable()();
+  
+  // Status (1 = Active, 4 = Deleted)
+  IntColumn get status => integer().named('status').withDefault(const Constant(1))();
+  
+  // Record Version (for sync updates)
+  IntColumn get recordVersion => integer().named('recordVersion').withDefault(const Constant(1))();
 }

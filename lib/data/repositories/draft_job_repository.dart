@@ -42,17 +42,21 @@ class DraftJobRepository {
     await _dao.updateDraftJob(job.copyWith(status: status).toCompanion(true));
   }
 
+  Future<void> updateDraftJobSyncStatus(String draftJobId, int syncStatus) async {
+    final job = await _dao.getDraftJob(draftJobId);
+    await _dao.updateDraftJob(job.copyWith(statusSync: syncStatus).toCompanion(true));
+  }
+
   Future<void> updateDraftJobUserId(String draftJobId, String userId) async {
     final job = await _dao.getDraftJob(draftJobId);
     await _dao.updateDraftJob(job.copyWith(userId: Value(userId)).toCompanion(true));
   }
 
-  Future<void> _bumpJobVersionAndResetStatus(String draftJobId) async {
+  Future<void> _resetJobStatus(String draftJobId) async {
     final job = await _dao.getDraftJob(draftJobId);
-    await _dao.updateDraftJob(job.copyWith(
-      status: 0,
-      recordVersion: job.recordVersion + 1,
-    ).toCompanion(true));
+    if (job.statusSync != 0) {
+      await _dao.updateDraftJob(job.copyWith(statusSync: 0).toCompanion(true));
+    }
   }
 
   Future<void> updateDraftJobDetails({
@@ -105,11 +109,16 @@ class DraftJobRepository {
     await _dao.updateDraftMachine(machine.copyWith(
       machineName: Value(machineName),
       machineCode: Value(machineCode),
+      recordVersion: machine.recordVersion + 1,
     ).toCompanion(true));
-    await _bumpJobVersionAndResetStatus(draftJobId);
+    await _resetJobStatus(draftJobId);
   }
   
-  Future<void> deleteDraftMachine(String draftMachineId) => _dao.deleteDraftMachine(draftMachineId);
+  Future<void> deleteDraftMachine(String draftMachineId) async {
+    final machine = await _dao.getDraftMachine(draftMachineId);
+    await _dao.deleteDraftMachine(draftMachineId);
+    await _resetJobStatus(machine.draftJobId);
+  }
 
   // --- Tag ---
   Stream<List<DbDraftTag>> watchTagsForMachine(String draftMachineId) => _dao.watchTagsForMachine(draftMachineId);
@@ -209,8 +218,9 @@ class DraftJobRepository {
       description: Value(description),
       machineCode: Value(machineCode),
       orderId: finalOrderId,
+      recordVersion: tag.recordVersion + 1,
     ).toCompanion(true));
-    await _bumpJobVersionAndResetStatus(draftJobId);
+    await _resetJobStatus(draftJobId);
   }
 
   Future<void> fixZeroOrderIds(String draftMachineId) async {
@@ -237,7 +247,11 @@ class DraftJobRepository {
     }
   }
 
-  Future<void> deleteDraftTag(String draftTagId) => _dao.deleteDraftTag(draftTagId);
+  Future<void> deleteDraftTag(String draftTagId) async {
+    final tag = await _dao.getDraftTag(draftTagId);
+    await _dao.deleteDraftTag(draftTagId);
+    await _resetJobStatus(tag.draftJobId);
+  }
   
   // Future: generateJsonPayload(String draftJobId) -> will be used to sync to API
   Future<void> syncDraftJobToApi(String draftJobId) async {
@@ -257,15 +271,14 @@ class DraftJobRepository {
     // 4. Upload to API
     await _apiService.uploadDraftJobs([job]);
     if (machines.isNotEmpty) {
-      await _apiService.uploadDraftMachines(machines, recordVersion: job.recordVersion);
+      await _apiService.uploadDraftMachines(machines);
     }
     if (allTags.isNotEmpty) {
-      await _apiService.uploadDraftTags(allTags, recordVersion: job.recordVersion);
+      await _apiService.uploadDraftTags(allTags);
     }
 
-    // 5. Update local status to Submitted (1)
-    // 5. Update local status to Submitted (1)
-    await updateDraftJobStatus(draftJobId, 1);
+    // 5. Update local statusSync to Synced (1)
+    await updateDraftJobSyncStatus(draftJobId, 1);
   }
 
   Future<void> syncDraftJobDeleteToApi(String draftJobId) async {
@@ -291,6 +304,10 @@ class DraftJobRepository {
     for (var tag in tags) {
       await _dao.upsertDraftTag(tag.toCompanion(true));
     }
+  }
+
+  Future<void> depromoteJob(String masterJobId) async {
+    await _apiService.depromoteJob(masterJobId);
   }
 
   // --- Auto-complete ---

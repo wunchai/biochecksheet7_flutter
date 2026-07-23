@@ -14,8 +14,9 @@ class DraftJobListScreen extends StatefulWidget {
 }
 
 class _DraftJobListScreenState extends State<DraftJobListScreen> {
-  String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  bool _isSyncing = false;
 
   @override
   void dispose() {
@@ -33,9 +34,14 @@ class _DraftJobListScreenState extends State<DraftJobListScreen> {
         backgroundColor: Colors.indigo,
         actions: [
           IconButton(
+            icon: const Icon(Icons.edit_document),
+            tooltip: 'ขอแก้ไข Job (De-Promote)',
+            onPressed: () => _showRequestEditDialog(context, viewModel),
+          ),
+          IconButton(
             icon: const Icon(Icons.download),
             tooltip: 'Download Drafts from Server',
-            onPressed: () => _downloadDrafts(context, viewModel),
+            onPressed: _isSyncing ? null : () => _downloadDrafts(context, viewModel),
           ),
         ],
       ),
@@ -120,6 +126,9 @@ class _DraftJobListScreenState extends State<DraftJobListScreen> {
   }
 
   void _downloadDrafts(BuildContext context, DraftJobViewModel viewModel) async {
+    if (_isSyncing) return;
+    setState(() { _isSyncing = true; });
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -128,19 +137,117 @@ class _DraftJobListScreenState extends State<DraftJobListScreen> {
     try {
       await viewModel.syncFromApi();
       if (context.mounted) {
-        Navigator.pop(context); // Close dialog
+        Navigator.of(context, rootNavigator: true).pop(); // Close dialog
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Downloaded successfully!', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        Navigator.pop(context); // Close dialog
+        Navigator.of(context, rootNavigator: true).pop(); // Close dialog
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Download failed: $e', style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red),
         );
       }
+    } finally {
+      if (mounted) {
+        setState(() { _isSyncing = false; });
+      }
     }
+  }
+
+  void _showRequestEditDialog(BuildContext context, DraftJobViewModel viewModel) async {
+    final db = Provider.of<AppDatabase>(context, listen: false);
+    final masterJobs = await db.jobDao.getAllJobs();
+
+    if (!context.mounted) return;
+
+    if (masterJobs.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ไม่มีข้อมูล Job ในระบบ (Master Jobs)')));
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        DbJob? selectedJob;
+        bool isSubmitting = false;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('ขอแก้ไข Job (De-Promote)'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('เลือก Job ที่ต้องการแก้ไข:'),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<DbJob>(
+                      isExpanded: true,
+                      decoration: const InputDecoration(border: OutlineInputBorder()),
+                      hint: const Text('เลือก Job'),
+                      value: selectedJob,
+                      items: masterJobs.map((job) {
+                        return DropdownMenuItem<DbJob>(
+                          value: job,
+                          child: Text('${job.jobName ?? 'Unknown'} (${job.jobId})'),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          selectedJob = val;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('ยกเลิก'),
+                ),
+                ElevatedButton(
+                  onPressed: (selectedJob == null || isSubmitting) ? null : () async {
+                    if (selectedJob?.jobId == null) return;
+                    
+                    setState(() { isSubmitting = true; });
+                    Navigator.pop(ctx);
+                    
+                    // Show loading
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (c) => const Center(child: CircularProgressIndicator()),
+                    );
+                    
+                    try {
+                      await viewModel.depromoteJob(selectedJob!.jobId!);
+                      if (context.mounted) {
+                        Navigator.of(context, rootNavigator: true).pop(); // close loading
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('ส่งคำขอแก้ไขสำเร็จ! ข้อมูลได้ถูกนำกลับมาเป็น Draft แล้ว'), backgroundColor: Colors.green),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        Navigator.of(context, rootNavigator: true).pop(); // close loading
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('เกิดข้อผิดพลาด: $e'), backgroundColor: Colors.red),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text('ยืนยันส่งข้อมูล'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Widget _buildJobCard(BuildContext context, DbDraftJob job, DraftJobViewModel viewModel) {
@@ -181,6 +288,25 @@ class _DraftJobListScreenState extends State<DraftJobListScreen> {
             const SizedBox(height: 4),
             Text('Created: $dateStr', style: const TextStyle(fontSize: 12, color: Colors.grey)),
             Text('Version: ${job.recordVersion}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(
+                  job.statusSync == 1 ? Icons.check_circle : Icons.sync_problem,
+                  size: 14,
+                  color: job.statusSync == 1 ? Colors.green : Colors.orange,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  job.statusSync == 1 ? 'Synced' : 'Not Synced',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: job.statusSync == 1 ? Colors.green : Colors.orange,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
         trailing: Row(
@@ -192,9 +318,9 @@ class _DraftJobListScreenState extends State<DraftJobListScreen> {
               onPressed: () => _showEditJobDialog(context, job, viewModel),
             ),
             IconButton(
-              icon: const Icon(Icons.cloud_upload, color: Colors.blue),
-              tooltip: 'Sync Job to API',
-              onPressed: () => _syncJob(context, job, viewModel),
+              icon: Icon(Icons.cloud_upload, color: job.statusSync == 1 ? Colors.grey : Colors.blue),
+              tooltip: job.statusSync == 1 ? 'Already Synced' : 'Sync Job to API',
+              onPressed: job.statusSync == 1 ? null : () => _syncJob(context, job, viewModel),
             ),
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),

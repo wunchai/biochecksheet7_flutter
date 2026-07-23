@@ -23,7 +23,8 @@ class DraftTagListScreen extends StatefulWidget {
 }
 
 class _DraftTagListScreenState extends State<DraftTagListScreen> {
-  
+  bool _showDeleted = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +42,24 @@ class _DraftTagListScreenState extends State<DraftTagListScreen> {
       appBar: AppBar(
         title: Text('Tags: ${widget.machineName}'),
         backgroundColor: Colors.blueGrey,
+        actions: [
+          Row(
+            children: [
+              const Text('Show Deleted', style: TextStyle(fontSize: 12)),
+              Switch(
+                value: _showDeleted,
+                onChanged: (val) {
+                  setState(() {
+                    _showDeleted = val;
+                  });
+                },
+                activeColor: Colors.white,
+                activeTrackColor: Colors.redAccent,
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: StreamBuilder<List<DbDraftTag>>(
         stream: viewModel.watchTags(widget.machineId),
@@ -52,10 +71,16 @@ class _DraftTagListScreenState extends State<DraftTagListScreen> {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          final tags = snapshot.data ?? [];
+          var tags = snapshot.data ?? [];
+
+          if (!_showDeleted) {
+            tags = tags.where((t) => t.status != 4).toList();
+          }
+
           if (tags.isEmpty) {
             return const Center(
-              child: Text('No tags added yet.\nTap + to add one.', textAlign: TextAlign.center),
+              child: Text('No tags added yet.\nTap + to add one.',
+                  textAlign: TextAlign.center),
             );
           }
 
@@ -72,15 +97,20 @@ class _DraftTagListScreenState extends State<DraftTagListScreen> {
             itemBuilder: (context, index) {
               final groupName = groupedTags.keys.elementAt(index);
               final groupItems = groupedTags[groupName]!;
-              
+
               return Card(
                 elevation: 1.5,
                 margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
                 child: ExpansionTile(
                   initiallyExpanded: true,
-                  title: Text(groupName, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                  children: groupItems.map((tag) => _buildTagTile(context, tag, viewModel)).toList(),
+                  title: Text(groupName,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  children: groupItems
+                      .map((tag) => _buildTagTile(context, tag, viewModel))
+                      .toList(),
                 ),
               );
             },
@@ -97,47 +127,72 @@ class _DraftTagListScreenState extends State<DraftTagListScreen> {
     );
   }
 
-  Widget _buildTagTile(BuildContext context, DbDraftTag tag, DraftJobViewModel viewModel) {
+  Widget _buildTagTile(
+      BuildContext context, DbDraftTag tag, DraftJobViewModel viewModel) {
+    final isDeleted = tag.status == 4;
     return ListTile(
+      tileColor: isDeleted ? Colors.grey.shade200 : null,
       leading: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.label_outline, color: Colors.black54),
-          if (tag.orderId > 0) 
-            Text('No.${tag.orderId}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.indigo)),
+          Icon(Icons.label_outline,
+              color: isDeleted ? Colors.grey : Colors.black54),
+          if (tag.orderId > 0)
+            Text('No.${tag.orderId}',
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: isDeleted ? Colors.grey : Colors.indigo)),
         ],
       ),
-      title: Text(tag.tagName ?? 'Unnamed Tag', style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(
+          '${tag.tagName ?? 'Unnamed Tag'}${isDeleted ? ' (Deleted)' : ''}',
+          style: TextStyle(
+              fontWeight: FontWeight.w600,
+              decoration: isDeleted ? TextDecoration.lineThrough : null,
+              color: isDeleted ? Colors.grey.shade600 : Colors.black)),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Code: ${tag.machineCode ?? '-'} | Type: ${tag.tagType ?? '-'}'),
-          Text('Min: ${tag.specMin ?? '-'} | Max: ${tag.specMax ?? '-'} | Unit: ${tag.unit ?? '-'}'),
+          Text('Code: ${tag.machineCode ?? '-'} | Type: ${tag.tagType ?? '-'}',
+              style: TextStyle(
+                  color: isDeleted ? Colors.grey : Colors.grey.shade700)),
+          Text(
+              'Min: ${tag.specMin ?? '-'} | Max: ${tag.specMax ?? '-'} | Unit: ${tag.unit ?? '-'}',
+              style: TextStyle(
+                  color: isDeleted ? Colors.grey : Colors.grey.shade700)),
           if (tag.description != null && tag.description!.isNotEmpty)
-            Text('Desc: ${tag.description}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            Text('Desc: ${tag.description}',
+                style: TextStyle(
+                    color: isDeleted ? Colors.grey.shade400 : Colors.grey,
+                    fontSize: 12)),
         ],
       ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.edit, color: Colors.orange),
-            onPressed: () {
-              _showEditTagDialog(context, tag, viewModel);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-            onPressed: () {
-              viewModel.deleteTag(tag.uid);
-            },
-          ),
-        ],
-      ),
+      trailing: isDeleted
+          ? const Chip(
+              label: Text('Deleted',
+                  style: TextStyle(color: Colors.red, fontSize: 10)))
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.orange),
+                  onPressed: () {
+                    _showEditTagDialog(context, tag, viewModel);
+                  },
+                ),
+                IconButton(
+                  icon:
+                      const Icon(Icons.delete_outline, color: Colors.redAccent),
+                  onPressed: () => _confirmDeleteTag(context, tag, viewModel),
+                ),
+              ],
+            ),
     );
   }
 
-  void _showAddTagDialog(BuildContext context, DraftJobViewModel viewModel, String jobId, String machineId) async {
+  void _showAddTagDialog(BuildContext context, DraftJobViewModel viewModel,
+      String jobId, String machineId) async {
     // Fetch distinct lists
     final groupOptions = await viewModel.getDistinctGroupNames(jobId);
     final tagOptions = await viewModel.getDistinctTagNames(jobId);
@@ -157,106 +212,153 @@ class _DraftTagListScreenState extends State<DraftTagListScreen> {
     showDialog(
       context: context,
       builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Add Tag'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Autocomplete<String>(
-                      optionsBuilder: (TextEditingValue val) {
-                        if (val.text == '') return const Iterable<String>.empty();
-                        return groupOptions.where((opt) => opt.toLowerCase().contains(val.text.toLowerCase()));
-                      },
-                      fieldViewBuilder: (ctx, ctrl, focus, submit) {
-                        groupCtrl = ctrl;
-                        return TextField(controller: ctrl, focusNode: focus, decoration: const InputDecoration(labelText: 'Group Name'));
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Autocomplete<String>(
-                      optionsBuilder: (TextEditingValue val) {
-                        if (val.text == '') return const Iterable<String>.empty();
-                        return tagOptions.where((opt) => opt.toLowerCase().contains(val.text.toLowerCase()));
-                      },
-                      fieldViewBuilder: (ctx, ctrl, focus, submit) {
-                        nameCtrl = ctrl;
-                        return TextField(controller: ctrl, focusNode: focus, decoration: const InputDecoration(labelText: 'Tag Name'));
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: selectedType,
-                      decoration: const InputDecoration(labelText: 'Data Type'),
-                      items: const [
-                        DropdownMenuItem(value: 'number', child: Text('Number')),
-                        DropdownMenuItem(value: 'text', child: Text('Text')),
-                        DropdownMenuItem(value: 'boolean', child: Text('Boolean (Pass/Fail)')),
-                      ],
-                      onChanged: (val) {
-                        setState(() { selectedType = val!; });
-                      },
-                    ),
-                    if (selectedType == 'number') ...[
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(child: TextField(controller: minCtrl, decoration: const InputDecoration(labelText: 'Min Spec'), keyboardType: TextInputType.number)),
-                          const SizedBox(width: 12),
-                          Expanded(child: TextField(controller: maxCtrl, decoration: const InputDecoration(labelText: 'Max Spec'), keyboardType: TextInputType.number)),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(controller: unitCtrl, decoration: const InputDecoration(labelText: 'Unit (e.g. °C, PSI)')),
+        return StatefulBuilder(builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Add Tag'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Autocomplete<String>(
+                    optionsBuilder: (TextEditingValue val) {
+                      if (val.text == '') return const Iterable<String>.empty();
+                      return groupOptions.where((opt) =>
+                          opt.toLowerCase().contains(val.text.toLowerCase()));
+                    },
+                    fieldViewBuilder: (ctx, ctrl, focus, submit) {
+                      groupCtrl = ctrl;
+                      return TextField(
+                          controller: ctrl,
+                          focusNode: focus,
+                          decoration:
+                              const InputDecoration(labelText: 'Group Name'));
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Autocomplete<String>(
+                    optionsBuilder: (TextEditingValue val) {
+                      if (val.text == '') return const Iterable<String>.empty();
+                      return tagOptions.where((opt) =>
+                          opt.toLowerCase().contains(val.text.toLowerCase()));
+                    },
+                    fieldViewBuilder: (ctx, ctrl, focus, submit) {
+                      nameCtrl = ctrl;
+                      return TextField(
+                          controller: ctrl,
+                          focusNode: focus,
+                          decoration:
+                              const InputDecoration(labelText: 'Tag Name'));
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: selectedType,
+                    decoration: const InputDecoration(labelText: 'Data Type'),
+                    items: const [
+                      DropdownMenuItem(value: 'number', child: Text('Number')),
+                      DropdownMenuItem(value: 'text', child: Text('Text')),
+                      DropdownMenuItem(
+                          value: 'boolean', child: Text('Boolean (Pass/Fail)')),
                     ],
-                    const SizedBox(height: 16),
-                    TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description (Optional)'), maxLines: 2),
+                    onChanged: (val) {
+                      setState(() {
+                        selectedType = val!;
+                      });
+                    },
+                  ),
+                  if (selectedType == 'number') ...[
                     const SizedBox(height: 16),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Machine Code (MT System)'))),
+                        Expanded(
+                            child: TextField(
+                                controller: minCtrl,
+                                decoration: const InputDecoration(
+                                    labelText: 'Min Spec'),
+                                keyboardType: TextInputType.number)),
                         const SizedBox(width: 12),
-                        Expanded(child: TextField(controller: orderCtrl, decoration: const InputDecoration(labelText: 'Order ID'), keyboardType: TextInputType.number)),
+                        Expanded(
+                            child: TextField(
+                                controller: maxCtrl,
+                                decoration: const InputDecoration(
+                                    labelText: 'Max Spec'),
+                                keyboardType: TextInputType.number)),
                       ],
                     ),
+                    const SizedBox(height: 16),
+                    TextField(
+                        controller: unitCtrl,
+                        decoration: const InputDecoration(
+                            labelText: 'Unit (e.g. °C, PSI)')),
                   ],
-                ),
+                  const SizedBox(height: 16),
+                  TextField(
+                      controller: descCtrl,
+                      decoration: const InputDecoration(
+                          labelText: 'Description (Optional)'),
+                      maxLines: 2),
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                          child: TextField(
+                              controller: codeCtrl,
+                              decoration: const InputDecoration(
+                                  labelText: 'Machine Code (MT System)'))),
+                      const SizedBox(width: 12),
+                      Expanded(
+                          child: TextField(
+                              controller: orderCtrl,
+                              decoration:
+                                  const InputDecoration(labelText: 'Order ID'),
+                              keyboardType: TextInputType.number)),
+                    ],
+                  ),
+                ],
               ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (nameCtrl != null && nameCtrl!.text.isNotEmpty && groupCtrl != null && groupCtrl!.text.isNotEmpty) {
-                      await viewModel.addTag(
-                        jobId: jobId,
-                        machineId: machineId,
-                        groupName: groupCtrl!.text,
-                        tagName: nameCtrl!.text,
-                        tagType: selectedType,
-                        specMin: minCtrl.text.isEmpty ? null : minCtrl.text,
-                        specMax: maxCtrl.text.isEmpty ? null : maxCtrl.text,
-                        unit: unitCtrl.text.isEmpty ? null : unitCtrl.text,
-                        description: descCtrl.text.isEmpty ? null : descCtrl.text,
-                        machineCode: codeCtrl.text.trim().isEmpty ? null : codeCtrl.text.trim(),
-                        orderId: orderCtrl.text.isNotEmpty ? int.tryParse(orderCtrl.text) : null,
-                      );
-                      Navigator.pop(ctx);
-                    }
-                  },
-                  child: const Text('Add'),
-                ),
-              ],
-            );
-          }
-        );
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () async {
+                  if (nameCtrl != null &&
+                      nameCtrl!.text.isNotEmpty &&
+                      groupCtrl != null &&
+                      groupCtrl!.text.isNotEmpty) {
+                    await viewModel.addTag(
+                      jobId: jobId,
+                      machineId: machineId,
+                      groupName: groupCtrl!.text,
+                      tagName: nameCtrl!.text,
+                      tagType: selectedType,
+                      specMin: minCtrl.text.isEmpty ? null : minCtrl.text,
+                      specMax: maxCtrl.text.isEmpty ? null : maxCtrl.text,
+                      unit: unitCtrl.text.isEmpty ? null : unitCtrl.text,
+                      description: descCtrl.text.isEmpty ? null : descCtrl.text,
+                      machineCode: codeCtrl.text.trim().isEmpty
+                          ? null
+                          : codeCtrl.text.trim(),
+                      orderId: orderCtrl.text.isNotEmpty
+                          ? int.tryParse(orderCtrl.text)
+                          : null,
+                    );
+                    Navigator.pop(ctx);
+                  }
+                },
+                child: const Text('Add'),
+              ),
+            ],
+          );
+        });
       },
     );
   }
 
-  void _showEditTagDialog(BuildContext context, DbDraftTag tag, DraftJobViewModel viewModel) {
+  void _showEditTagDialog(
+      BuildContext context, DbDraftTag tag, DraftJobViewModel viewModel) {
     final formKey = GlobalKey<FormState>();
     final groupCtrl = TextEditingController(text: tag.tagGroupName);
     final nameCtrl = TextEditingController(text: tag.tagName);
@@ -271,97 +373,163 @@ class _DraftTagListScreenState extends State<DraftTagListScreen> {
     showDialog(
       context: context,
       builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Edit Tag'),
-              content: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextFormField(
-                        controller: groupCtrl,
-                        decoration: const InputDecoration(labelText: 'Group Name *'),
-                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: nameCtrl,
-                        decoration: const InputDecoration(labelText: 'Tag Name *'),
-                        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<String>(
-                        value: selectedType,
-                        decoration: const InputDecoration(labelText: 'Data Type'),
-                        items: const [
-                          DropdownMenuItem(value: 'number', child: Text('Number')),
-                          DropdownMenuItem(value: 'text', child: Text('Text')),
-                          DropdownMenuItem(value: 'boolean', child: Text('Boolean (Pass/Fail)')),
-                        ],
-                        onChanged: (val) {
-                          setState(() { selectedType = val!; });
-                        },
-                      ),
-                      if (selectedType == 'number') ...[
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(child: TextFormField(controller: minCtrl, decoration: const InputDecoration(labelText: 'Min Spec'), keyboardType: TextInputType.number)),
-                            const SizedBox(width: 12),
-                            Expanded(child: TextFormField(controller: maxCtrl, decoration: const InputDecoration(labelText: 'Max Spec'), keyboardType: TextInputType.number)),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(controller: unitCtrl, decoration: const InputDecoration(labelText: 'Unit (e.g. °C, PSI)')),
+        return StatefulBuilder(builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Edit Tag'),
+            content: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: groupCtrl,
+                      decoration:
+                          const InputDecoration(labelText: 'Group Name *'),
+                      validator: (v) =>
+                          v == null || v.isEmpty ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: nameCtrl,
+                      decoration:
+                          const InputDecoration(labelText: 'Tag Name *'),
+                      validator: (v) =>
+                          v == null || v.isEmpty ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: selectedType,
+                      decoration: const InputDecoration(labelText: 'Data Type'),
+                      items: const [
+                        DropdownMenuItem(
+                            value: 'number', child: Text('Number')),
+                        DropdownMenuItem(value: 'text', child: Text('Text')),
+                        DropdownMenuItem(
+                            value: 'boolean',
+                            child: Text('Boolean (Pass/Fail)')),
                       ],
-                      const SizedBox(height: 16),
-                      TextFormField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description (Optional)'), maxLines: 2),
+                      onChanged: (val) {
+                        setState(() {
+                          selectedType = val!;
+                        });
+                      },
+                    ),
+                    if (selectedType == 'number') ...[
                       const SizedBox(height: 16),
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(child: TextFormField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Machine Code (MT System)'))),
+                          Expanded(
+                              child: TextFormField(
+                                  controller: minCtrl,
+                                  decoration: const InputDecoration(
+                                      labelText: 'Min Spec'),
+                                  keyboardType: TextInputType.number)),
                           const SizedBox(width: 12),
-                          Expanded(child: TextFormField(controller: orderCtrl, decoration: const InputDecoration(labelText: 'Order ID'), keyboardType: TextInputType.number)),
+                          Expanded(
+                              child: TextFormField(
+                                  controller: maxCtrl,
+                                  decoration: const InputDecoration(
+                                      labelText: 'Max Spec'),
+                                  keyboardType: TextInputType.number)),
                         ],
                       ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                          controller: unitCtrl,
+                          decoration: const InputDecoration(
+                              labelText: 'Unit (e.g. °C, PSI)')),
                     ],
-                  ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                        controller: descCtrl,
+                        decoration: const InputDecoration(
+                            labelText: 'Description (Optional)'),
+                        maxLines: 2),
+                    const SizedBox(height: 16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                            child: TextFormField(
+                                controller: codeCtrl,
+                                decoration: const InputDecoration(
+                                    labelText: 'Machine Code (MT System)'))),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: TextFormField(
+                                controller: orderCtrl,
+                                decoration: const InputDecoration(
+                                    labelText: 'Order ID'),
+                                keyboardType: TextInputType.number)),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
-                  onPressed: () async {
-                    if (formKey.currentState!.validate()) {
-                      await viewModel.updateTagDetails(
-                        draftTagId: tag.uid,
-                        draftJobId: tag.draftJobId,
-                        groupName: groupCtrl.text.trim(),
-                        tagName: nameCtrl.text.trim(),
-                        tagType: selectedType,
-                        specMin: minCtrl.text.isEmpty ? null : minCtrl.text,
-                        specMax: maxCtrl.text.isEmpty ? null : maxCtrl.text,
-                        unit: unitCtrl.text.isEmpty ? null : unitCtrl.text,
-                        selectionValues: tag.tagSelectionValue, // Keep unchanged for now
-                        description: descCtrl.text.isEmpty ? null : descCtrl.text,
-                        machineCode: codeCtrl.text.trim().isEmpty ? null : codeCtrl.text.trim(),
-                        orderId: orderCtrl.text.isNotEmpty ? int.tryParse(orderCtrl.text) : null,
-                      );
-                      if (ctx.mounted) Navigator.pop(ctx);
-                    }
-                  },
-                  child: const Text('Save', style: TextStyle(color: Colors.white)),
-                ),
-              ],
-            );
-          }
-        );
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel')),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
+                onPressed: () async {
+                  if (formKey.currentState!.validate()) {
+                    await viewModel.updateTagDetails(
+                      draftTagId: tag.uid,
+                      draftJobId: tag.draftJobId,
+                      groupName: groupCtrl.text.trim(),
+                      tagName: nameCtrl.text.trim(),
+                      tagType: selectedType,
+                      specMin: minCtrl.text.isEmpty ? null : minCtrl.text,
+                      specMax: maxCtrl.text.isEmpty ? null : maxCtrl.text,
+                      unit: unitCtrl.text.isEmpty ? null : unitCtrl.text,
+                      selectionValues:
+                          tag.tagSelectionValue, // Keep unchanged for now
+                      description: descCtrl.text.isEmpty ? null : descCtrl.text,
+                      machineCode: codeCtrl.text.trim().isEmpty
+                          ? null
+                          : codeCtrl.text.trim(),
+                      orderId: orderCtrl.text.isNotEmpty
+                          ? int.tryParse(orderCtrl.text)
+                          : null,
+                    );
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  }
+                },
+                child:
+                    const Text('Save', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        });
       },
+    );
+  }
+
+  void _confirmDeleteTag(
+      BuildContext context, DbDraftTag tag, DraftJobViewModel viewModel) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Tag?'),
+        content: const Text('Are you sure you want to delete this tag?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              Navigator.pop(ctx);
+              viewModel.deleteTag(tag.uid);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
     );
   }
 }

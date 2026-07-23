@@ -59,8 +59,41 @@ class DraftApiService {
     }
   }
 
-  Future<void> uploadDraftMachines(List<DbDraftMachine> machines,
-      {int? recordVersion}) async {
+  Future<void> depromoteJob(String masterJobId) async {
+    final uri = Uri.parse("$_baseUrl/CHECKSHEET_MASTERTODRAFT_DEPROMOTE");
+    print("Depromoting master job to draft: $uri");
+    final headers = {"Content-Type": "application/json"};
+
+    final body = jsonEncode({
+      "ServiceName": "CHECKSHEET_MASTERTODRAFT_DEPROMOTE",
+      "Paremeter": jsonEncode({"masterJobId": masterJobId})
+    });
+
+    print("Request body for depromote: $body");
+
+    try {
+      final response = await http.post(uri, headers: headers, body: body);
+      final String decodedBody = utf8.decode(response.bodyBytes);
+      print("Depromote API Response status: ${response.statusCode}");
+      print("Depromote API Response body: $decodedBody");
+
+      if (response.statusCode != 200) {
+        throw Exception("Depromote API failed: Status code ${response.statusCode}");
+      }
+
+      // Check for error in JSON body
+      final jsonResponse = jsonDecode(decodedBody);
+      if (jsonResponse is Map<String, dynamic> && jsonResponse['status'] == 'error') {
+        throw Exception(jsonResponse['message'] ?? 'Unknown error occurred.');
+      }
+    } on http.ClientException catch (e) {
+      throw Exception("Network error depromoting job: ${e.message}");
+    } catch (e) {
+      throw Exception("An unexpected error occurred: $e");
+    }
+  }
+
+  Future<void> uploadDraftMachines(List<DbDraftMachine> machines) async {
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTMACHINE_SYNC");
     print("Uploading draft machines to API: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -72,8 +105,10 @@ class DraftApiService {
         "machineId": record.machineId,
         "machineName": record.machineName,
         "machineType": record.machineType,
+        "documentId": record.documentId,
         "machineCode": record.machineCode,
-        if (recordVersion != null) "recordVersion": recordVersion,
+        "status": record.status,
+        "recordVersion": record.recordVersion,
       };
     }).toList();
 
@@ -109,8 +144,7 @@ class DraftApiService {
     }
   }
 
-  Future<void> uploadDraftTags(List<DbDraftTag> tags,
-      {int? recordVersion}) async {
+  Future<void> uploadDraftTags(List<DbDraftTag> tags) async {
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTTAG_SYNC");
     print("Uploading draft tags to API: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -131,7 +165,8 @@ class DraftApiService {
         "description": record.description,
         "machineCode": record.machineCode,
         "orderId": record.orderId,
-        if (recordVersion != null) "recordVersion": recordVersion,
+        "status": record.status,
+        "recordVersion": record.recordVersion,
       };
     }).toList();
 
@@ -204,6 +239,7 @@ class DraftApiService {
                   documentId: jobData['DocumentId'],
                   userId: jobData['UserId'],
                   status: jobData['Status'] ?? 0,
+                  statusSync: 1, // Set to 1 because it's just been synced from API
                   createDate: jobData['CreateDate'] ?? '',
                   updatedAt: jobData['UpdatedAt'],
                   recordVersion: jobData['RecordVersion'] ?? 1,
@@ -272,6 +308,9 @@ class DraftApiService {
                   machineName: machineData['MachineName'],
                   machineType: machineData['MachineType'],
                   machineCode: machineData['MachineCode'],
+                  documentId: machineData['DocumentId'],
+                  status: machineData['Status'] != null ? (int.tryParse(machineData['Status'].toString()) ?? 1) : 1,
+                  recordVersion: machineData['RecordVersion'] != null ? (int.tryParse(machineData['RecordVersion'].toString()) ?? 1) : 1,
                 );
               }).toList();
 
@@ -342,7 +381,10 @@ class DraftApiService {
                   unit: tagData['Unit'],
                   description: tagData['Description'],
                   machineCode: tagData['MachineCode'],
+                  documentId: tagData['DocumentId'],
                   orderId: tagData['OrderId'] != null ? (int.tryParse(tagData['OrderId'].toString()) ?? 0) : 0,
+                  status: tagData['Status'] != null ? (int.tryParse(tagData['Status'].toString()) ?? 1) : 1,
+                  recordVersion: tagData['RecordVersion'] != null ? (int.tryParse(tagData['RecordVersion'].toString()) ?? 1) : 1,
                 );
               }).toList();
 
