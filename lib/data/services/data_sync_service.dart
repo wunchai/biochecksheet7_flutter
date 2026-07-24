@@ -242,10 +242,10 @@ class DataSyncService {
 
   /// === ฟังก์ชันใหม่: สำหรับ Sync Master Image โดยเฉพาะ ===
   Future<SyncStatus> performMasterImageSync(
-      {required Function(int, int) onProgress}) async {
+      {required String jobId, required Function(int, int) onProgress}) async {
     try {
       // 1. ซิงค์ Metadata ก่อน (เป็นขั้นตอนที่เร็ว)
-      await _checksheetImageRepository.syncImageMetadata();
+      await _checksheetImageRepository.syncImageMetadata(jobId: jobId);
 
       // 2. เริ่มดาวน์โหลดรูปภาพ พร้อมส่งต่อ callback
       await _checksheetImageRepository.downloadMissingImages(

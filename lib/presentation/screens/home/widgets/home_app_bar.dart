@@ -117,6 +117,38 @@ class _HomeAppBarState extends State<HomeAppBar> {
         icon: const Icon(Icons.logout),
         onPressed: widget.onLogoutPressed,
       ));
+
+      // เมนูตัวเลือกเพิ่มเติม (3 จุด)
+      menuButtons.add(
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert, color: Colors.white),
+          tooltip: 'ตัวเลือกเพิ่มเติม',
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          onSelected: (value) {
+            if (value == 'toggle_canceled') {
+              viewModel.toggleShowCanceledJobs();
+            }
+          },
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            PopupMenuItem<String>(
+              value: 'toggle_canceled',
+              child: Row(
+                children: [
+                  Icon(
+                    viewModel.showCanceledJobs ? Icons.visibility : Icons.visibility_off,
+                    color: viewModel.showCanceledJobs ? Colors.blue : Colors.grey,
+                  ),
+                  const SizedBox(width: 12),
+                  const Text('แสดงงานที่ยกเลิก'),
+                  const Spacer(),
+                  if (viewModel.showCanceledJobs)
+                    const Icon(Icons.check, color: Colors.blue, size: 20),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     // 2. จัดการ Layout ว่าจะแสดง Title และ Actions อย่างไร

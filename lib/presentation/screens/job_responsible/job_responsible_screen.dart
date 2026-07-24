@@ -183,20 +183,53 @@ class _JobResponsibleContentState extends State<_JobResponsibleContent> {
                                       style: const TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                     subtitle: Text('เพิ่มเมื่อ: ${user.createDate}'),
-                                    trailing: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: user.status == 1 ? Colors.green.shade50 : Colors.red.shade50,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        user.status == 1 ? 'ใช้งาน' : 'ยกเลิก',
-                                        style: TextStyle(
-                                          color: user.status == 1 ? Colors.green.shade700 : Colors.red.shade700,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: user.status == 1 ? Colors.green.shade50 : Colors.red.shade50,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            user.status == 1 ? 'ใช้งาน' : 'ยกเลิก',
+                                            style: TextStyle(
+                                              color: user.status == 1 ? Colors.green.shade700 : Colors.red.shade700,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        const SizedBox(width: 8),
+                                        IconButton(
+                                          icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                          tooltip: "ลบผู้รับผิดชอบ",
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (ctx) => AlertDialog(
+                                                title: const Text('ยืนยันการลบ'),
+                                                content: const Text('คุณแน่ใจหรือไม่ว่าต้องการลบผู้รับผิดชอบนี้?'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.of(ctx).pop(),
+                                                    child: const Text('ยกเลิก', style: TextStyle(color: Colors.grey)),
+                                                  ),
+                                                  ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                                    onPressed: () {
+                                                      Navigator.of(ctx).pop();
+                                                      viewModel.removeJobResponsible(user.userId ?? '');
+                                                    },
+                                                    child: const Text('ลบ', style: TextStyle(color: Colors.white)),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 );

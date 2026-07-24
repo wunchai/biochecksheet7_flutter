@@ -46,6 +46,15 @@ class HomeViewModel extends ChangeNotifier {
   Stream<List<DbJob>>? _jobsStream;
   Stream<List<DbJob>>? get jobsStream => _jobsStream;
 
+  bool _showCanceledJobs = false;
+  bool get showCanceledJobs => _showCanceledJobs;
+
+  void toggleShowCanceledJobs() {
+    _showCanceledJobs = !_showCanceledJobs;
+    loadJobs();
+    notifyListeners();
+  }
+
   // Constructor now takes resolved AppDatabase instance
   HomeViewModel(
       {required AppDatabase appDatabase,
@@ -176,8 +185,8 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Pass searchQuery to the repository method
-      _jobsStream = _jobRepository.watchAllJobs(searchQuery: _searchQuery);
+      _jobsStream = _jobRepository.watchAllJobs(
+          searchQuery: _searchQuery, showCanceledJobs: _showCanceledJobs);
       _statusMessage = "Jobs โหลดแล้ว.";
     } catch (e) {
       _statusMessage = "ไม่สามารถโหลด Jobs ได้: $e";
@@ -391,30 +400,16 @@ class HomeViewModel extends ChangeNotifier {
       return uploadResult.message ?? 'เกิดข้อผิดพลาดในการอัปโหลด';
     }
 
-    // --- ขั้นตอนที่ 2: DOWNLOAD ---
-    syncProgressNotifier.value = null; // Reset progress for download
-    syncStatusNotifier.value =
-        'ขั้นตอนที่ 2/2: กำลังดาวน์โหลดรูปภาพจากเซิร์ฟเวอร์...';
-
-    final downloadResult = await _dataSyncService.performMasterImageSync(
-      onProgress: (current, total) {
-        if (total > 0) {
-          syncProgressNotifier.value = current / total;
-          syncStatusNotifier.value =
-              'กำลังดาวน์โหลดรูปภาพ $current จาก $total...';
-        } else {
-          syncStatusNotifier.value = 'ไม่พบรูปภาพใหม่ที่ต้องดาวน์โหลด';
-        }
-      },
-    );
-
+    // --- ขั้นตอนที่ 2: DOWNLOAD (REMOVED) ---
+    // การโหลดรูปภาพ Master Image แบบ Global ถูกยกเลิกแล้ว
+    // ผู้ใช้ต้องเข้าไปกดโหลดรูปภาพเองในหน้า AMChecksheetScreen แยกตาม Job
+    
     syncProgressNotifier.value = null;
 
-    if (downloadResult is SyncSuccess) {
-      return 'ซิงค์ข้อมูล Master Image สำเร็จ!';
-    } else if (downloadResult is SyncError) {
-      return downloadResult.message ?? 'เกิดข้อผิดพลาดในการดาวน์โหลด';
+    if (uploadResult is SyncSuccess) {
+      return 'อัปโหลดรูปภาพใหม่สำเร็จ!';
     }
+    
     return 'การซิงค์สิ้นสุดลง';
   }
 }

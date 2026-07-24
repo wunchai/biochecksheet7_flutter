@@ -23,6 +23,11 @@ class ChecksheetMasterImageDao extends DatabaseAccessor<AppDatabase>
     return select(checkSheetMasterImages).get();
   }
 
+  /// ลบรูปภาพด้วย ID
+  Future<int> deleteImageById(int imageId) {
+    return (delete(checkSheetMasterImages)..where((tbl) => tbl.id.equals(imageId))).go();
+  }
+
   /// ดึงข้อมูลรูปภาพสำหรับ Tag ที่ระบุ
   Future<DbCheckSheetMasterImage?> getImageForTag({
     required int jobId,

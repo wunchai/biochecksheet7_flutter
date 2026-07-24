@@ -26,17 +26,24 @@ class JobDao extends DatabaseAccessor<AppDatabase> with _$JobDaoMixin {
   }
 
   // NEW: Watches a stream of all job records, optionally filtered by a search query.
-  Stream<List<DbJob>> watchAllJobs({String? searchQuery}) {
+  Stream<List<DbJob>> watchAllJobs({String? searchQuery, bool showCanceledJobs = false}) {
+    final queryBuilder = select(jobs);
+
+    // กรองสถานะ
+    if (!showCanceledJobs) {
+      queryBuilder.where((tbl) => tbl.jobStatus.isNotValue(2));
+    }
+
+    // กรองคำค้นหา
     if (searchQuery != null && searchQuery.isNotEmpty) {
       final query = '%${searchQuery.toLowerCase()}%';
-      return (select(jobs)
-            ..where((tbl) =>
-                tbl.jobName.lower().like(query) |
-                tbl.jobId.lower().like(query) |
-                tbl.machineName.lower().like(query)))
-          .watch();
+      queryBuilder.where((tbl) =>
+          tbl.jobName.lower().like(query) |
+          tbl.jobId.lower().like(query) |
+          tbl.machineName.lower().like(query));
     }
-    return select(jobs).watch();
+
+    return queryBuilder.watch();
   }
 
   // NEW: Gets a single job record by its jobId.

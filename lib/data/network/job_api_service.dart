@@ -145,4 +145,45 @@ class JobApiService {
       throw Exception("Error during getJobResponsible: $e");
     }
   }
+
+  Future<String> removeJobResponsible(String jobId, String userId) async {
+    final uri = Uri.parse("$_baseUrl/CHECKSHEET_JOB_RESPONSIBLE_DELETE");
+    final headers = {"Content-Type": "application/json"};
+    final Map<String, dynamic> parameterObject = {
+      "jobId": jobId,
+      "userId": userId
+    };
+    final body = jsonEncode({
+      "ServiceName": "CHECKSHEET_JOB_RESPONSIBLE_DELETE",
+      "Paremeter": jsonEncode(parameterObject)
+    });
+
+    try {
+      print("Request Body: $body"); // Debugging log
+
+      final response = await http.post(uri, headers: headers, body: body);
+      final String decodedBody = utf8.decode(response.bodyBytes);
+
+      print("Response Body: $decodedBody"); // Debugging log
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
+
+        String result = '';
+        if (responseJson.containsKey('Table') &&
+            responseJson['Table'] is List &&
+            responseJson['Table'].isNotEmpty) {
+          result = responseJson['Table'][0]['result']?.toString() ?? '';
+        } else {
+          result = responseJson['result']?.toString() ?? ''; // Fallback just in case
+        }
+
+        return result; 
+      } else {
+        throw Exception(
+            "removeJobResponsible failed: Status code ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error during removeJobResponsible: $e");
+    }
+  }
 }

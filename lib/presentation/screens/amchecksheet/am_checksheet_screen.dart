@@ -62,7 +62,7 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
       ),
     );
 
-    final String resultMessage = await viewModel.syncMasterImages();
+    final String resultMessage = await viewModel.syncMasterImages(jobId: widget.jobId);
 
     if (context.mounted) Navigator.of(context).pop();
 

@@ -26,12 +26,56 @@ class ChecksheetImageRepository {
         _apiService = apiService,
         _loginRepository = LoginRepository();
 
+  /// === ฟังก์ชันสำหรับลบรูปภาพ ===
+  Future<bool> deleteMasterImage(int imageId) async {
+    try {
+      debugPrint('Deleting master image ID: $imageId');
+      // 1. เรียก API ลบรูปภาพก่อน
+      final success = await _apiService.deleteChecksheetImage(imageId: imageId);
+      
+      // 2. ถ้า API สำเร็จ ลบออกจาก Local DB
+      if (success) {
+        // ดึงข้อมูลเก่าเพื่อเช็คพาร์ทไฟล์
+        final localImages = await _appDatabase.checksheetMasterImageDao.getAllImages();
+        DbCheckSheetMasterImage? localRecord;
+        for(var img in localImages) {
+          if (img.id == imageId) {
+            localRecord = img;
+            break;
+          }
+        }
+
+        // ลบไฟล์ (ถ้ามี)
+        if (localRecord != null && !kIsWeb && localRecord.path != null && localRecord.path!.isNotEmpty) {
+          try {
+            final file = File(localRecord.path!);
+            if (await file.exists()) {
+              await file.delete();
+              debugPrint('Deleted local file: ${localRecord.path}');
+            }
+          } catch (e) {
+            debugPrint('Error deleting local file: $e');
+          }
+        }
+
+        // ลบ Record ออกจาก Local DB 
+        await _appDatabase.checksheetMasterImageDao.deleteImageById(imageId);
+        debugPrint('Local master image ID: $imageId deleted successfully');
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error deleting master image: $e');
+      return false;
+    }
+  }
+
   /// === ขั้นตอนที่ 1: Sync ข้อมูล Metadata ===
   /// ดึงข้อมูล Text (Metadata) ของรูปภาพจาก Server แล้วบันทึกลง Local DB
-  Future<void> syncImageMetadata() async {
+  Future<void> syncImageMetadata({required String jobId}) async {
     try {
-      debugPrint('Starting image metadata sync...');
-      final metadataFromApi = await _apiService.getChecksheetImageMetadata();
+      debugPrint('Starting image metadata sync for jobId: $jobId...');
+      final metadataFromApi = await _apiService.getChecksheetImageMetadata(jobId: jobId);
       debugPrint(
           'Fetched ${metadataFromApi.length} metadata records from API.');
 

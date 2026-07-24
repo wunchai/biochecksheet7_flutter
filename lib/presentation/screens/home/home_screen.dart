@@ -5,6 +5,7 @@ import 'package:biochecksheet7_flutter/presentation/screens/home/home_viewmodel.
 //import 'package:biochecksheet7_flutter/data/repositories/login_repository.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // สำหรับ DbJob
 import 'package:biochecksheet7_flutter/presentation/screens/document/document_screen.dart'; // <<< Import DocumentScreen
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_online_screen.dart'; // <<< Import DocumentOnlineScreen
 import 'package:biochecksheet7_flutter/presentation/screens/job_responsible/job_responsible_screen.dart'; // Import JobResponsibleScreen
 import 'package:biochecksheet7_flutter/presentation/screens/home/widgets/home_app_bar.dart'; // <<< NEW: Import HomeAppBar
 //import 'package:biochecksheet7_flutter/ui/deviceinfo/device_info_screen.dart'; // <<< NEW: Import DeviceInfoScreen
@@ -231,24 +232,40 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildJobCard(BuildContext context, DbJob job) {
+    final bool isCanceled = job.jobStatus == 2;
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       clipBehavior: Clip.antiAlias,
+      // ลดสีพื้นหลังถ้าถูกยกเลิก
+      color: isCanceled ? Colors.grey.shade100 : Colors.white,
       child: InkWell(
         onTap: () {
           if (widget.onJobTapped != null) {
             widget.onJobTapped!(context, job);
           } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DocumentScreen(
-                  title: 'เอกสารของงาน: ${job.jobName ?? ''}',
-                  jobId: job.jobId,
+            if (isCanceled) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DocumentOnlineScreen(
+                    title: 'เอกสารออนไลน์ (ยกเลิกแล้ว): ${job.jobName ?? ''}',
+                    jobId: job.jobId,
+                  ),
                 ),
-              ),
-            );
+              );
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DocumentScreen(
+                    title: 'เอกสารของงาน: ${job.jobName ?? ''}',
+                    jobId: job.jobId,
+                  ),
+                ),
+              );
+            }
           }
         },
         child: Padding(
@@ -333,9 +350,9 @@ class _HomeScreenState extends State<HomeScreen> {
       textColor = Colors.green.shade700;
       text = 'Active';
     } else if (statusStr == 'Closed' || statusStr == '2') {
-      bgColor = Colors.grey.shade200;
-      textColor = Colors.grey.shade700;
-      text = 'Closed';
+      bgColor = Colors.red.shade50; // เปลี่ยนพื้นหลังเป็นแดงอ่อน
+      textColor = Colors.red.shade700; // สีตัวอักษรแดงเข้ม
+      text = 'ยกเลิก'; // เปลี่ยนข้อความให้ชัดเจน
     } else {
       bgColor = Colors.orange.shade50;
       textColor = Colors.orange.shade800;

@@ -162,16 +162,32 @@ class _AmChecksheetPortraitViewState extends State<AmChecksheetPortraitView>
                                             borderRadius:
                                                 BorderRadius.circular(20),
                                           ),
-                                          child: IconButton(
-                                            icon: const Icon(Icons.edit,
-                                                size: 20, color: Colors.white),
-                                            constraints: const BoxConstraints(),
-                                            padding: const EdgeInsets.all(8),
-                                            tooltip: "แก้ไขรูปภาพ",
-                                            onPressed: () {
-                                              openImageEditor(
-                                                  context, currentImageRecord);
-                                            },
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                icon: const Icon(Icons.delete,
+                                                    size: 20, color: Colors.redAccent),
+                                                constraints: const BoxConstraints(),
+                                                padding: const EdgeInsets.all(8),
+                                                tooltip: "ลบรูปภาพ",
+                                                onPressed: () {
+                                                  confirmAndDeleteMasterImage(
+                                                      context, currentImageRecord, viewModel);
+                                                },
+                                              ),
+                                              IconButton(
+                                                icon: const Icon(Icons.edit,
+                                                    size: 20, color: Colors.white),
+                                                constraints: const BoxConstraints(),
+                                                padding: const EdgeInsets.all(8),
+                                                tooltip: "แก้ไขรูปภาพ",
+                                                onPressed: () {
+                                                  openImageEditor(
+                                                      context, currentImageRecord);
+                                                },
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ),
@@ -272,21 +288,38 @@ class _AmChecksheetPortraitViewState extends State<AmChecksheetPortraitView>
                                                           BorderRadius.circular(
                                                               20),
                                                     ),
-                                                    child: IconButton(
-                                                      icon: const Icon(
-                                                          Icons.edit,
-                                                          size: 16,
-                                                          color: Colors.white),
-                                                      constraints:
-                                                          const BoxConstraints(),
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              8),
-                                                      tooltip: "แก้ไขรูปภาพ",
-                                                      onPressed: () {
-                                                        openImageEditor(context,
-                                                            currentImageRecord);
-                                                      },
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        IconButton(
+                                                          icon: const Icon(Icons.delete,
+                                                              size: 16,
+                                                              color: Colors.redAccent),
+                                                          constraints:
+                                                              const BoxConstraints(),
+                                                          padding:
+                                                              const EdgeInsets.all(8),
+                                                          tooltip: "ลบรูปภาพ",
+                                                          onPressed: () {
+                                                            confirmAndDeleteMasterImage(
+                                                                context, currentImageRecord, viewModel);
+                                                          },
+                                                        ),
+                                                        IconButton(
+                                                          icon: const Icon(Icons.edit,
+                                                              size: 16,
+                                                              color: Colors.white),
+                                                          constraints:
+                                                              const BoxConstraints(),
+                                                          padding:
+                                                              const EdgeInsets.all(8),
+                                                          tooltip: "แก้ไขรูปภาพ",
+                                                          onPressed: () {
+                                                            openImageEditor(context,
+                                                                currentImageRecord);
+                                                          },
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
                                                 ),

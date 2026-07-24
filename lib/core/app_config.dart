@@ -14,8 +14,8 @@ class AppConfig {
   // ตัวอย่าง: 'http://192.168.1.100:8080' หรือ 'https://api.yourdomain.com'
   //static const String baseUrl = 'http://10.1.200.26/ServiceJson/Service4.svc';
   //static const String baseUrl = 'https://10.1.150.73:488/CSAPI';
-  static const String baseUrl = 'https://api1.biolab.co.th:488/CSAPI';
-  //static const String baseUrl = 'http://10.1.200.26:94';
+  //static const String baseUrl = 'https://api1.biolab.co.th:488/CSAPI';
+  static const String baseUrl = 'http://10.1.200.26:94';
   //static const String baseUrl = 'http://10.1.2.42:93';
   //static const String baseUrl = 'http://10.1.1.66:5029';
   static const String databaseName = 'biochecksheet7_db.sqlite';

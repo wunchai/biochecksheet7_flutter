@@ -934,7 +934,7 @@ class AMChecksheetViewModel extends ChangeNotifier {
   }
 
   /// === ฟังก์ชันที่แก้ไข: จัดการทั้งการ Upload และ Download (เหมือน HomeViewModel) ===
-  Future<String> syncMasterImages() async {
+  Future<String> syncMasterImages({required String jobId}) async {
     // --- ขั้นตอนที่ 1: UPLOAD ---
     syncProgressNotifier.value = null; // Indeterminate progress
     syncStatusNotifier.value = 'ขั้นตอนที่ 1/2: กำลังอัปโหลดรูปภาพใหม่...';
@@ -962,6 +962,7 @@ class AMChecksheetViewModel extends ChangeNotifier {
         'ขั้นตอนที่ 2/2: กำลังดาวน์โหลดรูปภาพจากเซิร์ฟเวอร์...';
 
     final downloadResult = await _dataSyncService.performMasterImageSync(
+      jobId: jobId,
       onProgress: (current, total) {
         if (total > 0) {
           syncProgressNotifier.value = current / total;
@@ -981,6 +982,12 @@ class AMChecksheetViewModel extends ChangeNotifier {
       return downloadResult.message ?? 'เกิดข้อผิดพลาดในการดาวน์โหลด';
     }
     return 'การซิงค์สิ้นสุดลง';
+  }
+
+  /// ลบรูปภาพ Master Image
+  Future<bool> deleteMasterImage(int imageId) async {
+    // ส่งต่อไปยัง repository เพื่อลบรูปภาพ
+    return await _dataSyncService.checksheetImageRepository.deleteMasterImage(imageId);
   }
 
   @override

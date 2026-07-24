@@ -34,6 +34,58 @@ mixin AmChecksheetViewMixin<T extends StatefulWidget> on State<T> {
     return controller;
   }
 
+  Future<void> confirmAndDeleteMasterImage(
+    BuildContext context,
+    DbCheckSheetMasterImage imageRecord,
+    AMChecksheetViewModel viewModel,
+  ) async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('ยืนยันการลบรูปภาพ'),
+          content: const Text('คุณแน่ใจหรือไม่ว่าต้องการลบรูปภาพนี้? (การลบนี้จะมีผลกับระบบส่วนกลางด้วย)'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('ยกเลิก', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('ลบ', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm != true || !context.mounted) return;
+
+    // แสดง Loading UI (กรณีลบใช้เวลานาน)
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final success = await viewModel.deleteMasterImage(imageRecord.id);
+
+    if (context.mounted) {
+      Navigator.of(context).pop(); // ปิด Loading UI
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ลบรูปภาพเรียบร้อยแล้ว')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('เกิดข้อผิดพลาดในการลบรูปภาพ')),
+        );
+      }
+    }
+  }
+
   Future<void> openImageEditor(
     BuildContext context,
     DbCheckSheetMasterImage imageRecord,

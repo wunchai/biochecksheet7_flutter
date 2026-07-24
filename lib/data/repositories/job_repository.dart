@@ -18,8 +18,8 @@ class JobRepository {
   // _jobApiService = jobApiService ?? JobApiService();
 
   /// Watches a stream of all job records from the local database.
-  Stream<List<DbJob>> watchAllJobs({String? searchQuery}) {
-    return _jobDao.watchAllJobs(searchQuery: searchQuery);
+  Stream<List<DbJob>> watchAllJobs({String? searchQuery, bool showCanceledJobs = false}) {
+    return _jobDao.watchAllJobs(searchQuery: searchQuery, showCanceledJobs: showCanceledJobs);
   }
 
   /// Gets a single job by its jobId.

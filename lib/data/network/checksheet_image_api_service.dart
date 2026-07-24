@@ -13,18 +13,19 @@ class ChecksheetImageApiService {
   final String _baseUrl = AppConfig.baseUrl;
 
   /// 1. ดึงข้อมูล Metadata ของรูปภาพทั้งหมด
-  Future<List<CheckSheetMasterImageResponse>>
-      getChecksheetImageMetadata() async {
+  Future<List<CheckSheetMasterImageResponse>> getChecksheetImageMetadata(
+      {required String jobId}) async {
     final uri = Uri.parse('$_baseUrl/CheckSheet_MasterImage_Sync');
-    debugPrint("Syncing Master Image with URL: $uri");
+    debugPrint("Syncing Master Image with URL: $uri, jobId: $jobId");
 
     final headers = {"Content-Type": "application/json"};
     final body = jsonEncode({
-      "ServiceName": "CheckSheet_MasterImage_Sync",
-      "Paremeter": jsonEncode({"username": "000000"})
+      "ServiceName": "CheckSheet_MasterImage_Sync_By",
+      "Paremeter": jsonEncode({"username": "000000", "jobId": jobId})
     });
 
     try {
+      print('body: $body');
       // เรียกใช้ http.post โดยตรง
       final response = await http.post(uri, headers: headers, body: body);
 
@@ -48,6 +49,32 @@ class ChecksheetImageApiService {
     } catch (e) {
       debugPrint('Error fetching image metadata: $e');
       rethrow;
+    }
+  }
+
+  /// 1.5 ลบข้อมูลรูปภาพ Master Image
+  Future<bool> deleteChecksheetImage({required int imageId}) async {
+    // กำหนดชื่อ Service name สำหรับการลบ (สมมติว่าเป็น CheckSheet_MasterImage_Delete)
+    final uri = Uri.parse('$_baseUrl/CheckSheet_MasterImage_Delete');
+    debugPrint("Deleting Master Image with URL: $uri, id: $imageId");
+
+    final headers = {"Content-Type": "application/json"};
+    final body = jsonEncode({
+      "ServiceName": "CheckSheet_MasterImage_Delete",
+      "Paremeter": jsonEncode({"username": "000000", "id": imageId.toString()})
+    });
+
+    try {
+      final response = await http.post(uri, headers: headers, body: body);
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        debugPrint('Failed to delete image: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Error deleting image: $e');
+      return false;
     }
   }
 

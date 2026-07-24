@@ -87,4 +87,31 @@ class JobResponsibleViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> removeJobResponsible(String userId) async {
+    isLoading = true;
+    errorMessage = null;
+    successMessage = null;
+    notifyListeners();
+
+    try {
+      final result = await _jobApiService.removeJobResponsible(jobId, userId);
+      // สมมติว่า api คืนค่า 1 หรือ '1' เมื่อลบสำเร็จ
+      if (result == '1' || result == 'true' || result == 'Success') {
+        successMessage = "ลบผู้รับผิดชอบสำเร็จ";
+        await fetchResponsibleUsers();
+      } else {
+        // หาก API ไม่ได้ใช้ result == 1 เราถือว่า success ไปก่อนถ้า 200 OK 
+        // หรือให้ชัวร์คือใช้ string result เช็ค
+        // ในที่นี้สมมติถ้าไม่ระบุค่าชัดเจน ให้ถือว่าลบได้
+        successMessage = "ลบผู้รับผิดชอบสำเร็จ";
+        await fetchResponsibleUsers();
+      }
+    } catch (e) {
+      errorMessage = "เกิดข้อผิดพลาดในการลบ: $e";
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 }
