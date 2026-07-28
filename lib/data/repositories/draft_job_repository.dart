@@ -79,6 +79,18 @@ class DraftJobRepository {
 
   Future<void> deleteDraftJob(String draftJobId) => _dao.deleteDraftJob(draftJobId);
 
+  Future<void> promoteDraftJobToMaster(String draftJobId) async {
+    // 1. Sync the job to API first to ensure the backend has the latest version
+    await syncDraftJobToApi(draftJobId);
+    
+    // 2. Call the promote API
+    await _apiService.promoteJob(draftJobId);
+    
+    // 3. (Optional) Delete or mark the draft job locally as promoted.
+    // For now, we will delete it locally since it's promoted to master.
+    await deleteDraftJob(draftJobId);
+  }
+
   // --- Machine ---
   Stream<List<DbDraftMachine>> watchMachinesForJob(String draftJobId) => _dao.watchMachinesForJob(draftJobId);
 

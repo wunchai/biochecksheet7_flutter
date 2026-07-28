@@ -53,6 +53,10 @@ class DraftJobViewModel extends ChangeNotifier {
     await _repository.deleteDraftJob(jobId);
   }
 
+  Future<void> promoteJob(String jobId) async {
+    await _repository.promoteDraftJobToMaster(jobId);
+  }
+
   Future<void> updateJobDetails({
     required String draftJobId,
     required String jobName,

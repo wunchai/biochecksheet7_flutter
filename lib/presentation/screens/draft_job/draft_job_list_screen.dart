@@ -323,6 +323,11 @@ class _DraftJobListScreenState extends State<DraftJobListScreen> {
               onPressed: job.statusSync == 1 ? null : () => _syncJob(context, job, viewModel),
             ),
             IconButton(
+              icon: const Icon(Icons.publish, color: Colors.purple),
+              tooltip: 'Promote to Master',
+              onPressed: () => _promoteJob(context, job, viewModel),
+            ),
+            IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
               tooltip: 'Delete Job',
               onPressed: () => _confirmDeleteJob(context, job, viewModel),
@@ -433,6 +438,61 @@ class _DraftJobListScreenState extends State<DraftJobListScreen> {
               CircularProgressIndicator(),
               SizedBox(width: 24),
               Text('Deleting from server...'),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _promoteJob(BuildContext context, DbDraftJob job, DraftJobViewModel viewModel) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Promote Job?'),
+        content: const Text('Are you sure you want to promote this draft job to a master job? This action cannot be easily undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _doPromoteJob(context, job, viewModel);
+            },
+            child: const Text('Promote', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _doPromoteJob(BuildContext context, DbDraftJob job, DraftJobViewModel viewModel) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        viewModel.promoteJob(job.uid).then((_) {
+          if (ctx.mounted) {
+            Navigator.pop(ctx); // Close dialog
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Job promoted successfully!'), backgroundColor: Colors.green)
+            );
+          }
+        }).catchError((e) {
+          if (ctx.mounted) {
+            Navigator.pop(ctx);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Promote failed: $e'), backgroundColor: Colors.red)
+            );
+          }
+        });
+
+        return const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 24),
+              Text('Promoting to master...'),
             ],
           ),
         );

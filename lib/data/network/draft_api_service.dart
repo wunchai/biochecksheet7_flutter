@@ -93,6 +93,56 @@ class DraftApiService {
     }
   }
 
+  Future<void> promoteJob(String uid) async {
+    final uri = Uri.parse("$_baseUrl/CheckSheet_DraftToMaster_Promote");
+    print("Promoting draft job to master: $uri");
+    final headers = {"Content-Type": "application/json"};
+
+    final body = jsonEncode({
+      "ServiceName": "CheckSheet_DraftToMaster_Promote",
+      "Paremeter": jsonEncode({"uid": uid})
+    });
+
+    print("Request body for promote: $body");
+
+    try {
+      final response = await http.post(uri, headers: headers, body: body);
+      final String decodedBody = utf8.decode(response.bodyBytes);
+      print("Promote API Response status: ${response.statusCode}");
+      print("Promote API Response body: $decodedBody");
+
+      if (response.statusCode != 200) {
+        throw Exception("Promote API failed: Status code ${response.statusCode}");
+      }
+
+      final jsonResponse = jsonDecode(decodedBody);
+
+      // 1. Check for explicit error from controller's catch block
+      if (jsonResponse is Map<String, dynamic> && jsonResponse['status'] == 'error') {
+        throw Exception(jsonResponse['message'] ?? 'Unknown error occurred.');
+      }
+
+      // 2. Check the result from the SP (Table array)
+      if (jsonResponse is Map<String, dynamic> && 
+          jsonResponse.containsKey('Table') && 
+          jsonResponse['Table'] is List && 
+          jsonResponse['Table'].isNotEmpty) {
+        
+        final row = jsonResponse['Table'][0];
+        final result = row['result']?.toString();
+        final message = row['message']?.toString();
+
+        if (result != '1' && result != 'ok' && result != 'True') {
+          throw Exception(message ?? 'Promote failed with result: $result');
+        }
+      }
+    } on http.ClientException catch (e) {
+      throw Exception("Network error promoting job: ${e.message}");
+    } catch (e) {
+      throw Exception("An unexpected error occurred: $e");
+    }
+  }
+
   Future<void> uploadDraftMachines(List<DbDraftMachine> machines) async {
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTMACHINE_SYNC");
     print("Uploading draft machines to API: $uri");
