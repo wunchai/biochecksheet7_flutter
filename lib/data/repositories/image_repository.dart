@@ -8,6 +8,7 @@ import 'dart:typed_data'; // For Uint8List
 import 'dart:convert'; // For base64Encode
 import 'dart:io'; // For File
 import 'package:drift/drift.dart' as drift;
+import 'package:biochecksheet7_flutter/core/app_config.dart'; // NEW: Import AppConfig
 
 class ImageRepository {
   final ImageDao _imageDao;
@@ -26,6 +27,10 @@ class ImageRepository {
   /// Converts bytes to Base64 and calls ImageApiService.
   Future<ImageUploadResult> uploadImageToServer(
       DbImage image, Uint8List imageBytes) async {
+    if (AppConfig.isDemoMode) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return ImageUploadResult(guid: image.guid ?? '', result: 3, message: "Demo Mock Success");
+    }
     final String base64ImageData = base64Encode(imageBytes);
     return _imageApiService.uploadImage(image,
         base64ImageData: base64ImageData);

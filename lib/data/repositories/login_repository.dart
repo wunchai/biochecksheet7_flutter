@@ -1,5 +1,6 @@
 // lib/data/repositories/login_repository.dart
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
+import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:biochecksheet7_flutter/data/network/user_api_service.dart';
 import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart';
 import 'package:biochecksheet7_flutter/data/models/login_result.dart';
@@ -90,8 +91,11 @@ class LoginRepository {
   /// On successful login, updates user's local session status to active in the database.
   Future<LoginResult> login(String username, String password) async {
     // --- DEMO MODE FOR PLAY STORE REVIEW ---
-    if (username == 'demo' && password == 'demo1234') {
+    if ((username == 'demo' && password == 'demo1234') ||
+        (username == '000000' && password == 'demo00') ||
+        (username == '00000' && password == 'demo00')) {
       try {
+        AppConfig.isDemoMode = true; // Enable demo mode globally
         print(
             'LoginRepository: Demo credentials detected. Seeding demo data...');
         // Access AppDatabase via the DAO
@@ -99,6 +103,30 @@ class LoginRepository {
         final seeder = DemoSeeder(db);
         await seeder.seedDemoData();
         print('LoginRepository: Demo data seeded successfully.');
+
+        // Bypass database check and return mock user immediately
+        _user = LoggedInUser(
+          userId: username == 'demo' ? 'demo' : '000000',
+          displayName: username == 'demo' ? 'Demo User' : 'Apple Reviewer',
+          userCode: username == 'demo' ? 'D001' : '000000',
+          password: password,
+          position: 'Reviewer',
+          status: 1,
+        );
+
+        // Update local session so auto-login works
+        final dbUser = await _userDao.getUserByUserId(_user!.userId);
+        if (dbUser != null) {
+           await _userDao.updateUser(
+             UsersCompanion(
+               uid: Value(dbUser.uid),
+               isLocalSessionActive: const Value(true),
+             ),
+           );
+        }
+        
+        return LoginSuccess(_user!);
+
       } catch (e) {
         print('LoginRepository: Error seeding demo data: $e');
         // We continue execution; if seeding failed but user exists, login might still work.
@@ -200,6 +228,14 @@ class LoginRepository {
         );
         print(
             'LoginRepository: Found active local session for user: ${activeLocalUser.userId}');
+            
+        if (_user!.userId == 'demo' || _user!.userId == '000000' || _user!.userId == '00000') {
+           AppConfig.isDemoMode = true;
+           print('LoginRepository: Auto-login detected demo user. Enabling demo mode globally.');
+        } else {
+           AppConfig.isDemoMode = false;
+        }
+
         return _user;
       }
     }

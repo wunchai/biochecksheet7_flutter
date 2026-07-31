@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:biochecksheet7_flutter/data/models/logged_in_user.dart';
 import 'package:biochecksheet7_flutter/data/models/login_result.dart'; // Now imports both LoginResult and SyncResult
 import 'package:biochecksheet7_flutter/data/network/api_request_models.dart'; // Import API Request Models
+import 'dart:async';
+import 'dart:io';
 
 // Define your base URL (from Constants.kt or similar)
 //const String _baseUrl = "http://10.1.200.26/ServiceJson/Service4.svc";
@@ -20,7 +22,9 @@ class UserApiService {
     });
 
     try {
-      final response = await http.post(uri, headers: headers, body: body);
+      final response = await http
+          .post(uri, headers: headers, body: body)
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseJson = jsonDecode(response.body);
@@ -40,6 +44,12 @@ class UserApiService {
       } else {
         return LoginFailed("Login failed: Status code ${response.statusCode}");
       }
+    } on TimeoutException catch (_) {
+      return LoginError(Exception(
+          "การเชื่อมต่อเซิร์ฟเวอร์ใช้เวลานานเกินไป (Timeout). โปรดตรวจสอบอินเทอร์เน็ตหรือ Firewall"));
+    } on SocketException catch (e) {
+      return LoginError(Exception(
+          "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ (Connection Refused). โปรดตรวจสอบว่าเซิร์ฟเวอร์เปิดอยู่หรือมี Firewall กั้นหรือไม่: ${e.message}"));
     } on http.ClientException catch (e) {
       return LoginError(Exception("Network error: ${e.message}"));
     } catch (e) {
@@ -57,7 +67,9 @@ class UserApiService {
         jsonEncode({"ServiceName": "CheckSheet_User_Sync_V2", "Paremeter": {}});
 
     try {
-      final response = await http.post(uri, headers: headers, body: body);
+      final response = await http
+          .post(uri, headers: headers, body: body)
+          .timeout(const Duration(seconds: 15));
 
       //print("Sync response status: ${response.statusCode}");
       if (response.statusCode == 200) {
@@ -84,6 +96,12 @@ class UserApiService {
         throw Exception(
             "Sync failed: Status code ${response.statusCode}"); // <<< โยน Exception แทน SyncFailed
       }
+    } on TimeoutException catch (_) {
+      throw Exception(
+          "การเชื่อมต่อเซิร์ฟเวอร์ใช้เวลานานเกินไป (Timeout). โปรดตรวจสอบอินเทอร์เน็ตหรือ Firewall");
+    } on SocketException catch (e) {
+      throw Exception(
+          "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ (Connection Refused). โปรดตรวจสอบว่าเซิร์ฟเวอร์เปิดอยู่หรือมี Firewall กั้นหรือไม่: ${e.message}");
     } on http.ClientException catch (e) {
       //print("Network error during sync: ${e}");
       throw Exception(

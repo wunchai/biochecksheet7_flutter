@@ -1,6 +1,7 @@
 // lib/data/services/data_sync_service.dart
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/data/network/sync_status.dart';
+import 'package:biochecksheet7_flutter/core/app_config.dart'; // NEW: Import AppConfig
 
 // Import all API Services
 import 'package:biochecksheet7_flutter/data/network/user_api_service.dart';
@@ -210,6 +211,7 @@ class DataSyncService {
   // ... (omitted methods) ...
 
   Future<SyncStatus> syncJobMachinesData() async {
+    if (AppConfig.isDemoMode) return const SyncSuccess(message: 'Demo mode: ข้ามการซิงค์ API (ใช้ข้อมูลจำลอง)');
     try {
       final machines = await _jobMachineApiService
           .syncJobMachines(); // Returns List<DbJobMachine>
@@ -293,6 +295,7 @@ class DataSyncService {
   }
 
   Future<SyncStatus> _syncUsersData() async {
+    if (AppConfig.isDemoMode) return const SyncSuccess(message: 'Demo mode: ข้ามการซิงค์ API (ใช้ข้อมูลจำลอง)');
     try {
       final users = await _userApiService.syncUsers();
       await _userDao.deleteAllUsers();
@@ -316,6 +319,7 @@ class DataSyncService {
   }
 
   Future<SyncStatus> _syncJobsData() async {
+    if (AppConfig.isDemoMode) return const SyncSuccess(message: 'Demo mode: ข้ามการซิงค์ API (ใช้ข้อมูลจำลอง)');
     try {
       final jobs = await _jobApiService.syncJobs();
       await _jobDao.deleteAllJobs();
@@ -339,6 +343,7 @@ class DataSyncService {
   }
 
   Future<SyncStatus> _syncJobTagsData() async {
+    if (AppConfig.isDemoMode) return const SyncSuccess(message: 'Demo mode: ข้ามการซิงค์ API (ใช้ข้อมูลจำลอง)');
     try {
       final tags = await _jobTagApiService.syncJobTags();
       await _jobTagDao.deleteAllJobTags();
@@ -399,6 +404,7 @@ class DataSyncService {
 
   // Corrected: Private method for Problem sync - now handles conditional update/insert
   Future<SyncStatus> _syncProblemsData({String? jobId}) async {
+    if (AppConfig.isDemoMode) return const SyncSuccess(message: 'Demo mode: ข้ามการซิงค์ API (ใช้ข้อมูลจำลอง)');
     try {
       int pageIndex = 1;
       const int pageSize = 500;
@@ -557,6 +563,7 @@ class DataSyncService {
 
   /// NEW: Fetch device info and perform metadata sync actions (transferDB, update, cleanEndData)
   Future<SyncStatus> performMetadataActionsSync({String? userId}) async {
+    if (AppConfig.isDemoMode) return const SyncSuccess(message: 'Demo mode: ข้ามการซิงค์ API (ใช้ข้อมูลจำลอง)');
     try {
       final deviceInfoService = DeviceInfoService();
       final deviceId = await deviceInfoService.getDeviceId();
@@ -633,6 +640,7 @@ class DataSyncService {
 */
   // NEW: Public method for Document sync (removed underscore)
   Future<SyncStatus> syncDocumentsData() async {
+    if (AppConfig.isDemoMode) return const SyncSuccess(message: 'Demo mode: ข้ามการซิงค์ API (ใช้ข้อมูลจำลอง)');
     try {
       // <<< เปลี่ยนชื่อเมธอด (ลบ _ ออก)
       final documents = await _documentApiService.syncDocuments();

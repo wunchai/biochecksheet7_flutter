@@ -26,6 +26,11 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _usernameController.addListener(_onLoginDataChanged);
     _passwordController.addListener(_onLoginDataChanged);
+
+    // Automatically sync users when the login screen is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // _onSyncUsersPressed();
+    });
   }
 
   @override
@@ -79,7 +84,8 @@ class _LoginScreenState extends State<LoginScreen> {
           },
         );
 
-        final dataSyncService = Provider.of<DataSyncService>(context, listen: false);
+        final dataSyncService =
+            Provider.of<DataSyncService>(context, listen: false);
         final syncResult = await dataSyncService.performMetadataActionsSync(
             userId: loginResult.loggedInUser.userId);
 
@@ -88,9 +94,9 @@ class _LoginScreenState extends State<LoginScreen> {
           Navigator.of(context).pop();
 
           if (syncResult is SyncError) {
-             ScaffoldMessenger.of(context).showSnackBar(
-               SnackBar(content: Text(syncResult.message ?? 'Unknown error')),
-             );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(syncResult.message ?? 'Unknown error')),
+            );
           }
 
           Navigator.of(context).pushAndRemoveUntil(

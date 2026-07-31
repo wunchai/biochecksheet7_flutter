@@ -6,6 +6,7 @@ import 'package:drift/drift.dart' as drift;
 
 import 'package:biochecksheet7_flutter/data/network/problem_api_service.dart'; // For ProblemApiService
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart'; // <<< NEW: Import api_response_models.dart
+import 'package:biochecksheet7_flutter/core/app_config.dart'; // NEW: Import AppConfig
 
 class ProblemRepository {
   final ProblemDao _problemDao;
@@ -92,8 +93,13 @@ class ProblemRepository {
 
       // 2. Call API service to upload these problems
       // Expect List<UploadRecordResult> from API service
-      final List<UploadRecordResult> uploadResults =
-          await _problemApiService.uploadProblems(problemsToUpload);
+      List<UploadRecordResult> uploadResults;
+      if (AppConfig.isDemoMode) {
+         uploadResults = problemsToUpload.map((p) => UploadRecordResult(uid: p.uid, result: 3, message: "Demo Mock Success")).toList();
+         await Future.delayed(const Duration(milliseconds: 200));
+      } else {
+         uploadResults = await _problemApiService.uploadProblems(problemsToUpload);
+      }
 
       // 3. Process upload results and update problemStatus / syncStatus in local DB
       bool overallUploadSuccess = true;

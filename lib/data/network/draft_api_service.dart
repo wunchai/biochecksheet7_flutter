@@ -8,6 +8,10 @@ class DraftApiService {
   final String _baseUrl = AppConfig.baseUrl;
 
   Future<void> uploadDraftJobs(List<DbDraftJob> jobs) async {
+    if (AppConfig.isDemoMode) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return; // Mock success
+    }
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTJOB_SYNC");
     print("Uploading draft jobs to API: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -60,6 +64,10 @@ class DraftApiService {
   }
 
   Future<void> depromoteJob(String masterJobId) async {
+    if (AppConfig.isDemoMode) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return; // Mock success
+    }
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_MASTERTODRAFT_DEPROMOTE");
     print("Depromoting master job to draft: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -94,6 +102,10 @@ class DraftApiService {
   }
 
   Future<void> promoteJob(String uid) async {
+    if (AppConfig.isDemoMode) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return; // Mock success
+    }
     final uri = Uri.parse("$_baseUrl/CheckSheet_DraftToMaster_Promote");
     print("Promoting draft job to master: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -144,6 +156,10 @@ class DraftApiService {
   }
 
   Future<void> uploadDraftMachines(List<DbDraftMachine> machines) async {
+    if (AppConfig.isDemoMode) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return; // Mock success
+    }
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTMACHINE_SYNC");
     print("Uploading draft machines to API: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -195,6 +211,10 @@ class DraftApiService {
   }
 
   Future<void> uploadDraftTags(List<DbDraftTag> tags) async {
+    if (AppConfig.isDemoMode) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return; // Mock success
+    }
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_DRAFTTAG_SYNC");
     print("Uploading draft tags to API: $uri");
     final headers = {"Content-Type": "application/json"};
@@ -252,6 +272,10 @@ class DraftApiService {
   }
 
   Future<List<DbDraftJob>> downloadDraftJobs() async {
+    if (AppConfig.isDemoMode) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return []; // Return empty list for demo
+    }
     List<DbDraftJob> allJobs = [];
     int pageIndex = 1;
     const int pageSize = 20;
@@ -321,6 +345,10 @@ class DraftApiService {
   }
 
   Future<List<DbDraftMachine>> downloadDraftMachines() async {
+    if (AppConfig.isDemoMode) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return []; // Return empty list for demo
+    }
     List<DbDraftMachine> allMachines = [];
     int pageIndex = 1;
     const int pageSize = 20;
@@ -388,6 +416,10 @@ class DraftApiService {
   }
 
   Future<List<DbDraftTag>> downloadDraftTags() async {
+    if (AppConfig.isDemoMode) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return []; // Return empty list for demo
+    }
     List<DbDraftTag> allTags = [];
     int pageIndex = 1;
     const int pageSize = 20;

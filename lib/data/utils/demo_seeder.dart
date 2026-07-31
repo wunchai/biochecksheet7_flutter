@@ -16,7 +16,13 @@ class DemoSeeder {
     // 3. Seed Documents
     await _seedDocuments();
 
-    // 4. Seed Document Machines (optional but good for realism)
+    // 4. Seed Job Machines
+    await _seedJobMachines();
+
+    // 5. Seed Job Tags
+    await _seedJobTags();
+
+    // 6. Seed Document Machines
     await _seedDocumentMachines();
   }
 
@@ -34,7 +40,24 @@ class DemoSeeder {
               userName: const Value('Demo User'),
               position: const Value('Inspector'),
               status: const Value(1),
-              // isLocalSessionActive will be handled by logic repository login flow
+              lastSync: Value(DateTime.now().toIso8601String()),
+            ),
+          );
+    }
+
+    final existingAppleReviewer = await (_db.select(_db.users)
+          ..where((t) => t.userId.equals('000000')))
+        .getSingleOrNull();
+
+    if (existingAppleReviewer == null) {
+      await _db.into(_db.users).insert(
+            UsersCompanion(
+              userId: const Value('000000'),
+              userCode: const Value('000000'),
+              password: const Value('demo00'),
+              userName: const Value('Apple Reviewer'),
+              position: const Value('Reviewer'),
+              status: const Value(1),
               lastSync: Value(DateTime.now().toIso8601String()),
             ),
           );
@@ -109,9 +132,127 @@ class DemoSeeder {
     }
   }
 
+  Future<void> _seedJobMachines() async {
+    final existingMachine = await (_db.select(_db.jobMachines)
+          ..where((t) => t.jobId.equals('JOB-DEMO-001')))
+        .getSingleOrNull();
+
+    if (existingMachine == null) {
+      await _db.into(_db.jobMachines).insert(
+            JobMachinesCompanion(
+              id: const Value(9991),
+              jobId: const Value('JOB-DEMO-001'),
+              machineId: const Value('MACH-DEMO-001'),
+              machineName: const Value('Conveyor Belt 1'),
+              machineType: const Value('Conveyor'),
+              status: const Value(1),
+              createDate: Value(DateTime.now().toIso8601String()),
+              createBy: const Value('System'),
+              lastSync: Value(DateTime.now().toIso8601String()),
+            ),
+          );
+      await _db.into(_db.jobMachines).insert(
+            JobMachinesCompanion(
+              id: const Value(9992),
+              jobId: const Value('JOB-DEMO-002'),
+              machineId: const Value('MACH-DEMO-002'),
+              machineName: const Value('Hydraulic Press'),
+              machineType: const Value('Press'),
+              status: const Value(1),
+              createDate: Value(DateTime.now().toIso8601String()),
+              createBy: const Value('System'),
+              lastSync: Value(DateTime.now().toIso8601String()),
+            ),
+          );
+    }
+  }
+
+  Future<void> _seedJobTags() async {
+    final existingTag = await (_db.select(_db.jobTags)
+          ..where((t) => t.jobId.equals('JOB-DEMO-001')))
+        .getSingleOrNull();
+
+    if (existingTag == null) {
+      // Tags for JOB 1
+      await _db.into(_db.jobTags).insert(
+            JobTagsCompanion(
+              jobId: const Value('JOB-DEMO-001'),
+              machineId: const Value('MACH-DEMO-001'),
+              tagId: const Value('TAG-DEMO-001'),
+              tagName: const Value('Temperature Check'),
+              tagType: const Value('INPUT'),
+              tagGroupId: const Value('GROUP-1'),
+              tagGroupName: const Value('General Checks'),
+              valueType: const Value('NUMBER'),
+              unit: const Value('Celsius'),
+              status: const Value(1),
+              createDate: Value(DateTime.now().toIso8601String()),
+              createBy: const Value('System'),
+              lastSync: Value(DateTime.now().toIso8601String()),
+            ),
+          );
+      // Tags for JOB 2
+      await _db.into(_db.jobTags).insert(
+            JobTagsCompanion(
+              jobId: const Value('JOB-DEMO-002'),
+              machineId: const Value('MACH-DEMO-002'),
+              tagId: const Value('TAG-DEMO-002'),
+              tagName: const Value('Pressure Check'),
+              tagType: const Value('INPUT'),
+              tagGroupId: const Value('GROUP-2'),
+              tagGroupName: const Value('Hydraulic Checks'),
+              valueType: const Value('NUMBER'),
+              unit: const Value('PSI'),
+              status: const Value(1),
+              createDate: Value(DateTime.now().toIso8601String()),
+              createBy: const Value('System'),
+              lastSync: Value(DateTime.now().toIso8601String()),
+            ),
+          );
+    }
+  }
+
   Future<void> _seedDocumentMachines() async {
-    // Basic machine info if needed
-    // Assuming machineId links to job or document, though checked schema implies table DocumentMachines
-    // Let's leave this simple API for now.
+    final existingDocMachine = await (_db.select(_db.documentMachines)
+          ..where((t) => t.documentId.equals('DOC-DEMO-001')))
+        .getSingleOrNull();
+
+    if (existingDocMachine == null) {
+      await _db.into(_db.documentMachines).insert(
+            DocumentMachinesCompanion(
+              id: const Value(9991),
+              documentId: const Value('DOC-DEMO-001'),
+              jobId: const Value('JOB-DEMO-001'),
+              machineId: const Value('MACH-DEMO-001'),
+              machineName: const Value('Conveyor Belt 1'),
+              status: const Value(0),
+              uiType: const Value(0),
+              totalTags: const Value(1),
+              savedTags: const Value(0),
+              aggregateStatus: const Value(0),
+              createDate: Value(DateTime.now().toIso8601String()),
+              createBy: const Value('System'),
+              lastSync: Value(DateTime.now().toIso8601String()),
+            ),
+          );
+
+      await _db.into(_db.documentMachines).insert(
+            DocumentMachinesCompanion(
+              id: const Value(9992),
+              documentId: const Value('DOC-DEMO-002'),
+              jobId: const Value('JOB-DEMO-002'),
+              machineId: const Value('MACH-DEMO-002'),
+              machineName: const Value('Hydraulic Press'),
+              status: const Value(0),
+              uiType: const Value(0),
+              totalTags: const Value(1),
+              savedTags: const Value(0),
+              aggregateStatus: const Value(0),
+              createDate: Value(DateTime.now().toIso8601String()),
+              createBy: const Value('System'),
+              lastSync: Value(DateTime.now().toIso8601String()),
+            ),
+          );
+    }
   }
 }

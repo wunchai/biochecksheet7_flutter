@@ -71,6 +71,10 @@ class JobApiService {
   }
 
   Future<String> setJobResponsible(String jobId, String userId) async {
+    if (AppConfig.isDemoMode) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return '1'; // Mock success
+    }
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_JOB_RESPONSIBLE_SET");
     final headers = {"Content-Type": "application/json"};
     final Map<String, dynamic> parameterObject = {
@@ -114,6 +118,10 @@ class JobApiService {
 
   Future<List<Map<String, dynamic>>> getJobResponsible(
       String jobId, String userId) async {
+    if (AppConfig.isDemoMode) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return []; // Return empty list for mock
+    }
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_JOB_RESPONSIBLE_GET");
     final headers = {"Content-Type": "application/json"};
     final Map<String, dynamic> parameterObject = {
@@ -147,6 +155,10 @@ class JobApiService {
   }
 
   Future<String> removeJobResponsible(String jobId, String userId) async {
+    if (AppConfig.isDemoMode) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return '1'; // Mock success
+    }
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_JOB_RESPONSIBLE_DELETE");
     final headers = {"Content-Type": "application/json"};
     final Map<String, dynamic> parameterObject = {

@@ -4,6 +4,7 @@ import 'package:biochecksheet7_flutter/data/database/daos/document_record_dao.da
 //import 'package:biochecksheet7_flutter/data/database/tables/document_record_table.dart';
 import 'package:drift/drift.dart' as drift; // Alias drift
 
+import 'package:biochecksheet7_flutter/core/app_config.dart'; // NEW: Import AppConfig
 // NEW: Import for JobTag and Problem
 import 'package:biochecksheet7_flutter/data/database/daos/job_tag_dao.dart'; // For JobTagDao
 //import 'package:biochecksheet7_flutter/data/database/tables/job_tag_table.dart'; // For DbJobTag
@@ -475,12 +476,19 @@ class DocumentRecordRepository {
             'Uploading batch ${i ~/ batchSize + 1} of ${(recordsToUpload.length / batchSize).ceil()} (Size: ${chunk.length})');
 
         // CRUCIAL FIX: Expect List<UploadRecordResult> from API service
-        final List<UploadRecordResult> uploadResults =
-            await _documentRecordApiService.uploadRecords(
-          chunk,
-          documentCreateDate: mainDocument.createDate,
-          documentUserId: mainDocument.userId,
-        );
+        List<UploadRecordResult> uploadResults;
+        
+        if (AppConfig.isDemoMode) {
+            // Mock success for all records in chunk
+            uploadResults = chunk.map((r) => UploadRecordResult(uid: r.uid, result: 3, message: "Demo Mock Success")).toList();
+            await Future.delayed(const Duration(milliseconds: 200)); // Simulate network delay
+        } else {
+            uploadResults = await _documentRecordApiService.uploadRecords(
+              chunk,
+              documentCreateDate: mainDocument.createDate,
+              documentUserId: mainDocument.userId,
+            );
+        }
 
         // 4. Process upload results and update syncStatus in local DB
         for (final apiResult in uploadResults) {
