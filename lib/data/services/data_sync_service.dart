@@ -298,6 +298,17 @@ class DataSyncService {
     if (AppConfig.isDemoMode) return const SyncSuccess(message: 'Demo mode: ข้ามการซิงค์ API (ใช้ข้อมูลจำลอง)');
     try {
       final users = await _userApiService.syncUsers();
+
+      // Before deleting, find who is currently logged in
+      final existingUsers = await _userDao.getAllUsers();
+      String? activeUserId;
+      for (var u in existingUsers) {
+        if (u.isLocalSessionActive) {
+          activeUserId = u.userId;
+          break;
+        }
+      }
+
       await _userDao.deleteAllUsers();
       final usersToInsert = users.map((user) {
         return UsersCompanion(
@@ -308,6 +319,7 @@ class DataSyncService {
           position: drift.Value(user.position),
           status: drift.Value(user.status!),
           lastSync: drift.Value(DateTime.now().toIso8601String()),
+          isLocalSessionActive: drift.Value(activeUserId != null && user.userId == activeUserId), // Preserve session
         );
       }).toList();
       await _userDao.insertAllUsers(usersToInsert);

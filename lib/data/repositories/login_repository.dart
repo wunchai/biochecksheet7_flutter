@@ -173,10 +173,10 @@ class LoginRepository {
     try {
       final List<LoggedInUser> syncedUsers = await _userApiService.syncUsers();
 
-      // Before deleting all users, get current active session (if any)
-      final DbUser? currentDbUser =
-          _user != null ? await _userDao.getUserByUserId(_user!.userId) : null;
-      final bool wasActive = currentDbUser?.isLocalSessionActive ?? false;
+      // Before deleting all users, get current active session from database (to support background isolates)
+      final List<DbUser> existingUsers = await _userDao.getAllUsers();
+      final DbUser? activeDbUser = existingUsers.firstWhereOrNull((u) => u.isLocalSessionActive);
+      final String? activeUserId = activeDbUser?.userId;
 
       await _userDao
           .deleteAllUsers(); // This is where all local users are cleared during a sync.
@@ -185,7 +185,7 @@ class LoginRepository {
         // If this user was the active session before sync, keep them active.
         // Otherwise, new users or users not previously active are inactive by default.
         final bool isActiveAfterSync =
-            (user.userId == currentDbUser?.userId && wasActive);
+            (activeUserId != null && user.userId == activeUserId);
 
         return UsersCompanion(
           uid: Value.absent(),
