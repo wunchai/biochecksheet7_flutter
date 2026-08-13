@@ -29,4 +29,7 @@ class Documents extends Table {
   TextColumn get lastSync => text().named('lastSync').nullable()(); // Stored as String (ISO 8601)
 
   TextColumn get updatedAt => text().named('updatedAt').nullable()(); // Stores ISO 8601 string
+
+  // NEW: LOT field
+  TextColumn get lot => text().named('lot').nullable()();
 }

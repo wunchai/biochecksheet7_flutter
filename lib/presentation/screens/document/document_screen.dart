@@ -120,6 +120,8 @@ class _DocumentScreenState extends State<DocumentScreen> {
     // 2. กำหนดค่าเริ่มต้นให้กับ Controller
     final TextEditingController documentIdController =
         TextEditingController(text: formattedDate);
+    final TextEditingController lotController =
+        TextEditingController(); // <<< NEW Controller for LOT
 
     await showDialog<void>(
       // เปลี่ยนเป็น void เพราะเราจัดการทุกอย่างข้างใน
@@ -127,11 +129,20 @@ class _DocumentScreenState extends State<DocumentScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('สร้างเอกสารใหม่'),
-          content: TextField(
-            autofocus: true,
-            controller: documentIdController, // ใช้ Controller
-            decoration: const InputDecoration(hintText: 'ชื่อเอกสาร'),
-            // --- <<< 3. ลบ onChanged ที่ไม่จำเป็นออกไป >>> ---
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                autofocus: true,
+                controller: documentIdController,
+                decoration: const InputDecoration(hintText: 'ชื่อเอกสาร (Document Name)'),
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: lotController,
+                decoration: const InputDecoration(hintText: 'LOT (ระบุหรือไม่ก็ได้)'),
+              ),
+            ],
           ),
           actions: <Widget>[
             TextButton(
@@ -145,10 +156,11 @@ class _DocumentScreenState extends State<DocumentScreen> {
               onPressed: () async {
                 // --- <<< 4. อ่านค่าจาก Controller โดยตรง >>> ---
                 final String documentName = documentIdController.text;
+                final String lotValue = lotController.text.trim(); // <<< NEW
 
                 if (documentName.isNotEmpty) {
                   final success =
-                      await viewModel.createNewDocument(documentName);
+                      await viewModel.createNewDocument(documentName, lot: lotValue.isNotEmpty ? lotValue : null); // <<< NEW
                   if (success && context.mounted) {
                     Navigator.of(context).pop(); // ปิด Dialog หากสร้างสำเร็จ
                   }
@@ -499,7 +511,9 @@ class _DocumentScreenState extends State<DocumentScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => DocumentMachineScreen(
-                  title: 'Machines: ${document.documentName ?? 'N/A'}',
+                  title: document.lot != null && document.lot!.isNotEmpty
+                      ? '${document.documentName ?? 'N/A'} (LOT: ${document.lot})'
+                      : '${document.documentName ?? 'N/A'}',
                   jobId: document.jobId ?? '',
                   documentId: document.documentId ?? '',
                 ),
@@ -527,14 +541,40 @@ class _DocumentScreenState extends State<DocumentScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
-                        document.documentName ?? 'Untitled Document',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            document.documentName ?? 'Untitled Document',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (document.lot != null && document.lot!.isNotEmpty) ...[
+                            const SizedBox(height: 4.0),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(6.0),
+                                border: Border.all(color: Colors.blue.withOpacity(0.5)),
+                              ),
+                              child: Text(
+                                "LOT: ${document.lot}",
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Colors.blue[800],
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12.0,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                          ],
+                        ],
                       ),
                     ),
                     Container(
@@ -566,6 +606,7 @@ class _DocumentScreenState extends State<DocumentScreen> {
                 _buildInfoRow(Icons.work_outline,
                     "Job ID: ${document.jobId ?? '-'}", Colors.grey[700]),
                 const SizedBox(height: 4.0),
+
                 if (document.userId != null)
                   _buildInfoRow(Icons.person_outline,
                       "User: ${document.userId}", Colors.grey[600]),

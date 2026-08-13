@@ -19,6 +19,7 @@ class AMChecksheetOnlineScreen extends StatefulWidget {
   final String documentId;
   final String machineId;
   final String jobId;
+  final String? lot;
 
   const AMChecksheetOnlineScreen({
     super.key,
@@ -26,6 +27,7 @@ class AMChecksheetOnlineScreen extends StatefulWidget {
     required this.documentId,
     required this.machineId,
     required this.jobId,
+    this.lot,
   });
 
   @override
@@ -644,8 +646,14 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6F9), // สีพื้นหลังแบบสว่างดูสะอาดตา
       appBar: AppBar(
-        title: Text(widget.title,
-            style: const TextStyle(fontWeight: FontWeight.w600)),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
+            if (widget.lot != null && widget.lot!.isNotEmpty)
+              Text('LOT: ${widget.lot}', style: const TextStyle(fontSize: 14, color: Colors.white70)),
+          ],
+        ),
         elevation: 0,
         actions: [
           IconButton(

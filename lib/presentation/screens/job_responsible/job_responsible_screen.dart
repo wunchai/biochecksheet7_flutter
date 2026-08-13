@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/job_responsible/job_responsible_viewmodel.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/login/login_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/widgets/error_dialog.dart';
 
 class JobResponsibleScreen extends StatelessWidget {
   final String jobId;
@@ -43,6 +45,41 @@ class _JobResponsibleContentState extends State<_JobResponsibleContent> {
   void dispose() {
     _userIdController.dispose();
     super.dispose();
+  }
+
+  void _onSyncUsersPressed() async {
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    // Show a loading dialog or indicator while syncing
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+
+    await viewModel.syncUsers();
+    
+    if (!mounted) return;
+    Navigator.of(context).pop(); // Close loading dialog
+
+    if (viewModel.syncMessage != null) {
+      final messageToShow = viewModel.syncMessage!;
+      bool isError = messageToShow.toLowerCase().contains('failed') ||
+          messageToShow.toLowerCase().contains('error');
+
+      if (isError) {
+        showDialog(
+          context: context,
+          builder: (BuildContext dialogContext) {
+            return ErrorDialog(title: 'ข้อผิดพลาดในการซิงค์ข้อมูล', message: messageToShow);
+          },
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messageToShow)));
+      }
+      viewModel.syncMessage = null;
+    }
   }
 
   @override
@@ -150,6 +187,19 @@ class _JobResponsibleContentState extends State<_JobResponsibleContent> {
                     child: viewModel.isLoading
                         ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                         : const Text('บันทึก', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.blue.shade900),
+                      foregroundColor: Colors.blue.shade900,
+                    ),
+                    onPressed: viewModel.isLoading ? null : _onSyncUsersPressed,
+                    child: const Text('Sync ข้อมูลพนักงาน', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(height: 24),

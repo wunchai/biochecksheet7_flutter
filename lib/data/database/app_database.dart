@@ -118,7 +118,7 @@ class AppDatabase extends _$AppDatabase {
   DocumentImageOnlineDao get documentImageOnlineDao => DocumentImageOnlineDao(this); // <<< NEW
 
   @override
-  int get schemaVersion => 26; // <<< UPDATED to 26 for adding statusSync to DraftJobs
+  int get schemaVersion => 28; // <<< UPDATED to 28 for adding lot to DocumentOnlines
 
   // Define the migration strategy.
   @override
@@ -259,6 +259,14 @@ class AppDatabase extends _$AppDatabase {
           if (from < 26) {
             // Added statusSync to DraftJobs
             await m.addColumn(draftJobs, draftJobs.statusSync);
+          }
+          if (from < 27) {
+            // Added lot to Documents
+            await m.addColumn(documents, documents.lot);
+          }
+          if (from < 28) {
+            // Added lot to DocumentOnlines
+            await m.addColumn(documentOnlines, documentOnlines.lot);
           }
         },
       );

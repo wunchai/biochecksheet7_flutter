@@ -614,6 +614,11 @@ class $DocumentsTable extends Documents
   late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
       'updatedAt', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lotMeta = const VerificationMeta('lot');
+  @override
+  late final GeneratedColumn<String> lot = GeneratedColumn<String>(
+      'lot', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         uid,
@@ -624,7 +629,8 @@ class $DocumentsTable extends Documents
         createDate,
         status,
         lastSync,
-        updatedAt
+        updatedAt,
+        lot
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -678,6 +684,10 @@ class $DocumentsTable extends Documents
       context.handle(_updatedAtMeta,
           updatedAt.isAcceptableOrUnknown(data['updatedAt']!, _updatedAtMeta));
     }
+    if (data.containsKey('lot')) {
+      context.handle(
+          _lotMeta, lot.isAcceptableOrUnknown(data['lot']!, _lotMeta));
+    }
     return context;
   }
 
@@ -705,6 +715,8 @@ class $DocumentsTable extends Documents
           .read(DriftSqlType.string, data['${effectivePrefix}lastSync']),
       updatedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}updatedAt']),
+      lot: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}lot']),
     );
   }
 
@@ -724,6 +736,7 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
   final int status;
   final String? lastSync;
   final String? updatedAt;
+  final String? lot;
   const DbDocument(
       {required this.uid,
       this.documentId,
@@ -733,7 +746,8 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
       this.createDate,
       required this.status,
       this.lastSync,
-      this.updatedAt});
+      this.updatedAt,
+      this.lot});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -759,6 +773,9 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
     }
     if (!nullToAbsent || updatedAt != null) {
       map['updatedAt'] = Variable<String>(updatedAt);
+    }
+    if (!nullToAbsent || lot != null) {
+      map['lot'] = Variable<String>(lot);
     }
     return map;
   }
@@ -786,6 +803,7 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
       updatedAt: updatedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(updatedAt),
+      lot: lot == null && nullToAbsent ? const Value.absent() : Value(lot),
     );
   }
 
@@ -802,6 +820,7 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
       updatedAt: serializer.fromJson<String?>(json['updatedAt']),
+      lot: serializer.fromJson<String?>(json['lot']),
     );
   }
   @override
@@ -817,6 +836,7 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
       'updatedAt': serializer.toJson<String?>(updatedAt),
+      'lot': serializer.toJson<String?>(lot),
     };
   }
 
@@ -829,7 +849,8 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
           Value<String?> createDate = const Value.absent(),
           int? status,
           Value<String?> lastSync = const Value.absent(),
-          Value<String?> updatedAt = const Value.absent()}) =>
+          Value<String?> updatedAt = const Value.absent(),
+          Value<String?> lot = const Value.absent()}) =>
       DbDocument(
         uid: uid ?? this.uid,
         documentId: documentId.present ? documentId.value : this.documentId,
@@ -841,6 +862,7 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
         updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+        lot: lot.present ? lot.value : this.lot,
       );
   DbDocument copyWithCompanion(DocumentsCompanion data) {
     return DbDocument(
@@ -857,6 +879,7 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
       status: data.status.present ? data.status.value : this.status,
       lastSync: data.lastSync.present ? data.lastSync.value : this.lastSync,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      lot: data.lot.present ? data.lot.value : this.lot,
     );
   }
 
@@ -871,14 +894,15 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
           ..write('createDate: $createDate, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('lot: $lot')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(uid, documentId, jobId, documentName, userId,
-      createDate, status, lastSync, updatedAt);
+      createDate, status, lastSync, updatedAt, lot);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -891,7 +915,8 @@ class DbDocument extends DataClass implements Insertable<DbDocument> {
           other.createDate == this.createDate &&
           other.status == this.status &&
           other.lastSync == this.lastSync &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.lot == this.lot);
 }
 
 class DocumentsCompanion extends UpdateCompanion<DbDocument> {
@@ -904,6 +929,7 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
   final Value<int> status;
   final Value<String?> lastSync;
   final Value<String?> updatedAt;
+  final Value<String?> lot;
   const DocumentsCompanion({
     this.uid = const Value.absent(),
     this.documentId = const Value.absent(),
@@ -914,6 +940,7 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.lot = const Value.absent(),
   });
   DocumentsCompanion.insert({
     this.uid = const Value.absent(),
@@ -925,6 +952,7 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.lot = const Value.absent(),
   });
   static Insertable<DbDocument> custom({
     Expression<int>? uid,
@@ -936,6 +964,7 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
     Expression<int>? status,
     Expression<String>? lastSync,
     Expression<String>? updatedAt,
+    Expression<String>? lot,
   }) {
     return RawValuesInsertable({
       if (uid != null) 'uid': uid,
@@ -947,6 +976,7 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
       if (status != null) 'status': status,
       if (lastSync != null) 'lastSync': lastSync,
       if (updatedAt != null) 'updatedAt': updatedAt,
+      if (lot != null) 'lot': lot,
     });
   }
 
@@ -959,7 +989,8 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
       Value<String?>? createDate,
       Value<int>? status,
       Value<String?>? lastSync,
-      Value<String?>? updatedAt}) {
+      Value<String?>? updatedAt,
+      Value<String?>? lot}) {
     return DocumentsCompanion(
       uid: uid ?? this.uid,
       documentId: documentId ?? this.documentId,
@@ -970,6 +1001,7 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
       updatedAt: updatedAt ?? this.updatedAt,
+      lot: lot ?? this.lot,
     );
   }
 
@@ -1003,6 +1035,9 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
     if (updatedAt.present) {
       map['updatedAt'] = Variable<String>(updatedAt.value);
     }
+    if (lot.present) {
+      map['lot'] = Variable<String>(lot.value);
+    }
     return map;
   }
 
@@ -1017,7 +1052,8 @@ class DocumentsCompanion extends UpdateCompanion<DbDocument> {
           ..write('createDate: $createDate, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('lot: $lot')
           ..write(')'))
         .toString();
   }
@@ -1060,6 +1096,11 @@ class $DocumentOnlinesTable extends DocumentOnlines
   late final GeneratedColumn<String> userId = GeneratedColumn<String>(
       'userId', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lotMeta = const VerificationMeta('lot');
+  @override
+  late final GeneratedColumn<String> lot = GeneratedColumn<String>(
+      'lot', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _createDateMeta =
       const VerificationMeta('createDate');
   @override
@@ -1092,6 +1133,7 @@ class $DocumentOnlinesTable extends DocumentOnlines
         jobId,
         documentName,
         userId,
+        lot,
         createDate,
         status,
         lastSync,
@@ -1131,6 +1173,10 @@ class $DocumentOnlinesTable extends DocumentOnlines
       context.handle(_userIdMeta,
           userId.isAcceptableOrUnknown(data['userId']!, _userIdMeta));
     }
+    if (data.containsKey('lot')) {
+      context.handle(
+          _lotMeta, lot.isAcceptableOrUnknown(data['lot']!, _lotMeta));
+    }
     if (data.containsKey('createDate')) {
       context.handle(
           _createDateMeta,
@@ -1168,6 +1214,8 @@ class $DocumentOnlinesTable extends DocumentOnlines
           .read(DriftSqlType.string, data['${effectivePrefix}documentName']),
       userId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}userId']),
+      lot: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}lot']),
       createDate: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}createDate']),
       status: attachedDatabase.typeMapping
@@ -1192,6 +1240,7 @@ class DbDocumentOnline extends DataClass
   final String? jobId;
   final String? documentName;
   final String? userId;
+  final String? lot;
   final String? createDate;
   final int status;
   final String? lastSync;
@@ -1202,6 +1251,7 @@ class DbDocumentOnline extends DataClass
       this.jobId,
       this.documentName,
       this.userId,
+      this.lot,
       this.createDate,
       required this.status,
       this.lastSync,
@@ -1221,6 +1271,9 @@ class DbDocumentOnline extends DataClass
     }
     if (!nullToAbsent || userId != null) {
       map['userId'] = Variable<String>(userId);
+    }
+    if (!nullToAbsent || lot != null) {
+      map['lot'] = Variable<String>(lot);
     }
     if (!nullToAbsent || createDate != null) {
       map['createDate'] = Variable<String>(createDate);
@@ -1248,6 +1301,7 @@ class DbDocumentOnline extends DataClass
           : Value(documentName),
       userId:
           userId == null && nullToAbsent ? const Value.absent() : Value(userId),
+      lot: lot == null && nullToAbsent ? const Value.absent() : Value(lot),
       createDate: createDate == null && nullToAbsent
           ? const Value.absent()
           : Value(createDate),
@@ -1270,6 +1324,7 @@ class DbDocumentOnline extends DataClass
       jobId: serializer.fromJson<String?>(json['jobId']),
       documentName: serializer.fromJson<String?>(json['documentName']),
       userId: serializer.fromJson<String?>(json['userId']),
+      lot: serializer.fromJson<String?>(json['lot']),
       createDate: serializer.fromJson<String?>(json['createDate']),
       status: serializer.fromJson<int>(json['status']),
       lastSync: serializer.fromJson<String?>(json['lastSync']),
@@ -1285,6 +1340,7 @@ class DbDocumentOnline extends DataClass
       'jobId': serializer.toJson<String?>(jobId),
       'documentName': serializer.toJson<String?>(documentName),
       'userId': serializer.toJson<String?>(userId),
+      'lot': serializer.toJson<String?>(lot),
       'createDate': serializer.toJson<String?>(createDate),
       'status': serializer.toJson<int>(status),
       'lastSync': serializer.toJson<String?>(lastSync),
@@ -1298,6 +1354,7 @@ class DbDocumentOnline extends DataClass
           Value<String?> jobId = const Value.absent(),
           Value<String?> documentName = const Value.absent(),
           Value<String?> userId = const Value.absent(),
+          Value<String?> lot = const Value.absent(),
           Value<String?> createDate = const Value.absent(),
           int? status,
           Value<String?> lastSync = const Value.absent(),
@@ -1309,6 +1366,7 @@ class DbDocumentOnline extends DataClass
         documentName:
             documentName.present ? documentName.value : this.documentName,
         userId: userId.present ? userId.value : this.userId,
+        lot: lot.present ? lot.value : this.lot,
         createDate: createDate.present ? createDate.value : this.createDate,
         status: status ?? this.status,
         lastSync: lastSync.present ? lastSync.value : this.lastSync,
@@ -1324,6 +1382,7 @@ class DbDocumentOnline extends DataClass
           ? data.documentName.value
           : this.documentName,
       userId: data.userId.present ? data.userId.value : this.userId,
+      lot: data.lot.present ? data.lot.value : this.lot,
       createDate:
           data.createDate.present ? data.createDate.value : this.createDate,
       status: data.status.present ? data.status.value : this.status,
@@ -1340,6 +1399,7 @@ class DbDocumentOnline extends DataClass
           ..write('jobId: $jobId, ')
           ..write('documentName: $documentName, ')
           ..write('userId: $userId, ')
+          ..write('lot: $lot, ')
           ..write('createDate: $createDate, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
@@ -1350,7 +1410,7 @@ class DbDocumentOnline extends DataClass
 
   @override
   int get hashCode => Object.hash(uid, documentId, jobId, documentName, userId,
-      createDate, status, lastSync, updatedAt);
+      lot, createDate, status, lastSync, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1360,6 +1420,7 @@ class DbDocumentOnline extends DataClass
           other.jobId == this.jobId &&
           other.documentName == this.documentName &&
           other.userId == this.userId &&
+          other.lot == this.lot &&
           other.createDate == this.createDate &&
           other.status == this.status &&
           other.lastSync == this.lastSync &&
@@ -1372,6 +1433,7 @@ class DocumentOnlinesCompanion extends UpdateCompanion<DbDocumentOnline> {
   final Value<String?> jobId;
   final Value<String?> documentName;
   final Value<String?> userId;
+  final Value<String?> lot;
   final Value<String?> createDate;
   final Value<int> status;
   final Value<String?> lastSync;
@@ -1382,6 +1444,7 @@ class DocumentOnlinesCompanion extends UpdateCompanion<DbDocumentOnline> {
     this.jobId = const Value.absent(),
     this.documentName = const Value.absent(),
     this.userId = const Value.absent(),
+    this.lot = const Value.absent(),
     this.createDate = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
@@ -1393,6 +1456,7 @@ class DocumentOnlinesCompanion extends UpdateCompanion<DbDocumentOnline> {
     this.jobId = const Value.absent(),
     this.documentName = const Value.absent(),
     this.userId = const Value.absent(),
+    this.lot = const Value.absent(),
     this.createDate = const Value.absent(),
     this.status = const Value.absent(),
     this.lastSync = const Value.absent(),
@@ -1404,6 +1468,7 @@ class DocumentOnlinesCompanion extends UpdateCompanion<DbDocumentOnline> {
     Expression<String>? jobId,
     Expression<String>? documentName,
     Expression<String>? userId,
+    Expression<String>? lot,
     Expression<String>? createDate,
     Expression<int>? status,
     Expression<String>? lastSync,
@@ -1415,6 +1480,7 @@ class DocumentOnlinesCompanion extends UpdateCompanion<DbDocumentOnline> {
       if (jobId != null) 'jobId': jobId,
       if (documentName != null) 'documentName': documentName,
       if (userId != null) 'userId': userId,
+      if (lot != null) 'lot': lot,
       if (createDate != null) 'createDate': createDate,
       if (status != null) 'status': status,
       if (lastSync != null) 'lastSync': lastSync,
@@ -1428,6 +1494,7 @@ class DocumentOnlinesCompanion extends UpdateCompanion<DbDocumentOnline> {
       Value<String?>? jobId,
       Value<String?>? documentName,
       Value<String?>? userId,
+      Value<String?>? lot,
       Value<String?>? createDate,
       Value<int>? status,
       Value<String?>? lastSync,
@@ -1438,6 +1505,7 @@ class DocumentOnlinesCompanion extends UpdateCompanion<DbDocumentOnline> {
       jobId: jobId ?? this.jobId,
       documentName: documentName ?? this.documentName,
       userId: userId ?? this.userId,
+      lot: lot ?? this.lot,
       createDate: createDate ?? this.createDate,
       status: status ?? this.status,
       lastSync: lastSync ?? this.lastSync,
@@ -1463,6 +1531,9 @@ class DocumentOnlinesCompanion extends UpdateCompanion<DbDocumentOnline> {
     if (userId.present) {
       map['userId'] = Variable<String>(userId.value);
     }
+    if (lot.present) {
+      map['lot'] = Variable<String>(lot.value);
+    }
     if (createDate.present) {
       map['createDate'] = Variable<String>(createDate.value);
     }
@@ -1486,6 +1557,7 @@ class DocumentOnlinesCompanion extends UpdateCompanion<DbDocumentOnline> {
           ..write('jobId: $jobId, ')
           ..write('documentName: $documentName, ')
           ..write('userId: $userId, ')
+          ..write('lot: $lot, ')
           ..write('createDate: $createDate, ')
           ..write('status: $status, ')
           ..write('lastSync: $lastSync, ')
@@ -13276,6 +13348,7 @@ typedef $$DocumentsTableCreateCompanionBuilder = DocumentsCompanion Function({
   Value<int> status,
   Value<String?> lastSync,
   Value<String?> updatedAt,
+  Value<String?> lot,
 });
 typedef $$DocumentsTableUpdateCompanionBuilder = DocumentsCompanion Function({
   Value<int> uid,
@@ -13287,6 +13360,7 @@ typedef $$DocumentsTableUpdateCompanionBuilder = DocumentsCompanion Function({
   Value<int> status,
   Value<String?> lastSync,
   Value<String?> updatedAt,
+  Value<String?> lot,
 });
 
 class $$DocumentsTableFilterComposer
@@ -13324,6 +13398,9 @@ class $$DocumentsTableFilterComposer
 
   ColumnFilters<String> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lot => $composableBuilder(
+      column: $table.lot, builder: (column) => ColumnFilters(column));
 }
 
 class $$DocumentsTableOrderingComposer
@@ -13362,6 +13439,9 @@ class $$DocumentsTableOrderingComposer
 
   ColumnOrderings<String> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get lot => $composableBuilder(
+      column: $table.lot, builder: (column) => ColumnOrderings(column));
 }
 
 class $$DocumentsTableAnnotationComposer
@@ -13399,6 +13479,9 @@ class $$DocumentsTableAnnotationComposer
 
   GeneratedColumn<String> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get lot =>
+      $composableBuilder(column: $table.lot, builder: (column) => column);
 }
 
 class $$DocumentsTableTableManager extends RootTableManager<
@@ -13433,6 +13516,7 @@ class $$DocumentsTableTableManager extends RootTableManager<
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
             Value<String?> updatedAt = const Value.absent(),
+            Value<String?> lot = const Value.absent(),
           }) =>
               DocumentsCompanion(
             uid: uid,
@@ -13444,6 +13528,7 @@ class $$DocumentsTableTableManager extends RootTableManager<
             status: status,
             lastSync: lastSync,
             updatedAt: updatedAt,
+            lot: lot,
           ),
           createCompanionCallback: ({
             Value<int> uid = const Value.absent(),
@@ -13455,6 +13540,7 @@ class $$DocumentsTableTableManager extends RootTableManager<
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
             Value<String?> updatedAt = const Value.absent(),
+            Value<String?> lot = const Value.absent(),
           }) =>
               DocumentsCompanion.insert(
             uid: uid,
@@ -13466,6 +13552,7 @@ class $$DocumentsTableTableManager extends RootTableManager<
             status: status,
             lastSync: lastSync,
             updatedAt: updatedAt,
+            lot: lot,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -13493,6 +13580,7 @@ typedef $$DocumentOnlinesTableCreateCompanionBuilder = DocumentOnlinesCompanion
   Value<String?> jobId,
   Value<String?> documentName,
   Value<String?> userId,
+  Value<String?> lot,
   Value<String?> createDate,
   Value<int> status,
   Value<String?> lastSync,
@@ -13505,6 +13593,7 @@ typedef $$DocumentOnlinesTableUpdateCompanionBuilder = DocumentOnlinesCompanion
   Value<String?> jobId,
   Value<String?> documentName,
   Value<String?> userId,
+  Value<String?> lot,
   Value<String?> createDate,
   Value<int> status,
   Value<String?> lastSync,
@@ -13534,6 +13623,9 @@ class $$DocumentOnlinesTableFilterComposer
 
   ColumnFilters<String> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lot => $composableBuilder(
+      column: $table.lot, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get createDate => $composableBuilder(
       column: $table.createDate, builder: (column) => ColumnFilters(column));
@@ -13573,6 +13665,9 @@ class $$DocumentOnlinesTableOrderingComposer
   ColumnOrderings<String> get userId => $composableBuilder(
       column: $table.userId, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get lot => $composableBuilder(
+      column: $table.lot, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get createDate => $composableBuilder(
       column: $table.createDate, builder: (column) => ColumnOrderings(column));
 
@@ -13609,6 +13704,9 @@ class $$DocumentOnlinesTableAnnotationComposer
 
   GeneratedColumn<String> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get lot =>
+      $composableBuilder(column: $table.lot, builder: (column) => column);
 
   GeneratedColumn<String> get createDate => $composableBuilder(
       column: $table.createDate, builder: (column) => column);
@@ -13655,6 +13753,7 @@ class $$DocumentOnlinesTableTableManager extends RootTableManager<
             Value<String?> jobId = const Value.absent(),
             Value<String?> documentName = const Value.absent(),
             Value<String?> userId = const Value.absent(),
+            Value<String?> lot = const Value.absent(),
             Value<String?> createDate = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
@@ -13666,6 +13765,7 @@ class $$DocumentOnlinesTableTableManager extends RootTableManager<
             jobId: jobId,
             documentName: documentName,
             userId: userId,
+            lot: lot,
             createDate: createDate,
             status: status,
             lastSync: lastSync,
@@ -13677,6 +13777,7 @@ class $$DocumentOnlinesTableTableManager extends RootTableManager<
             Value<String?> jobId = const Value.absent(),
             Value<String?> documentName = const Value.absent(),
             Value<String?> userId = const Value.absent(),
+            Value<String?> lot = const Value.absent(),
             Value<String?> createDate = const Value.absent(),
             Value<int> status = const Value.absent(),
             Value<String?> lastSync = const Value.absent(),
@@ -13688,6 +13789,7 @@ class $$DocumentOnlinesTableTableManager extends RootTableManager<
             jobId: jobId,
             documentName: documentName,
             userId: userId,
+            lot: lot,
             createDate: createDate,
             status: status,
             lastSync: lastSync,

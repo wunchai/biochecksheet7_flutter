@@ -34,6 +34,7 @@ class DocumentRepository {
     required String documentName,
     required String jobId,
     required String userId,
+    String? lot, // <<< NEW
     // TODO: เพิ่ม parameters อื่นๆ ที่จำเป็นสำหรับการสร้างเอกสารใหม่
   }) async {
     try {
@@ -45,6 +46,7 @@ class DocumentRepository {
         documentName: drift.Value(documentName),
         jobId: drift.Value(jobId),
         userId: drift.Value(userId),
+        lot: lot != null && lot.isNotEmpty ? drift.Value(lot) : const drift.Value.absent(), // <<< NEW
         createDate: drift.Value(DateTime.now().toIso8601String()),
         status: const drift.Value(0), // Default status for new document
         lastSync: drift.Value(DateTime.now().toIso8601String()),
@@ -111,6 +113,7 @@ class DocumentRepository {
         documentName: drift.Value(newDocumentName),
         jobId: drift.Value(newJobId), // New jobId for the copied document
         userId: drift.Value(userId),
+        lot: drift.Value(originalDoc.lot), // <<< NEW: Copy LOT from original
         createDate: drift.Value(DateTime.now().toIso8601String()),
         status: drift.Value(originalDoc.status), // Copy status from original
         lastSync: drift.Value(DateTime.now().toIso8601String()),

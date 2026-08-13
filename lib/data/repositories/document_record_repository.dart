@@ -487,6 +487,8 @@ class DocumentRecordRepository {
               chunk,
               documentCreateDate: mainDocument.createDate,
               documentUserId: mainDocument.userId,
+              documentLot: mainDocument.lot, // <<< NEW: Pass LOT to API
+              documentName: mainDocument.documentName, // <<< NEW: Pass documentName to API
             );
         }
 
@@ -551,12 +553,16 @@ class DocumentRecordRepository {
   Future<List<UploadRecordResult>> uploadDocumentRecordsToServer(
       List<DbDocumentRecord> recordsToUpload,
       {String? documentCreateDate,
-      String? documentUserId} // <<< CRUCIAL FIX: Add these parameters
+      String? documentUserId,
+      String? documentLot, // <<< NEW: Add documentLot parameter
+      String? documentName} // <<< NEW: Add documentName parameter
       ) async {
     return _documentRecordApiService.uploadDocumentRecords(
       recordsToUpload,
       documentCreateDate: documentCreateDate,
       documentUserId: documentUserId,
+      documentLot: documentLot, // <<< NEW: Pass documentLot to API Service
+      documentName: documentName, // <<< NEW: Pass documentName to API Service
     );
   }
 }

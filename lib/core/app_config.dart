@@ -10,8 +10,9 @@ const Color lightText = Colors.white; // White for text on dark backgrounds
 
 class AppConfig {
   // --- URL หลักของ API Server ---
-  static bool isDemoMode = false; // Flag to indicate if app is in Demo mode (bypass API)
-  
+  static bool isDemoMode =
+      false; // Flag to indicate if app is in Demo mode (bypass API)
+
   // แก้ไข URL นี้ให้เป็นที่อยู่ของ Server ของคุณ
   // ตัวอย่าง: 'http://192.168.1.100:8080' หรือ 'https://api.yourdomain.com'
   //static const String baseUrl = 'http://10.1.200.26/ServiceJson/Service4.svc';

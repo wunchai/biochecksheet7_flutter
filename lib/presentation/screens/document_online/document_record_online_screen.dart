@@ -8,19 +8,28 @@ class DocumentRecordOnlineScreen extends StatelessWidget {
   final String title;
   final String documentId;
   final String machineId;
+  final String? lot;
 
   const DocumentRecordOnlineScreen({
     super.key,
     required this.title,
     required this.documentId,
     required this.machineId,
+    this.lot,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 18)),
+            if (lot != null && lot!.isNotEmpty)
+              Text('LOT: $lot', style: const TextStyle(fontSize: 14, color: Colors.white70)),
+          ],
+        ),
       ),
       body: Consumer<DocumentRecordOnlineViewModel>(
         builder: (context, viewModel, child) {

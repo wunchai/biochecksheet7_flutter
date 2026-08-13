@@ -220,6 +220,7 @@ class _DocumentOnlineScreenState extends State<DocumentOnlineScreen> {
               'documentId': document.documentId ?? '',
               'jobId': document.jobId ?? '',
               'userId': widget.userId ?? '600201', // Should ideally use actual logged in user
+              'lot': document.lot,
             },
           );
         },
@@ -238,14 +239,40 @@ class _DocumentOnlineScreenState extends State<DocumentOnlineScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
-                      document.documentName ?? 'Untitled Document',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          document.documentName ?? 'Untitled Document',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (document.lot != null && document.lot!.isNotEmpty) ...[
+                          const SizedBox(height: 4.0),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6.0),
+                              border: Border.all(color: Colors.blue.withOpacity(0.5)),
+                            ),
+                            child: Text(
+                              "LOT: ${document.lot}",
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.blue[800],
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12.0,
+                                  ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                        ],
+                      ],
                     ),
                   ),
                   Container(

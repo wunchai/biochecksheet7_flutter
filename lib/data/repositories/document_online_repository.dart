@@ -44,6 +44,7 @@ class DocumentOnlineRepository {
         jobId: drift.Value(doc.jobId),
         documentName: drift.Value(doc.documentName),
         userId: drift.Value(doc.userId),
+        lot: drift.Value(doc.lot), // <<< FIXED: Added lot mapping
         createDate: drift.Value(doc.createDate),
         status: drift.Value(doc.status),
         lastSync: drift.Value(doc.lastSync),

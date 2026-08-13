@@ -720,6 +720,8 @@ class DataSyncService {
           batch,
           documentCreateDate: mainDocument.createDate,
           documentUserId: mainDocument.userId,
+          documentLot: mainDocument.lot, // <<< NEW: Pass LOT to repository
+          documentName: mainDocument.documentName, // <<< NEW: Pass documentName
         );
 
         // 3. Process results for this batch and update local DB

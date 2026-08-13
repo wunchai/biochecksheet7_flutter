@@ -9,6 +9,7 @@ class DocumentMachineOnlineScreen extends StatefulWidget {
   final String documentId;
   final String jobId;
   final String userId;
+  final String? lot;
 
   const DocumentMachineOnlineScreen({
     super.key,
@@ -16,6 +17,7 @@ class DocumentMachineOnlineScreen extends StatefulWidget {
     required this.documentId,
     required this.jobId,
     required this.userId,
+    this.lot,
   });
 
   @override
@@ -111,6 +113,7 @@ class _DocumentMachineOnlineScreenState extends State<DocumentMachineOnlineScree
                                       'documentId': widget.documentId,
                                       'machineId': machine.machineId,
                                       'jobId': widget.jobId,
+                                      'lot': widget.lot,
                                     },
                                   );
                                 },

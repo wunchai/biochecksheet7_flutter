@@ -98,7 +98,8 @@ class DocumentViewModel extends ChangeNotifier {
         baseQuery = baseQuery
           ..where((tbl) =>
               tbl.documentName.contains(searchQuery) |
-              tbl.documentId.contains(searchQuery));
+              tbl.documentId.contains(searchQuery) |
+              tbl.lot.contains(searchQuery)); // <<< NEW: Search by lot
       }
 
       // NEW: Sort by Create Date DESC (Newest first)
@@ -163,7 +164,7 @@ class DocumentViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> createNewDocument(String documentName) async {
+  Future<bool> createNewDocument(String documentName, {String? lot}) async {
     _isLoading = true;
     _syncMessage = null;
     _statusMessage = "Creating new document...";
@@ -182,6 +183,7 @@ class DocumentViewModel extends ChangeNotifier {
         documentName: documentName,
         jobId: _jobId!,
         userId: currentUser.userId,
+        lot: lot, // <<< NEW
         // Add other required parameters
       );
       _syncMessage = "New document '$documentName' created successfully!";

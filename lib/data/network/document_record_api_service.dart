@@ -90,7 +90,9 @@ class DocumentRecordApiService {
       // <<< CRUCIAL FIX: Change return type from Future<bool> to Future<List<UploadRecordResult>>
       List<DbDocumentRecord> recordsToUpload,
       {String? documentCreateDate,
-      String? documentUserId}) async {
+      String? documentUserId,
+      String? documentLot,
+      String? documentName}) async {
     final uri = Uri.parse(
         "$_baseUrl/CHECKSHEET_SYNC_DOCUMENTRECORD"); // Assumed API Endpoint
     print("Uploading records to API: $uri");
@@ -101,6 +103,8 @@ class DocumentRecordApiService {
       return {
         "createDate": documentCreateDate,
         "userId": documentUserId,
+        "Lot": documentLot, // <<< NEW: Include LOT in JSON payload
+        "documentName": documentName, // <<< NEW: Include documentName in JSON payload
         "uid": record.uid,
         "documentId": record.documentId,
         "machineId": record.machineId,
@@ -185,7 +189,9 @@ class DocumentRecordApiService {
   Future<List<UploadRecordResult>> uploadDocumentRecords(
       List<DbDocumentRecord> recordsToUpload,
       {String? documentCreateDate,
-      String? documentUserId} // <<< CRUCIAL FIX: Add these parameters
+      String? documentUserId,
+      String? documentLot, // <<< NEW: Add documentLot parameter
+      String? documentName} // <<< NEW: Add documentName parameter
       ) async {
     final uri = Uri.parse(
         "$_baseUrl/CHECKSHEET_DOCUMENTRECORD_SYNC"); // Assumed API Endpoint
@@ -197,6 +203,8 @@ class DocumentRecordApiService {
       return {
         "createDate": documentCreateDate,
         "userId": documentUserId,
+        "Lot": documentLot, // <<< NEW: Include LOT in JSON payload
+        "documentName": documentName, // <<< NEW: Include documentName in JSON payload
         "uid": record.uid,
         "documentId": record.documentId,
         "machineId": record.machineId,

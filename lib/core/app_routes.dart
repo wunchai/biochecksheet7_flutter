@@ -86,6 +86,7 @@ Map<String, WidgetBuilder> appRoutes() {
         documentId: args?['documentId'] ?? '',
         jobId: args?['jobId'] ?? '',
         userId: args?['userId'] ?? '',
+        lot: args?['lot'],
       );
     },
     '/document_record_online': (context) {
@@ -94,6 +95,7 @@ Map<String, WidgetBuilder> appRoutes() {
         title: args?['title'] ?? 'Record (Online)',
         documentId: args?['documentId'] ?? '',
         machineId: args?['machineId'] ?? '',
+        lot: args?['lot'],
       );
     },
     '/am_checksheet_online': (context) {
@@ -103,6 +105,7 @@ Map<String, WidgetBuilder> appRoutes() {
         documentId: args?['documentId'] ?? '',
         machineId: args?['machineId'] ?? '',
         jobId: args?['jobId'] ?? '',
+        lot: args?['lot'],
       );
     },
     '/document_online': (context) {

@@ -44,6 +44,7 @@ class DocumentApiService {
               userId: docData['UserId'] ?? '',
               createDate: docData['CreateDate'] ?? '',
               status: int.tryParse(docData['Status'].toString()) ?? 0,
+              lot: docData['Lot']?.toString() ?? docData['lot']?.toString(), // <<< NEW: Map Lot from API
               lastSync: DateTime.now().toIso8601String(),
             );
           }).toList();

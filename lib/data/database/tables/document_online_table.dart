@@ -13,6 +13,8 @@ class DocumentOnlines extends Table {
 
   TextColumn get userId => text().named('userId').nullable()();
 
+  TextColumn get lot => text().named('lot').nullable()(); // <<< NEW: Added lot column
+
   TextColumn get createDate => text().named('createDate').nullable()(); // Stored as String (ISO 8601)
 
   IntColumn get status => integer().named('status').withDefault(const Constant(0))();

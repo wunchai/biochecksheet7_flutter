@@ -76,6 +76,7 @@ class DocumentOnlineApiService {
             status: json['Status'] is int
                 ? json['Status']
                 : int.tryParse(json['Status']?.toString() ?? '0') ?? 0,
+            lot: json['Lot']?.toString() ?? json['lot']?.toString(), // <<< NEW: Parse LOT
             lastSync: json['SyncDate']?.toString() ??
                 DateTime.now().toIso8601String(),
             updatedAt: null,
