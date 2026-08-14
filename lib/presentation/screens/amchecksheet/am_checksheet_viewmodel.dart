@@ -329,7 +329,7 @@ class AMChecksheetViewModel extends ChangeNotifier {
       if (validationError != null) {
         _recordErrors[uid] = validationError; // กำหนด error message
         notifyListeners();
-        return false; // หยุดการทำงานถ้า Validate ไม่ผ่าน
+        // Removed return false; to allow saving even if value is out of bounds
       }
     }
     // --- สิ้นสุด Logic การ Validate ---
@@ -605,9 +605,9 @@ class AMChecksheetViewModel extends ChangeNotifier {
       bool unReadableStatusChanged =
           newUnReadableStatus != (latestRecordInDB?.unReadable ?? 'false');
 
-      // Check if this specific record passed validation (no error for it)
-      bool recordPassedIndividualValidation = (_recordErrors[record.uid] ==
-          null); // Error from _validateAllRecordsForValidation
+      // Check if this specific record passed validation (no error for it, or just a warning)
+      bool recordPassedIndividualValidation = (_recordErrors[record.uid] == null) ||
+          (_recordErrors[record.uid]!.contains('มาตรฐาน')); // Allow warnings to pass
       // Determine the status to apply for this record
       int statusToApply =
           latestRecordInDB?.status ?? 0; // Get current status from DB
@@ -641,15 +641,20 @@ class AMChecksheetViewModel extends ChangeNotifier {
 
         if (success) {
           updatedCount++;
-          _recordErrors[record.uid] = null; // ล้าง Error สำหรับ Record นี้
+          // Clear error unless it's a number limit warning, so UI keeps showing it
+          if (_recordErrors[record.uid] != null && _recordErrors[record.uid]!.contains('มาตรฐาน')) {
+            // Keep the warning
+          } else {
+            _recordErrors[record.uid] = null; 
+          }
         } else {
           allSucceeded = false;
           _recordErrors.putIfAbsent(
               record.uid, () => "บันทึกข้อมูลล้มเหลว"); // เก็บ Error
         }
       } else {
-        // หากไม่มีการเปลี่ยนแปลง แต่ Record นี้มี Error จาก Validation
-        if (_recordErrors[record.uid] != null) {
+        // หากไม่มีการเปลี่ยนแปลง แต่ Record นี้มี Error จาก Validation (ที่ไม่ใช่ warning)
+        if (_recordErrors[record.uid] != null && !_recordErrors[record.uid]!.contains('มาตรฐาน')) {
           allSucceeded = false; // ถ้ามี Error จาก Validation, ก็ถือว่าไม่สำเร็จ
         }
       }
@@ -786,9 +791,8 @@ class AMChecksheetViewModel extends ChangeNotifier {
           uiValue.isNotEmpty) {
         if (jobTag?.tagType == 'Number') {
           validationErrorForThisRecord = _validateNumberInput(uiValue, jobTag);
-          if (validationErrorForThisRecord != null) {
-            allRecordsValid = false;
-          }
+          // Removed: if (validationErrorForThisRecord != null) { allRecordsValid = false; }
+          // This allows saving (and posting) even if the number is out of bounds.
         }
       }
 

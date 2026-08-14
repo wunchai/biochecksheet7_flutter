@@ -50,8 +50,21 @@ void callbackDispatcher() {
           inputData?['ipAddress'] ?? await deviceInfoService.getIpAddress();
       String wifiStrength = inputData?['wifiStrength'] ??
           await deviceInfoService.getWifiStrength();
-      String username = inputData?['username'] ??
-          'unknown_user'; // Username should ideally come from persisted login state
+      // Get active user from database if not in inputData
+      String? savedUserId;
+      try {
+        final users = await appDatabase.userDao.getAllUsers();
+        for (var u in users) {
+          if (u.isLocalSessionActive) {
+            savedUserId = u.userId;
+            break;
+          }
+        }
+      } catch (e) {
+        print('Background task: Error getting active user: $e');
+      }
+
+      String username = inputData?['username'] ?? savedUserId ?? 'unknown_user';
 
       switch (taskName) {
         case "documentRecordUploadSyncTask":

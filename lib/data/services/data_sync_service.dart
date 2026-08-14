@@ -159,7 +159,7 @@ class DataSyncService {
   // Removed unused methods (`_syncJobMachinesData`, `_syncJobTagsData`, `_syncProblemsData`, `_syncMetadataData`)
   // As they are called directly in performFullSync
 
-  Future<SyncStatus> performFullSync() async {
+  Future<SyncStatus> performFullSync({String? userId}) async {
     try {
       /*
       await _syncUsersData();
@@ -172,7 +172,7 @@ class DataSyncService {
       */
 
       SyncStatus result;
-      result = await performMetadataActionsSync();
+      result = await performMetadataActionsSync(userId: userId);
       if (result is SyncError) return result;
 
       result = await _syncUsersData();

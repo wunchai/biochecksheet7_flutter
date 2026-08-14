@@ -160,7 +160,8 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _dataSyncService.performFullSync();
+      final String? currentUserId = _loginRepository.loggedInUser?.userId;
+      final result = await _dataSyncService.performFullSync(userId: currentUserId);
 
       if (result is SyncSuccess) {
         _syncMessage = "All data synced successfully!";
@@ -206,8 +207,9 @@ class HomeViewModel extends ChangeNotifier {
     SyncStatus resultStatus = const SyncSuccess(message: "เริ่มต้นการ Refresh");
 
     try {
+      final String? currentUserId = _loginRepository.loggedInUser?.userId;
       final syncResult =
-          await _dataSyncService.performFullSync(); // Perform a full sync
+          await _dataSyncService.performFullSync(userId: currentUserId); // Perform a full sync
       if (syncResult is SyncSuccess) {
         _syncMessage = syncResult.message;
         _statusMessage =

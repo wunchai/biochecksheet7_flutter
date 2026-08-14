@@ -61,7 +61,7 @@ android {
 }
 
 // CRUCIAL FIX: Define kotlin_version here
-val kotlin_version = "1.9.0" // <<< NEW: Define kotlin_version (use your actual Kotlin version if different)
+val kotlin_version = "2.2.20" // <<< NEW: Define kotlin_version (use your actual Kotlin version if different)
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")

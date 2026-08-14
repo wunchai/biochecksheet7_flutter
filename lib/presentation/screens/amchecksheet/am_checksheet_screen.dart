@@ -170,27 +170,24 @@ class _AMChecksheetScreenState extends State<AMChecksheetScreen> {
                           onPageChanged: viewModel.onPageChanged,
                           itemBuilder: (context, index) {
                             final recordWithTag = records[index];
-                            return OrientationBuilder(
-                              builder: (context, orientation) {
-                                if (orientation == Orientation.portrait) {
-                                  return AmChecksheetPortraitView(
-                                    recordWithTag: recordWithTag,
-                                    viewModel: viewModel,
-                                    controllers: _controllers,
-                                    selectedComboBoxValues:
-                                        _selectedComboBoxValues,
-                                  );
-                                } else {
-                                  return AmChecksheetLandscapeView(
-                                    recordWithTag: recordWithTag,
-                                    viewModel: viewModel,
-                                    controllers: _controllers,
-                                    selectedComboBoxValues:
-                                        _selectedComboBoxValues,
-                                  );
-                                }
-                              },
-                            );
+                            final orientation = MediaQuery.orientationOf(context);
+                            if (orientation == Orientation.portrait) {
+                              return AmChecksheetPortraitView(
+                                recordWithTag: recordWithTag,
+                                viewModel: viewModel,
+                                controllers: _controllers,
+                                selectedComboBoxValues:
+                                    _selectedComboBoxValues,
+                              );
+                            } else {
+                              return AmChecksheetLandscapeView(
+                                recordWithTag: recordWithTag,
+                                viewModel: viewModel,
+                                controllers: _controllers,
+                                selectedComboBoxValues:
+                                    _selectedComboBoxValues,
+                              );
+                            }
                           },
                         ),
                       ),

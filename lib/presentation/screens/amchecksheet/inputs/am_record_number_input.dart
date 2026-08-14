@@ -31,13 +31,21 @@ class AmRecordNumberInputField extends StatefulWidget {
 class _AmRecordNumberInputFieldState extends State<AmRecordNumberInputField> {
   // Internal state for the Checkbox, reflects record.unReadable
   late bool _isUnReadableChecked;
+  late FocusNode _focusNode; // <<< NEW: Add FocusNode
 
   @override
   void initState() {
     super.initState();
     _isUnReadableChecked = widget.record.unReadable == 'true';
+    _focusNode = FocusNode(); // <<< NEW: Initialize FocusNode
     // Controller is initialized by parent and passed correctly.
     // No need to set text here.
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose(); // <<< NEW: Dispose FocusNode
+    super.dispose();
   }
 
   @override
@@ -88,6 +96,13 @@ class _AmRecordNumberInputFieldState extends State<AmRecordNumberInputField> {
         children: [
           TextField(
             controller: widget.controller,
+            focusNode: _focusNode, // <<< NEW: Assign FocusNode
+            onTap: () {
+              // <<< NEW: Force request focus on tap to avoid 'Scan Text' bug
+              if (isEnabled && !_focusNode.hasFocus) {
+                _focusNode.requestFocus();
+              }
+            },
             enabled: isEnabled,
             readOnly: isReallyReadOnly,
             decoration: InputDecoration(
@@ -133,7 +148,7 @@ class _AmRecordNumberInputFieldState extends State<AmRecordNumberInputField> {
               errorText: widget
                   .errorText, // Display error text directly from ViewModel
             ),
-            keyboardType: TextInputType.number,
+            keyboardType: const TextInputType.numberWithOptions(signed: true, decimal: true), // <<< NEW: Allow negative and decimals
             onSubmitted: (value) {
               if (isEnabled) {
                 // Only submit if not unReadable
