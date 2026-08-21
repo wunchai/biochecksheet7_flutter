@@ -952,6 +952,34 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                                                             Colors.grey[600]),
                                                   ),
                                                 ),
+                                              if (item.remark != null &&
+                                                  item.remark!.isNotEmpty)
+                                                Container(
+                                                  margin: const EdgeInsets.only(top: 6.0),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.amber[50],
+                                                    borderRadius: BorderRadius.circular(6.0),
+                                                    border: Border.all(color: Colors.amber[200]!),
+                                                  ),
+                                                  child: Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Icon(Icons.edit_note, size: 16, color: Colors.amber[900]),
+                                                      const SizedBox(width: 6),
+                                                      Expanded(
+                                                        child: Text(
+                                                          'หมายเหตุ: ${item.remark}',
+                                                          style: TextStyle(
+                                                              fontSize: 13,
+                                                              color: Colors.amber[900],
+                                                              fontWeight: FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
                                             ],
                                           ),
                                         ),
