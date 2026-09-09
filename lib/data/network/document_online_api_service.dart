@@ -76,7 +76,8 @@ class DocumentOnlineApiService {
             status: json['Status'] is int
                 ? json['Status']
                 : int.tryParse(json['Status']?.toString() ?? '0') ?? 0,
-            lot: json['Lot']?.toString() ?? json['lot']?.toString(), // <<< NEW: Parse LOT
+            lot: json['Lot']?.toString() ??
+                json['lot']?.toString(), // <<< NEW: Parse LOT
             lastSync: json['SyncDate']?.toString() ??
                 DateTime.now().toIso8601String(),
             updatedAt: null,
@@ -265,6 +266,59 @@ class DocumentOnlineApiService {
     } catch (e) {
       print('Exception in setOpenCase: $e');
       return false;
+    }
+  }
+
+  // --- NEW: Calendar Overview API ---
+  Future<CalendarSummaryResponse?> getCalendarSummary(
+    String userId,
+    int year,
+    int month, {
+    int pageIndex = 1,
+    int pageSize = 100,
+  }) async {
+    final url = Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_CALENDAR_SUMMARY');
+
+    final innerParameter = {
+      "userId": userId,
+      "year": year.toString(),
+      "month": month.toString(),
+      "PageIndex": pageIndex.toString(),
+      "PageSize": pageSize.toString(),
+    };
+
+    final body = {
+      "ServiceName": "CHECKSHEET_CALENDAR_SUMMARY",
+      "Paremeter": jsonEncode(innerParameter),
+    };
+
+    try {
+      print('DocumentOnlineApiService: Fetching from $url');
+      print('Request Body: ${jsonEncode(body)}');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'accept': 'text/plain',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      print(
+          'DocumentOnlineApiService: Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final String decodedBody = utf8.decode(response.bodyBytes);
+        final Map<String, dynamic> responseData = jsonDecode(decodedBody);
+        return CalendarSummaryResponse.fromJson(responseData);
+      } else {
+        print('Error getCalendarSummary: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Exception getCalendarSummary: $e');
+      return null;
     }
   }
 }

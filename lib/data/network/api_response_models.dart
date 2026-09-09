@@ -198,3 +198,59 @@ class OpenCaseGetResponse {
   }
 }
 
+class CalendarSummaryResponse {
+  final String status;
+  final List<CalendarDaySummary> data;
+
+  CalendarSummaryResponse({required this.status, required this.data});
+
+  factory CalendarSummaryResponse.fromJson(Map<String, dynamic> json) {
+    var dataList = json['data'] as List?;
+    return CalendarSummaryResponse(
+      status: json['status']?.toString() ?? 'unknown',
+      data: dataList != null
+          ? dataList.map((e) => CalendarDaySummary.fromJson(e)).toList()
+          : [],
+    );
+  }
+}
+
+class CalendarDaySummary {
+  final String date;
+  final List<CalendarJobSummary> jobs;
+
+  CalendarDaySummary({required this.date, required this.jobs});
+
+  factory CalendarDaySummary.fromJson(Map<String, dynamic> json) {
+    var jobsList = json['jobs'] as List?;
+    return CalendarDaySummary(
+      date: json['date']?.toString() ?? '',
+      jobs: jobsList != null
+          ? jobsList.map((e) => CalendarJobSummary.fromJson(e)).toList()
+          : [],
+    );
+  }
+}
+
+class CalendarJobSummary {
+  final String jobId;
+  final String jobName;
+  final int documentCount;
+  final String? status;
+
+  CalendarJobSummary({
+    required this.jobId,
+    required this.jobName,
+    required this.documentCount,
+    this.status,
+  });
+
+  factory CalendarJobSummary.fromJson(Map<String, dynamic> json) {
+    return CalendarJobSummary(
+      jobId: json['jobId']?.toString() ?? '',
+      jobName: json['jobName']?.toString() ?? '',
+      documentCount: int.tryParse(json['documentCount']?.toString() ?? '0') ?? 0,
+      status: json['status']?.toString(),
+    );
+  }
+}

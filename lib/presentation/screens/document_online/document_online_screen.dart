@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_online_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/calendar_overview_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/document_online/calendar_overview_viewmodel.dart';
+import 'package:biochecksheet7_flutter/data/network/document_online_api_service.dart';
 // Note: If you have a specific screen for opening online documents (like an online equivalent of DocumentMachineScreen),
 // you would import it here. Currently binding mostly to UI display purposes.
 
@@ -63,6 +66,39 @@ class _DocumentOnlineScreenState extends State<DocumentOnlineScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month),
+            tooltip: 'ดูแบบปฏิทิน',
+            onPressed: () async {
+              final uId = widget.userId ?? '600201';
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChangeNotifierProvider(
+                    create: (_) => CalendarOverviewViewModel(
+                      Provider.of<DocumentOnlineApiService>(context, listen: false)
+                    ),
+                    child: CalendarOverviewScreen(userId: uId),
+                  ),
+                ),
+              );
+
+              if (result != null && result is Map<String, dynamic>) {
+                final String jobId = result['jobId'];
+                final DateTime date = result['date'];
+                
+                final viewModel = Provider.of<DocumentOnlineViewModel>(context, listen: false);
+                // ตั้งค่าวันที่เริ่มต้นและสิ้นสุดเป็นวันเดียวกัน
+                viewModel.setStartDate(date);
+                viewModel.setEndDate(date);
+                
+                // ดึงข้อมูลออนไลน์ของ Job ที่เลือก
+                viewModel.syncOnlineData(uId, jobId);
+              }
+            },
+          ),
+        ],
       ),
       body: Consumer<DocumentOnlineViewModel>(
         builder: (context, viewModel, child) {
@@ -200,14 +236,16 @@ class _DocumentOnlineScreenState extends State<DocumentOnlineScreen> {
 
   Widget _buildDocumentCard(BuildContext context, DbDocumentOnline document) {
     bool isClosed = document.status >= 2;
-    Color statusColor = isClosed ? Colors.grey : Colors.green;
+    Color statusColor = isClosed ? Colors.blueGrey : Colors.teal;
     String statusText = isClosed ? "Closed" : "Active";
 
     return Card(
-      elevation: 2.0,
-      margin: const EdgeInsets.only(bottom: 12.0),
+      elevation: 4.0,
+      shadowColor: statusColor.withAlpha(51),
+      margin: const EdgeInsets.only(bottom: 16.0),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(16.0),
+        side: BorderSide(color: statusColor.withAlpha(51), width: 1),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -226,83 +264,117 @@ class _DocumentOnlineScreenState extends State<DocumentOnlineScreen> {
         },
         child: Container(
           decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [statusColor.withAlpha(12), Colors.white],
+              begin: Alignment.centerLeft,
+              end: Alignment.center,
+            ),
             border: Border(
-              left: BorderSide(color: statusColor, width: 6.0),
+              left: BorderSide(color: statusColor, width: 4.0),
             ),
           ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          document.documentName ?? 'Untitled Document',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            document.documentName ?? 'Untitled Document',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.black87,
+                                ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (document.lot != null && document.lot!.isNotEmpty) ...[
+                            const SizedBox(height: 6.0),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withAlpha(25),
+                                borderRadius: BorderRadius.circular(8.0),
+                                border: Border.all(color: Colors.blue.withAlpha(76)),
                               ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (document.lot != null && document.lot!.isNotEmpty) ...[
-                          const SizedBox(height: 4.0),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(6.0),
-                              border: Border.all(color: Colors.blue.withOpacity(0.5)),
+                              child: Text(
+                                "LOT: ${document.lot}",
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.blue[800],
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            child: Text(
-                              "LOT: ${document.lot}",
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.blue[800],
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12.0,
-                                  ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+                      decoration: BoxDecoration(
+                        color: statusColor.withAlpha(25),
+                        borderRadius: BorderRadius.circular(20.0),
+                        border: Border.all(color: statusColor.withAlpha(76)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isClosed ? Icons.check_circle : Icons.pending,
+                            size: 14,
+                            color: statusColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            statusText,
+                            style: TextStyle(
+                              color: statusColor, 
+                              fontWeight: FontWeight.bold, 
+                              fontSize: 12.0
                             ),
                           ),
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8.0),
-                      border: Border.all(color: statusColor.withOpacity(0.5)),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
+                Divider(color: Colors.grey.withAlpha(51), height: 1),
+                const SizedBox(height: 12.0),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoRow(Icons.event_note, "วันที่: ${_formatDate(document.createDate)}", Colors.grey[700]),
                     ),
-                    child: Text(
-                      statusText,
-                      style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12.0),
+                  ],
+                ),
+                const SizedBox(height: 6.0),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoRow(Icons.work_outline, "Job ID: ${document.jobId ?? '-'}", Colors.grey[700]),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8.0),
-              Divider(color: Colors.grey.withOpacity(0.2)),
-              const SizedBox(height: 8.0),
-              _buildInfoRow(Icons.event, "Created: ${_formatDate(document.createDate)}", Colors.grey[700]),
-              const SizedBox(height: 4.0),
-              _buildInfoRow(Icons.work_outline, "Job ID: ${document.jobId ?? '-'}", Colors.grey[700]),
-              const SizedBox(height: 4.0),
-              if (document.userId != null)
-                _buildInfoRow(Icons.person_outline, "User: ${document.userId}", Colors.grey[600]),
-            ],
+                    if (document.userId != null)
+                      Expanded(
+                        child: _buildInfoRow(Icons.person_outline, "ผู้ใช้: ${document.userId}", Colors.grey[700]),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
-      ), // Closing InkWell
     );
   }
 
