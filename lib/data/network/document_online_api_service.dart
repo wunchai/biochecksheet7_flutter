@@ -310,6 +310,9 @@ class DocumentOnlineApiService {
 
       if (response.statusCode == 200) {
         final String decodedBody = utf8.decode(response.bodyBytes);
+        print('=== CALENDAR API RAW RESPONSE ===');
+        print(decodedBody);
+        print('=================================');
         final Map<String, dynamic> responseData = jsonDecode(decodedBody);
         return CalendarSummaryResponse.fromJson(responseData);
       } else {

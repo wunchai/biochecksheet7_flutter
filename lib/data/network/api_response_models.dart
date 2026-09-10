@@ -236,21 +236,33 @@ class CalendarJobSummary {
   final String jobId;
   final String jobName;
   final int documentCount;
+  final int abnormalStoppedCount;
+  final int abnormalRunningCount;
   final String? status;
 
   CalendarJobSummary({
     required this.jobId,
     required this.jobName,
     required this.documentCount,
+    this.abnormalStoppedCount = 0,
+    this.abnormalRunningCount = 0,
     this.status,
   });
 
   factory CalendarJobSummary.fromJson(Map<String, dynamic> json) {
     return CalendarJobSummary(
-      jobId: json['jobId']?.toString() ?? '',
-      jobName: json['jobName']?.toString() ?? '',
-      documentCount: int.tryParse(json['documentCount']?.toString() ?? '0') ?? 0,
-      status: json['status']?.toString(),
+      jobId: (json['jobId'] ?? json['JobId'])?.toString() ?? '',
+      jobName: (json['jobName'] ?? json['JobName'])?.toString() ?? '',
+      documentCount: (json['documentCount'] ?? json['DocumentCount']) is int
+          ? (json['documentCount'] ?? json['DocumentCount'])
+          : int.tryParse((json['documentCount'] ?? json['DocumentCount'])?.toString() ?? '0') ?? 0,
+      abnormalStoppedCount: (json['abnormalStoppedCount'] ?? json['AbnormalStoppedCount']) is int
+          ? (json['abnormalStoppedCount'] ?? json['AbnormalStoppedCount'])
+          : int.tryParse((json['abnormalStoppedCount'] ?? json['AbnormalStoppedCount'])?.toString() ?? '0') ?? 0,
+      abnormalRunningCount: (json['abnormalRunningCount'] ?? json['AbnormalRunningCount']) is int
+          ? (json['abnormalRunningCount'] ?? json['AbnormalRunningCount'])
+          : int.tryParse((json['abnormalRunningCount'] ?? json['AbnormalRunningCount'])?.toString() ?? '0') ?? 0,
+      status: (json['status'] ?? json['Status'])?.toString(),
     );
   }
 }
