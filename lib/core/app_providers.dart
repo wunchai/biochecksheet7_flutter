@@ -98,7 +98,12 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
         create: (_) => HomeViewModel(
             appDatabase: appDatabase, loginRepository: loginRepository)),
     ChangeNotifierProvider(create: (_) => DashboardViewModel()),
-    ChangeNotifierProvider(create: (_) => NotificationsViewModel(dao: appDatabase.notificationDao)),
+    ChangeNotifierProvider(
+        create: (_) => NotificationsViewModel(
+              apiService: documentOnlineApiService,
+              loginRepository: loginRepository,
+              dao: appDatabase.notificationDao,
+            )),
     ChangeNotifierProvider(
         create: (_) => DocumentViewModel(appDatabase: appDatabase)),
     ChangeNotifierProvider(

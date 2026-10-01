@@ -6,4 +6,14 @@ part of 'document_record_online_dao.dart';
 mixin _$DocumentRecordOnlineDaoMixin on DatabaseAccessor<AppDatabase> {
   $DocumentRecordOnlinesTable get documentRecordOnlines =>
       attachedDatabase.documentRecordOnlines;
+  DocumentRecordOnlineDaoManager get managers =>
+      DocumentRecordOnlineDaoManager(this);
+}
+
+class DocumentRecordOnlineDaoManager {
+  final _$DocumentRecordOnlineDaoMixin _db;
+  DocumentRecordOnlineDaoManager(this._db);
+  $$DocumentRecordOnlinesTableTableManager get documentRecordOnlines =>
+      $$DocumentRecordOnlinesTableTableManager(
+          _db.attachedDatabase, _db.documentRecordOnlines);
 }

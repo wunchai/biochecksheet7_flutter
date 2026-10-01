@@ -5,4 +5,12 @@ part of 'sync_dao.dart';
 // ignore_for_file: type=lint
 mixin _$SyncDaoMixin on DatabaseAccessor<AppDatabase> {
   $SyncsTable get syncs => attachedDatabase.syncs;
+  SyncDaoManager get managers => SyncDaoManager(this);
+}
+
+class SyncDaoManager {
+  final _$SyncDaoMixin _db;
+  SyncDaoManager(this._db);
+  $$SyncsTableTableManager get syncs =>
+      $$SyncsTableTableManager(_db.attachedDatabase, _db.syncs);
 }

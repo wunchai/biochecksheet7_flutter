@@ -324,4 +324,54 @@ class DocumentOnlineApiService {
       return null;
     }
   }
+
+  // --- NEW: Notification History API ---
+  Future<NotificationHistoryResponse?> getNotificationHistory(
+    String userId, {
+    int pageIndex = 1,
+    int pageSize = 20,
+    int lastId = 0,
+  }) async {
+    final url = Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_NOTIFICATION_HISTORY_GET');
+
+    final innerParameter = {
+      "userId": userId,
+      "pageIndex": pageIndex,
+      "pageSize": pageSize,
+      "lastId": lastId,
+    };
+
+    final body = {
+      "ServiceName": "CHECKSHEET_NOTIFICATION_HISTORY_GET",
+      "Paremeter": jsonEncode(innerParameter),
+    };
+
+    try {
+      print('DocumentOnlineApiService: Fetching from $url');
+      print('Request Body: ${jsonEncode(body)}');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'accept': 'text/plain',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      print('DocumentOnlineApiService: Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final String decodedBody = utf8.decode(response.bodyBytes);
+        final Map<String, dynamic> responseData = jsonDecode(decodedBody);
+        return NotificationHistoryResponse.fromJson(responseData);
+      } else {
+        print('Error getNotificationHistory: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Exception getNotificationHistory: $e');
+      return null;
+    }
+  }
 }

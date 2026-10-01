@@ -1,4 +1,5 @@
 // lib/data/network/api_response_models.dart
+import 'dart:convert';
 /// Data class for API upload response for a single record.
 /// Used when API returns a list of results for each uploaded item.
 class UploadRecordResult {
@@ -263,6 +264,84 @@ class CalendarJobSummary {
           ? (json['abnormalRunningCount'] ?? json['AbnormalRunningCount'])
           : int.tryParse((json['abnormalRunningCount'] ?? json['AbnormalRunningCount'])?.toString() ?? '0') ?? 0,
       status: (json['status'] ?? json['Status'])?.toString(),
+    );
+  }
+}
+
+class NotificationHistoryItem {
+  final int id;
+  final String? userId;
+  final String? documentId;
+  final String? jobId;
+  final String? machineId;
+  final String? targetScreen;
+  final String? jobName;
+  final bool? isSuccess;
+  final String? errorMessage;
+  final String? sendDate;
+
+  NotificationHistoryItem({
+    required this.id,
+    this.userId,
+    this.documentId,
+    this.jobId,
+    this.machineId,
+    this.targetScreen,
+    this.jobName,
+    this.isSuccess,
+    this.errorMessage,
+    this.sendDate,
+  });
+
+  factory NotificationHistoryItem.fromJson(Map<String, dynamic> json) {
+    return NotificationHistoryItem(
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      userId: json['UserId']?.toString(),
+      documentId: json['DocumentId']?.toString(),
+      jobId: json['JobId']?.toString(),
+      machineId: json['MachineId']?.toString(),
+      targetScreen: json['TargetScreen']?.toString(),
+      jobName: json['JobName']?.toString(),
+      isSuccess: json['IsSuccess'] as bool?,
+      errorMessage: json['ErrorMessage']?.toString(),
+      sendDate: json['SendDate']?.toString(),
+    );
+  }
+}
+
+class NotificationHistoryResponse {
+  final String status;
+  final int totalPages;
+  final int totalRecordCount;
+  final List<NotificationHistoryItem> history;
+
+  NotificationHistoryResponse({
+    required this.status,
+    required this.totalPages,
+    required this.totalRecordCount,
+    required this.history,
+  });
+
+  factory NotificationHistoryResponse.fromJson(Map<String, dynamic> json) {
+    List<NotificationHistoryItem> parsedHistory = [];
+    if (json['History'] != null) {
+      if (json['History'] is String) {
+        try {
+          final decoded = jsonDecode(json['History']) as List;
+          parsedHistory = decoded.map((e) => NotificationHistoryItem.fromJson(e as Map<String, dynamic>)).toList();
+        } catch (e) {
+          // Failed to parse string
+        }
+      } else if (json['History'] is List) {
+        parsedHistory = (json['History'] as List).map((e) => NotificationHistoryItem.fromJson(e as Map<String, dynamic>)).toList();
+      }
+    }
+    
+    return NotificationHistoryResponse(
+      status: json['status']?.toString() ?? 'unknown',
+      totalPages: json['TotalPages'] is int ? json['TotalPages'] : int.tryParse(json['TotalPages']?.toString() ?? '0') ?? 0,
+      totalRecordCount: json['TotalRecordCount'] is int ? json['TotalRecordCount'] : int.tryParse(json['TotalRecordCount']?.toString() ?? '0') ?? 0,
+      history: parsedHistory,
     );
   }
 }

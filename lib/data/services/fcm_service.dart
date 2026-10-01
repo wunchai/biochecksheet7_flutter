@@ -79,9 +79,9 @@ class FCMService {
   // <<< NEW: ฟังก์ชันจัดการเมื่อกดคลิกที่ Notification
   void handleNotificationClick(Map<String, dynamic> data) {
     print('Handling notification click with data: $data');
-    final String? targetScreen = data['target_screen'];
+    final String? targetScreen = data['target_screen']?.toString();
 
-    if (targetScreen == 'am_checksheet' || targetScreen == 'document_online') {
+    if (targetScreen == 'am_checksheet' || targetScreen == 'document_online' || targetScreen == '1') {
       navigatorKey.currentState?.pushNamed(
         '/document_online',
         arguments: {

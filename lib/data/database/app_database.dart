@@ -118,7 +118,7 @@ class AppDatabase extends _$AppDatabase {
   DocumentImageOnlineDao get documentImageOnlineDao => DocumentImageOnlineDao(this); // <<< NEW
 
   @override
-  int get schemaVersion => 28; // <<< UPDATED to 28 for adding lot to DocumentOnlines
+  int get schemaVersion => 29; // <<< UPDATED to 29 for adding userId and serverId to Notifications
 
   // Define the migration strategy.
   @override
@@ -267,6 +267,11 @@ class AppDatabase extends _$AppDatabase {
           if (from < 28) {
             // Added lot to DocumentOnlines
             await m.addColumn(documentOnlines, documentOnlines.lot);
+          }
+          if (from < 29) {
+            // Added userId and serverId to Notifications
+            await m.addColumn(notifications, notifications.userId);
+            await m.addColumn(notifications, notifications.serverId);
           }
         },
       );

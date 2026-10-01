@@ -2,6 +2,8 @@ import 'package:drift/drift.dart';
 
 class Notifications extends Table {
   IntColumn get id => integer().autoIncrement()();
+  IntColumn get serverId => integer().nullable()();
+  TextColumn get userId => text().nullable()();
   TextColumn get title => text()();
   TextColumn get body => text()();
   TextColumn get payloadData => text().nullable()(); // Store JSON string of data map

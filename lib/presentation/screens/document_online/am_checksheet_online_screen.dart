@@ -241,13 +241,13 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                     if (!mounted) return;
                     if (images.isEmpty) {
                       AppToast.show(
-                          'ไม่มีรูปภาพ หรือยังไม่ได้ดาวน์โหลดรูปลงเครื่อง');
+                          'ไม่มีรูปภาพ หรือยังไม่ได้ดาวน์โหลดรูปลงเครื่อง', context: context);
                     } else {
                       _showImageDialog(item.tagName ?? 'รูปถ่าย', images);
                     }
                   } catch (e) {
                     if (!mounted) return;
-                    AppToast.show('เกิดข้อผิดพลาด: $e', isError: true);
+                    AppToast.show('เกิดข้อผิดพลาด: $e', isError: true, context: context);
                   }
                 },
               ),
@@ -276,7 +276,7 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
     if (item.apiId == null) {
       AppToast.show(
           'ไม่สามารถเปิด Case ได้ เนื่องจากไม่มี API ID สำหรับจุดตรวจนี้',
-          isError: true);
+          isError: true, context: context);
       return;
     }
 
@@ -295,7 +295,7 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
             // ดึงข้อมูลเก่ามาแสดง (ทำครั้งเดียวเมื่อโหลดเสร็จ)
             if (isLoading) {
               apiService.getOpenCase(item.apiId!).then((response) {
-                if (mounted) {
+                if (context.mounted) {
                   setState(() {
                     isLoading = false;
                     if (response != null) {
@@ -326,7 +326,7 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                   });
                 }
               }).catchError((error) {
-                if (mounted) {
+                if (context.mounted) {
                   setState(() {
                     isLoading = false;
                     // MOCK DATA FOR DEMO PURPOSES
@@ -548,17 +548,16 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                                   final success =
                                       await apiService.setOpenCase(request);
 
-                                  if (mounted) {
+                                  if (!context.mounted) return;
+
+                                  if (success) {
+                                    Navigator.pop(context);
+                                    AppToast.show('บันทึก Case เรียบร้อยแล้ว', context: context);
+                                  } else {
                                     setState(() => isSaving = false);
-                                    if (success) {
-                                      Navigator.pop(dialogContext);
-                                      AppToast.show(
-                                          'บันทึก Case เรียบร้อยแล้ว');
-                                    } else {
-                                      AppToast.show(
-                                          'เกิดข้อผิดพลาดในการบันทึก Case',
-                                          isError: true);
-                                    }
+                                    AppToast.show(
+                                        'เกิดข้อผิดพลาดในการบันทึก Case',
+                                        isError: true, context: context);
                                   }
                                 },
                           style: ElevatedButton.styleFrom(
@@ -649,9 +648,12 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
+            Text(widget.title,
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
             if (widget.lot != null && widget.lot!.isNotEmpty)
-              Text('LOT: ${widget.lot}', style: const TextStyle(fontSize: 14, color: Colors.white70)),
+              Text('LOT: ${widget.lot}',
+                  style: const TextStyle(fontSize: 14, color: Colors.white70)),
           ],
         ),
         elevation: 0,
@@ -710,15 +712,19 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return RefreshIndicator(
                   onRefresh: () async {
-                    final userId = context.read<LoginViewModel>().loggedInUser?.userId ?? '';
+                    final userId =
+                        context.read<LoginViewModel>().loggedInUser?.userId ??
+                            '';
                     if (userId.isNotEmpty && widget.jobId.isNotEmpty) {
-                      await viewModel.refreshData(userId, widget.jobId, widget.documentId);
+                      await viewModel.refreshData(
+                          userId, widget.jobId, widget.documentId);
                     }
                   },
                   child: ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     children: [
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.3),
                       const Center(child: Text('ไม่พบรายการสำหรับเครื่องนี้')),
                     ],
                   ),
@@ -738,15 +744,19 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
                 if (records.isEmpty) {
                   return RefreshIndicator(
                     onRefresh: () async {
-                      final userId = context.read<LoginViewModel>().loggedInUser?.userId ?? '';
+                      final userId =
+                          context.read<LoginViewModel>().loggedInUser?.userId ??
+                              '';
                       if (userId.isNotEmpty && widget.jobId.isNotEmpty) {
-                        await viewModel.refreshData(userId, widget.jobId, widget.documentId);
+                        await viewModel.refreshData(
+                            userId, widget.jobId, widget.documentId);
                       }
                     },
                     child: ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       children: [
-                        SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.3),
                         const Icon(Icons.check_circle,
                             size: 80, color: Colors.green),
                         const SizedBox(height: 16),
@@ -770,281 +780,322 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
 
               return RefreshIndicator(
                 onRefresh: () async {
-                  final userId = context.read<LoginViewModel>().loggedInUser?.userId ?? '';
+                  final userId =
+                      context.read<LoginViewModel>().loggedInUser?.userId ?? '';
                   if (userId.isNotEmpty && widget.jobId.isNotEmpty) {
-                    await viewModel.refreshData(userId, widget.jobId, widget.documentId);
+                    await viewModel.refreshData(
+                        userId, widget.jobId, widget.documentId);
                   }
                 },
                 child: ListView.builder(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                itemCount: groupedRecords.keys.length,
-                itemBuilder: (context, groupIndex) {
-                  final groupName = groupedRecords.keys.elementAt(groupIndex);
-                  final groupItems = groupedRecords[groupName]!;
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0, vertical: 12.0),
+                  itemCount: groupedRecords.keys.length,
+                  itemBuilder: (context, groupIndex) {
+                    final groupName = groupedRecords.keys.elementAt(groupIndex);
+                    final groupItems = groupedRecords[groupName]!;
 
-                  return Container(
-                      margin: const EdgeInsets.only(bottom: 16.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 14),
-                              decoration: BoxDecoration(
-                                color: Colors.blue[50],
-                                border: Border(
-                                  left: BorderSide(
-                                      color: Colors.blue[700]!, width: 4),
-                                ),
-                              ),
-                              child: Text(
-                                groupName,
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.blue[900]),
-                              ),
-                            ),
-                            ListView.separated(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: groupItems.length,
-                              separatorBuilder: (_, __) =>
-                                  const Divider(height: 1),
-                              itemBuilder: (context, itemIndex) {
-                                final item = groupItems[itemIndex];
-
-                                Color valueColor = Colors.black87;
-                                if (item.value == 'ปกติ' ||
-                                    item.value == 'ผ่าน' ||
-                                    item.value == 'Pass') {
-                                  valueColor = Colors.green[700]!;
-                                } else if (item.value != null &&
-                                        item.value!.contains('ผิดปกติ') ||
-                                    item.value == 'ไม่ผ่าน') {
-                                  valueColor = Colors.red[700]!;
-                                }
-
-                                return InkWell(
-                                  onTap: () =>
-                                      _showActionMenu(item), // <<< NEW MENU
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12.0),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                          width: 32,
-                                          height: 32,
-                                          alignment: Alignment.center,
-                                          decoration: BoxDecoration(
-                                            color: Colors.blue[50],
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                          child: Text(
-                                            '${itemIndex + 1}',
-                                            style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.blue[800]),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 14),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Wrap(
-                                                crossAxisAlignment:
-                                                    WrapCrossAlignment.center,
-                                                spacing: 6.0,
-                                                runSpacing: 4.0,
-                                                children: [
-                                                  Text(
-                                                    item.tagName ??
-                                                        'Unknown Tag',
-                                                    style: const TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 15),
-                                                  ),
-                                                  if (item.apiId != null)
-                                                    Container(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 6,
-                                                          vertical: 2),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.blue[50],
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(6),
-                                                        border: Border.all(
-                                                            color: Colors
-                                                                .blue[200]!),
-                                                      ),
-                                                      child: Text(
-                                                        'API ID: ${item.apiId}',
-                                                        style: TextStyle(
-                                                          fontSize: 10,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color:
-                                                              Colors.blue[700],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                              if (item.verify > 0)
-                                                Container(
-                                                  margin: const EdgeInsets.only(top: 4),
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.green[50],
-                                                    borderRadius: BorderRadius.circular(4),
-                                                    border: Border.all(color: Colors.green[400]!),
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize: MainAxisSize.min,
-                                                    children: [
-                                                      Icon(Icons.check_circle, size: 12, color: Colors.green[700]),
-                                                      const SizedBox(width: 4),
-                                                      Text(
-                                                        'ตรวจสอบแล้ว',
-                                                        style: TextStyle(
-                                                          fontSize: 10,
-                                                          fontWeight: FontWeight.bold,
-                                                          color: Colors.green[700],
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              if (item.description != null &&
-                                                  item.description!.isNotEmpty)
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          top: 4.0),
-                                                  child: Text(
-                                                    item.description!,
-                                                    style: TextStyle(
-                                                        fontSize: 13,
-                                                        color:
-                                                            Colors.grey[600]),
-                                                  ),
-                                                ),
-                                              if (item.remark != null &&
-                                                  item.remark!.isNotEmpty)
-                                                Container(
-                                                  margin: const EdgeInsets.only(top: 6.0),
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.amber[50],
-                                                    borderRadius: BorderRadius.circular(6.0),
-                                                    border: Border.all(color: Colors.amber[200]!),
-                                                  ),
-                                                  child: Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Icon(Icons.edit_note, size: 16, color: Colors.amber[900]),
-                                                      const SizedBox(width: 6),
-                                                      Expanded(
-                                                        child: Text(
-                                                          'หมายเหตุ: ${item.remark}',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Colors.amber[900],
-                                                              fontWeight: FontWeight.w500,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 6),
-                                              decoration: BoxDecoration(
-                                                color: valueColor.withValues(
-                                                    alpha: 0.1),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        20), // Pill shape
-                                                border: Border.all(
-                                                    color:
-                                                        valueColor.withValues(
-                                                            alpha: 0.2)),
-                                              ),
-                                              child: Text(
-                                                item.value?.isNotEmpty == true
-                                                    ? item.value!
-                                                    : '-',
-                                                style: TextStyle(
-                                                    color: valueColor,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 13),
-                                              ),
-                                            ),
-                                            if (item.unReadable == 'true')
-                                              const Padding(
-                                                padding:
-                                                    EdgeInsets.only(top: 2.0),
-                                                child: Text('อ่านไม่ได้',
-                                                    style: TextStyle(
-                                                        color: Colors.red,
-                                                        fontSize: 10)),
-                                              ),
-                                            // Action icon hint
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  top: 8.0),
-                                              child: Icon(Icons.more_horiz,
-                                                  size: 20,
-                                                  color: Colors.grey[400]),
-                                            )
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
+                    return Container(
+                        margin: const EdgeInsets.only(bottom: 16.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                      ));
-                },
-              ),
-            );
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[50],
+                                  border: Border(
+                                    left: BorderSide(
+                                        color: Colors.blue[700]!, width: 4),
+                                  ),
+                                ),
+                                child: Text(
+                                  groupName,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.blue[900]),
+                                ),
+                              ),
+                              ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: groupItems.length,
+                                separatorBuilder: (_, __) =>
+                                    const Divider(height: 1),
+                                itemBuilder: (context, itemIndex) {
+                                  final item = groupItems[itemIndex];
+
+                                  Color valueColor = Colors.black87;
+                                  if (item.value == 'ปกติ' ||
+                                      item.value == 'ผ่าน' ||
+                                      item.value == 'Pass') {
+                                    valueColor = Colors.green[700]!;
+                                  } else if (item.value != null &&
+                                          item.value!.contains('ผิดปกติ') ||
+                                      item.value == 'ไม่ผ่าน') {
+                                    valueColor = Colors.red[700]!;
+                                  }
+
+                                  return InkWell(
+                                    onTap: () =>
+                                        _showActionMenu(item), // <<< NEW MENU
+                                    child: Container(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 32,
+                                            height: 32,
+                                            alignment: Alignment.center,
+                                            decoration: BoxDecoration(
+                                              color: Colors.blue[50],
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Text(
+                                              '${itemIndex + 1}',
+                                              style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.blue[800]),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 14),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Wrap(
+                                                  crossAxisAlignment:
+                                                      WrapCrossAlignment.center,
+                                                  spacing: 6.0,
+                                                  runSpacing: 4.0,
+                                                  children: [
+                                                    Text(
+                                                      item.tagName ??
+                                                          'Unknown Tag',
+                                                      style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          fontSize: 15),
+                                                    ),
+                                                    if (item.apiId != null)
+                                                      Container(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal: 6,
+                                                                vertical: 2),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              Colors.blue[50],
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(6),
+                                                          border: Border.all(
+                                                              color: Colors
+                                                                  .blue[200]!),
+                                                        ),
+                                                        child: Text(
+                                                          'API ID: ${item.apiId}',
+                                                          style: TextStyle(
+                                                            fontSize: 10,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: Colors
+                                                                .blue[700],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                                if (item.verify > 0)
+                                                  Container(
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                            top: 4),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.green[50],
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              4),
+                                                      border: Border.all(
+                                                          color: Colors
+                                                              .green[400]!),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Icon(Icons.check_circle,
+                                                            size: 12,
+                                                            color: Colors
+                                                                .green[700]),
+                                                        const SizedBox(
+                                                            width: 4),
+                                                        Text(
+                                                          'ตรวจสอบแล้ว',
+                                                          style: TextStyle(
+                                                            fontSize: 10,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: Colors
+                                                                .green[700],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                if (item.description != null &&
+                                                    item.description!
+                                                        .isNotEmpty)
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            top: 4.0),
+                                                    child: Text(
+                                                      item.description!,
+                                                      style: TextStyle(
+                                                          fontSize: 13,
+                                                          color:
+                                                              Colors.grey[600]),
+                                                    ),
+                                                  ),
+                                                if (item.remark != null &&
+                                                    item.remark!.isNotEmpty)
+                                                  Container(
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                            top: 6.0),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 8.0,
+                                                        vertical: 6.0),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.amber[50],
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              6.0),
+                                                      border: Border.all(
+                                                          color: Colors
+                                                              .amber[200]!),
+                                                    ),
+                                                    child: Row(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Icon(Icons.edit_note,
+                                                            size: 16,
+                                                            color: Colors
+                                                                .amber[900]),
+                                                        const SizedBox(
+                                                            width: 6),
+                                                        Expanded(
+                                                          child: Text(
+                                                            'หมายเหตุ: ${item.remark}',
+                                                            style: TextStyle(
+                                                              fontSize: 13,
+                                                              color: Colors
+                                                                  .amber[900],
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 6),
+                                                decoration: BoxDecoration(
+                                                  color: valueColor.withValues(
+                                                      alpha: 0.1),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20), // Pill shape
+                                                  border: Border.all(
+                                                      color:
+                                                          valueColor.withValues(
+                                                              alpha: 0.2)),
+                                                ),
+                                                child: Text(
+                                                  item.value?.isNotEmpty == true
+                                                      ? item.value!
+                                                      : '-',
+                                                  style: TextStyle(
+                                                      color: valueColor,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 13),
+                                                ),
+                                              ),
+                                              if (item.unReadable == 'true')
+                                                const Padding(
+                                                  padding:
+                                                      EdgeInsets.only(top: 2.0),
+                                                  child: Text('อ่านไม่ได้',
+                                                      style: TextStyle(
+                                                          color: Colors.red,
+                                                          fontSize: 10)),
+                                                ),
+                                              // Action icon hint
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 8.0),
+                                                child: Icon(Icons.more_horiz,
+                                                    size: 20,
+                                                    color: Colors.grey[400]),
+                                              )
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ));
+                  },
+                ),
+              );
             },
           );
         },
