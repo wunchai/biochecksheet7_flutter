@@ -345,3 +345,151 @@ class NotificationHistoryResponse {
     );
   }
 }
+
+class SupervisorCheckHistory {
+  final String? date;
+  final String? userCode;
+  final String? comment;
+
+  SupervisorCheckHistory({
+    this.date,
+    this.userCode,
+    this.comment,
+  });
+
+  factory SupervisorCheckHistory.fromJson(Map<String, dynamic> json) {
+    return SupervisorCheckHistory(
+      date: json['CheckDateTime']?.toString() ?? json['DateTime']?.toString() ?? json['datetime']?.toString() ?? json['Date']?.toString() ?? json['date']?.toString(),
+      userCode: json['UserId']?.toString() ?? json['UserCode']?.toString() ?? json['userCode']?.toString() ?? json['User']?.toString() ?? json['user']?.toString(),
+      comment: json['Comment']?.toString() ?? json['comment']?.toString(),
+    );
+  }
+}
+
+class SupervisorCheckGetResponse {
+  final List<SupervisorCheckHistory>? history;
+
+  SupervisorCheckGetResponse({this.history});
+
+  factory SupervisorCheckGetResponse.fromJson(Map<String, dynamic> json) {
+    List<SupervisorCheckHistory>? parsedHistory = [];
+    
+    if (json['data'] != null) {
+      if (json['data'] is String) {
+        try {
+          final decoded = jsonDecode(json['data']) as List;
+          parsedHistory = decoded.map((e) => SupervisorCheckHistory.fromJson(e as Map<String, dynamic>)).toList();
+        } catch (e) {
+          // parse error
+        }
+      } else if (json['data'] is List) {
+        parsedHistory = (json['data'] as List).map((e) => SupervisorCheckHistory.fromJson(e as Map<String, dynamic>)).toList();
+      }
+    } else if (json['Table'] != null) {
+      var historyList = json['Table'] as List?;
+      if (historyList != null) {
+        parsedHistory = historyList.map((e) => SupervisorCheckHistory.fromJson(e)).toList();
+      }
+    }
+
+    return SupervisorCheckGetResponse(
+      history: parsedHistory,
+    );
+  }
+}
+
+class MachineSummaryOnline {
+  final String? documentId;
+  final int? jobId;
+  final String? jobName;
+  final String? documentName;
+  final int? machineId;
+  final String? machineName;
+  final int? abnormalStoppedCount;
+  final int? abnormalRunningCount;
+  final int? abnormalCount;
+  final int? problemCount;
+  final int? caseOpened;
+  final int? supervisorCheckCount;
+  final int? supervisorChecked;
+  final String? lastSupervisorCheckDate;
+  final String? lastSupervisorUserId;
+  final String? lastSupervisorComment;
+
+  MachineSummaryOnline({
+    this.documentId,
+    this.jobId,
+    this.jobName,
+    this.documentName,
+    this.machineId,
+    this.machineName,
+    this.abnormalStoppedCount,
+    this.abnormalRunningCount,
+    this.abnormalCount,
+    this.problemCount,
+    this.caseOpened,
+    this.supervisorCheckCount,
+    this.supervisorChecked,
+    this.lastSupervisorCheckDate,
+    this.lastSupervisorUserId,
+    this.lastSupervisorComment,
+  });
+
+  factory MachineSummaryOnline.fromJson(Map<String, dynamic> json) {
+    return MachineSummaryOnline(
+      documentId: json['DocumentId']?.toString(),
+      jobId: json['JobId'] != null ? int.tryParse(json['JobId'].toString()) : null,
+      jobName: json['JobName']?.toString(),
+      documentName: json['DocumentName']?.toString(),
+      machineId: json['MachineId'] != null ? int.tryParse(json['MachineId'].toString()) : null,
+      machineName: json['MachineName']?.toString(),
+      abnormalStoppedCount: json['AbnormalStoppedCount'] != null ? int.tryParse(json['AbnormalStoppedCount'].toString()) : null,
+      abnormalRunningCount: json['AbnormalRunningCount'] != null ? int.tryParse(json['AbnormalRunningCount'].toString()) : null,
+      abnormalCount: json['AbnormalCount'] != null ? int.tryParse(json['AbnormalCount'].toString()) : null,
+      problemCount: json['ProblemCount'] != null ? int.tryParse(json['ProblemCount'].toString()) : null,
+      caseOpened: json['CaseOpened'] != null ? int.tryParse(json['CaseOpened'].toString()) : null,
+      supervisorCheckCount: json['SupervisorCheckCount'] != null ? int.tryParse(json['SupervisorCheckCount'].toString()) : null,
+      supervisorChecked: json['SupervisorChecked'] != null ? int.tryParse(json['SupervisorChecked'].toString()) : null,
+      lastSupervisorCheckDate: json['LastSupervisorCheckDate']?.toString(),
+      lastSupervisorUserId: json['LastSupervisorUserId']?.toString(),
+      lastSupervisorComment: json['LastSupervisorComment']?.toString(),
+    );
+  }
+}
+
+class MachineSummaryOnlineResponse {
+  final String? status;
+  final int? totalPages;
+  final int? totalRecordCount;
+  final List<MachineSummaryOnline> machines;
+
+  MachineSummaryOnlineResponse({
+    this.status,
+    this.totalPages,
+    this.totalRecordCount,
+    this.machines = const [],
+  });
+
+  factory MachineSummaryOnlineResponse.fromJson(Map<String, dynamic> json) {
+    List<MachineSummaryOnline> parsedMachines = [];
+    if (json['Machines'] != null) {
+      if (json['Machines'] is String) {
+        try {
+          final decoded = jsonDecode(json['Machines']) as List;
+          parsedMachines = decoded.map((e) => MachineSummaryOnline.fromJson(e as Map<String, dynamic>)).toList();
+        } catch (e) {
+          // parse error
+        }
+      } else if (json['Machines'] is List) {
+        parsedMachines = (json['Machines'] as List).map((e) => MachineSummaryOnline.fromJson(e as Map<String, dynamic>)).toList();
+      }
+    }
+    
+    return MachineSummaryOnlineResponse(
+      status: json['status']?.toString(),
+      totalPages: json['TotalPages'] != null ? int.tryParse(json['TotalPages'].toString()) : null,
+      totalRecordCount: json['TotalRecordCount'] != null ? int.tryParse(json['TotalRecordCount'].toString()) : null,
+      machines: parsedMachines,
+    );
+  }
+}

@@ -640,6 +640,196 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
     });
   }
 
+  void _showSupervisorCheckDialog(BuildContext context, DocumentOnlineApiService apiService, String userId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        TextEditingController commentController = TextEditingController();
+        bool isLoading = true;
+        bool isSaving = false;
+        List<SupervisorCheckHistory> history = [];
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            void fetchHistory() {
+              setState(() => isLoading = true);
+              apiService.getSupervisorCheck(widget.documentId, widget.machineId).then((response) {
+                if (context.mounted) {
+                  setState(() {
+                    isLoading = false;
+                    if (response != null && response.history != null) {
+                      history = response.history!;
+                    } else {
+                      history = [];
+                    }
+                  });
+                }
+              }).catchError((error) {
+                if (context.mounted) {
+                  setState(() {
+                    isLoading = false;
+                    history = [];
+                  });
+                }
+              });
+            }
+
+            // ดึงข้อมูลครั้งแรก
+            if (isLoading && history.isEmpty) {
+              fetchHistory();
+            }
+
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('การตรวจสอบจากหัวหน้างาน',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        IconButton(
+                          icon: const Icon(Icons.refresh),
+                          onPressed: () => fetchHistory(),
+                          tooltip: 'รีเฟรชประวัติ',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (isLoading)
+                      const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()))
+                    else
+                      Flexible(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              TextField(
+                                controller: commentController,
+                                decoration: const InputDecoration(
+                                  labelText: 'ความคิดเห็น (Comment)',
+                                  border: OutlineInputBorder(),
+                                ),
+                                maxLines: 3,
+                              ),
+                              if (history.isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                const Text('ประวัติการตรวจสอบ',
+                                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                const SizedBox(height: 8),
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: history.length,
+                                  itemBuilder: (context, index) {
+                                    final h = history[index];
+                                    return Card(
+                                      elevation: 0,
+                                      color: Colors.blueGrey[50],
+                                      margin: const EdgeInsets.symmetric(vertical: 4),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(h.userCode ?? 'Unknown',
+                                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                                Text(h.date ?? '-',
+                                                    style: TextStyle(color: Colors.grey[700], fontSize: 12)),
+                                              ],
+                                            ),
+                                            if (h.comment != null && h.comment!.isNotEmpty) ...[
+                                              const SizedBox(height: 4),
+                                              Text(h.comment!, style: TextStyle(fontSize: 13, color: Colors.grey[800])),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: isSaving ? null : () => Navigator.pop(dialogContext),
+                          child: const Text('ปิด', style: TextStyle(color: Colors.grey)),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: (isLoading || isSaving)
+                              ? null
+                              : () async {
+                                  if (commentController.text.trim().isEmpty) {
+                                    AppToast.show('กรุณาระบุความคิดเห็น', isError: true, context: context);
+                                    return;
+                                  }
+                                  
+                                  setState(() => isSaving = true);
+                                  final now = DateTime.now();
+                                  final formattedDate =
+                                      "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+                                  
+                                  final request = SupervisorCheckSetRequest(
+                                    documentId: widget.documentId,
+                                    machineId: widget.machineId,
+                                    userId: userId,
+                                    comment: commentController.text,
+                                    datetime: formattedDate,
+                                  );
+
+                                  final success = await apiService.setSupervisorCheck(request);
+
+                                  if (!context.mounted) return;
+
+                                  if (success) {
+                                    setState(() => isSaving = false);
+                                    commentController.clear();
+                                    AppToast.show('บันทึกการตรวจสอบเรียบร้อยแล้ว', context: context);
+                                    // โหลดประวัติใหม่หลังบันทึกสำเร็จ
+                                    fetchHistory();
+                                  } else {
+                                    setState(() => isSaving = false);
+                                    AppToast.show('เกิดข้อผิดพลาดในการบันทึก', isError: true, context: context);
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[700],
+                            foregroundColor: Colors.white,
+                          ),
+                          child: isSaving
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                              : const Text('บันทึก'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -658,6 +848,15 @@ class _AMChecksheetOnlineScreenState extends State<AMChecksheetOnlineScreen> {
         ),
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.assignment_ind),
+            tooltip: 'การตรวจสอบจากหัวหน้างาน',
+            onPressed: () {
+              final apiService = DocumentOnlineApiService();
+              final userId = context.read<LoginViewModel>().loggedInUser?.userId ?? '000000';
+              _showSupervisorCheckDialog(context, apiService, userId);
+            },
+          ),
           IconButton(
             icon: Icon(_showOnlyAbnormal
                 ? Icons.filter_alt

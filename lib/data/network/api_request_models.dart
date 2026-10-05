@@ -95,3 +95,30 @@ class OpenCaseSetRequest {
     };
   }
 }
+
+/// Request model for Supervisor Check (SET)
+class SupervisorCheckSetRequest {
+  final String documentId;
+  final String machineId;
+  final String userId;
+  final String comment;
+  final String datetime;
+
+  SupervisorCheckSetRequest({
+    required this.documentId,
+    required this.machineId,
+    required this.userId,
+    required this.comment,
+    required this.datetime,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      "DocumentId": documentId,
+      "MachineId": machineId,
+      "UserId": userId,
+      "Comment": comment,
+      "DateTime": datetime,
+    };
+  }
+}

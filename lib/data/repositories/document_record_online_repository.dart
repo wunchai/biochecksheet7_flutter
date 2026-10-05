@@ -82,6 +82,15 @@ class DocumentRecordOnlineRepository {
     }
   }
 
+  /// Fetch machine summary online
+  Future<dynamic> fetchMachineSummaryOnline(String userId, String jobId, String documentId) async {
+    return await _apiService.fetchMachineSummaryOnline(
+      userId: userId,
+      jobId: jobId,
+      documentId: documentId,
+    );
+  }
+
   /// Watch distinct machines configured for a document
   Stream<List<DbDocumentRecordOnline>> watchDistinctMachines(String documentId) {
     return _dao.watchDistinctMachines(documentId);

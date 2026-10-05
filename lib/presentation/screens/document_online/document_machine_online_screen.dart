@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart';
+import 'package:biochecksheet7_flutter/data/network/api_response_models.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_machine_online_viewmodel.dart';
 
 class DocumentMachineOnlineScreen extends StatefulWidget {
@@ -29,8 +30,10 @@ class _DocumentMachineOnlineScreenState extends State<DocumentMachineOnlineScree
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<DocumentMachineOnlineViewModel>(context, listen: false)
-          .fetchOnlineRecords(widget.userId, widget.jobId, widget.documentId);
+      final vm = Provider.of<DocumentMachineOnlineViewModel>(context, listen: false);
+      vm.fetchOnlineRecords(widget.userId, widget.jobId, widget.documentId);
+      // Fetch machine summary
+      vm.fetchMachineSummary(widget.userId, widget.jobId, widget.documentId);
     });
   }
 
@@ -92,8 +95,51 @@ class _DocumentMachineOnlineScreenState extends State<DocumentMachineOnlineScree
                                   'รหัสเครื่องจักร: ${machine.machineId ?? "Unknown"} ${machine.description != null ? '(${machine.description})' : ''}',
                                   style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
-                                subtitle: Text(
-                                  machine.uiType == 1 ? 'AM Checksheet (Online)' : 'Record (Online)',
+                                subtitle: Builder(
+                                  builder: (context) {
+                                    final summary = viewModel.summaryMachines.firstWhere(
+                                      (s) => s.machineId.toString() == machine.machineId,
+                                      orElse: () => MachineSummaryOnline(),
+                                    );
+
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          machine.uiType == 1 ? 'AM Checksheet (Online)' : 'Record (Online)',
+                                          style: TextStyle(color: Colors.grey[700]),
+                                        ),
+                                        if (summary.documentId != null) ...[
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              _buildStatusBadge('ผิดปกติ', summary.abnormalCount ?? 0, Colors.red),
+                                              _buildStatusBadge('ปัญหา', summary.problemCount ?? 0, Colors.orange),
+                                              _buildStatusBadge('เปิด Case', summary.caseOpened ?? 0, Colors.purple),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.assignment_ind, size: 14, color: (summary.supervisorChecked ?? 0) > 0 ? Colors.green : Colors.grey),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'ตรวจสอบ: ${summary.supervisorCheckCount ?? 0} ครั้ง',
+                                                style: TextStyle(fontSize: 12, color: (summary.supervisorChecked ?? 0) > 0 ? Colors.green[700] : Colors.grey[600]),
+                                              ),
+                                              if (summary.lastSupervisorCheckDate != null && summary.lastSupervisorCheckDate!.isNotEmpty) ...[
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  'ล่าสุด: ${summary.lastSupervisorCheckDate!.split('T').first}',
+                                                  style: const TextStyle(fontSize: 12, color: Colors.blueGrey),
+                                                ),
+                                              ]
+                                            ],
+                                          ),
+                                        ]
+                                      ],
+                                    );
+                                  }
                                 ),
                                 trailing: const Icon(Icons.chevron_right),
                                 onTap: () {
@@ -129,6 +175,23 @@ class _DocumentMachineOnlineScreenState extends State<DocumentMachineOnlineScree
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String label, int count, Color color) {
+    if (count == 0) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.only(right: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        '$label: $count',
+        style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600),
       ),
     );
   }

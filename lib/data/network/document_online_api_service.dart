@@ -204,6 +204,61 @@ class DocumentOnlineApiService {
     }
   }
 
+  // --- NEW: Fetch Machine Summary Online ---
+  Future<dynamic> fetchMachineSummaryOnline({
+    required String userId,
+    required String jobId,
+    required String documentId,
+    int pageIndex = 1,
+    int pageSize = 1000,
+  }) async {
+    final url =
+        Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_MACHINE_SUMMARY_GET');
+
+    final innerBody = {
+      "UserId": userId,
+      "JobId": jobId,
+      "DocumentId": documentId,
+      "PageIndex": pageIndex.toString(),
+      "PageSize": pageSize.toString(),
+    };
+
+    final body = {
+      "ServiceName": "CHECKSHEET_MACHINE_SUMMARY_GET",
+      "Paremeter": jsonEncode(innerBody)
+    };
+
+    try {
+      print(
+          'DocumentOnlineApiService: Fetching Machine Summary from $url (Page: $pageIndex, Size: $pageSize)');
+      print('DEBUG MACHINE SUMMARY BODY: $body');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'accept': 'text/plain',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
+      print(
+          'DocumentOnlineApiService: Machine Summary Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final String decodedBody = utf8.decode(response.bodyBytes);
+        print('DEBUG MACHINE SUMMARY RESPONSE BODY: $decodedBody');
+        return jsonDecode(decodedBody);
+      } else {
+        print('DEBUG MACHINE SUMMARY FAILED: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Exception during fetchMachineSummaryOnline: $e');
+      return null;
+    }
+  }
+
   // --- NEW: Open Case API Methods ---
   Future<OpenCaseGetResponse?> getOpenCase(int apiId) async {
     final url = Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_OPEN_CASE_GET');
@@ -265,6 +320,75 @@ class DocumentOnlineApiService {
       return response.statusCode == 200 || response.statusCode == 204;
     } catch (e) {
       print('Exception in setOpenCase: $e');
+      return false;
+    }
+  }
+
+  // --- NEW: Supervisor Check API Methods ---
+  Future<SupervisorCheckGetResponse?> getSupervisorCheck(
+      String documentId, String machineId) async {
+    final url =
+        Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_SUPERVISOR_CHECK_GET');
+    final body = jsonEncode({
+      "ServiceName": "CHECKSHEET_SUPERVISOR_CHECK_GET",
+      "Paremeter": jsonEncode({
+        "DocumentId": documentId,
+        "MachineId": machineId,
+      })
+    });
+
+    print('DEBUG getSupervisorCheck REQUEST: url=$url, body=$body');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'accept': 'text/plain', 'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      print(
+          'DEBUG getSupervisorCheck RESPONSE: statusCode=${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final decodedBody = utf8.decode(response.bodyBytes);
+        final responseData = jsonDecode(decodedBody);
+        print('DEBUG GET SUPERVISOR CHECK JSON: $responseData');
+
+        return SupervisorCheckGetResponse.fromJson(responseData);
+      } else {
+        print('DEBUG getSupervisorCheck FAILED BODY: ${response.body}');
+      }
+      return null;
+    } catch (e) {
+      print('Exception in getSupervisorCheck: $e');
+      return null;
+    }
+  }
+
+  Future<bool> setSupervisorCheck(SupervisorCheckSetRequest request) async {
+    final url =
+        Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_SUPERVISOR_CHECK_SET');
+
+    final body = jsonEncode({
+      "ServiceName": "CHECKSHEET_SUPERVISOR_CHECK_SET",
+      "Paremeter": jsonEncode(request.toJson())
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'accept': 'text/plain', 'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      print('DEBUG SET SUPERVISOR CHECK BODY: $body');
+      print(
+          'DEBUG SET SUPERVISOR CHECK RESPONSE: statusCode=${response.statusCode}');
+      print('DEBUG SET SUPERVISOR CHECK RESPONSE: body=${response.body}');
+
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      print('Exception in setSupervisorCheck: $e');
       return false;
     }
   }
@@ -332,7 +456,8 @@ class DocumentOnlineApiService {
     int pageSize = 20,
     int lastId = 0,
   }) async {
-    final url = Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_NOTIFICATION_HISTORY_GET');
+    final url =
+        Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_NOTIFICATION_HISTORY_GET');
 
     final innerParameter = {
       "userId": userId,
@@ -359,7 +484,8 @@ class DocumentOnlineApiService {
         body: jsonEncode(body),
       );
 
-      print('DocumentOnlineApiService: Response status: ${response.statusCode}');
+      print(
+          'DocumentOnlineApiService: Response status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final String decodedBody = utf8.decode(response.bodyBytes);
