@@ -5,6 +5,8 @@ import 'package:biochecksheet7_flutter/presentation/screens/home/home_screen.dar
 //import 'package:biochecksheet7_flutter/ui/notifications/notifications_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/problem/problem_screen.dart'; // <<< NEW: Import ProblemScreen
 import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_screen.dart'; // <<< NEW: Import DataSummaryScreen
+import 'package:biochecksheet7_flutter/presentation/screens/am_summary/am_summary_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/checksheet_audit/checksheet_audit_screen.dart';
 
 /// This screen acts as a wrapper for the main content screens
 /// and provides the Bottom Navigation Bar, similar to how
@@ -42,6 +44,8 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
     ),
     const DataSummaryScreen(
         title: 'สรุปข้อมูล'), // <<< CHANGED: Notifications to DataSummaryScreen
+    const AmSummaryScreen(title: 'สรุปผลการตรวจ AM'),
+    const ChecksheetAuditScreen(title: 'บันทึก Check Sheet'),
   ];
 
   @override
@@ -139,6 +143,16 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
                 icon: Icon(Icons.summarize_outlined),
                 activeIcon: Icon(Icons.summarize_rounded),
                 label: 'Summary',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.analytics_outlined),
+                activeIcon: Icon(Icons.analytics_rounded),
+                label: 'AM Summary',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.fact_check_outlined),
+                activeIcon: Icon(Icons.fact_check_rounded),
+                label: 'Audit',
               ),
             ],
             currentIndex:

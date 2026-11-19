@@ -5,6 +5,8 @@ import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:biochecksheet7_flutter/data/database/app_database.dart'; // For DbDocumentOnline
 import 'package:biochecksheet7_flutter/data/network/api_request_models.dart';
 import 'package:biochecksheet7_flutter/data/network/api_response_models.dart';
+import 'package:biochecksheet7_flutter/data/models/am_summary_models.dart';
+import 'package:biochecksheet7_flutter/data/models/checksheet_audit_models.dart';
 
 class PagedDocumentRecordOnlineResponse {
   final int totalPages;
@@ -499,5 +501,214 @@ class DocumentOnlineApiService {
       print('Exception getNotificationHistory: $e');
       return null;
     }
+  }
+
+  // --- NEW: AM Management Summary Dashboard API (CHECKSHEET_SUMMARY_GET) ---
+  Future<List<Map<String, dynamic>>> _fetchAmSummaryRaw({
+    required String level,
+    String? jobId,
+    String? documentId,
+    String? fromDate,
+    String? toDate,
+    bool? openCaseOnly,
+    bool refresh = false,
+    int pageIndex = 1,
+    int pageSize = 100000,
+  }) async {
+    final url = Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_SUMMARY_GET');
+
+    final innerParameter = <String, dynamic>{
+      "level": level,
+      "refresh": refresh ? "1" : "0",
+      "PageIndex": pageIndex.toString(),
+      "PageSize": pageSize.toString(),
+      if (jobId != null && jobId.isNotEmpty) "jobId": jobId,
+      if (documentId != null && documentId.isNotEmpty) "documentId": documentId,
+      if (fromDate != null && fromDate.isNotEmpty) "fromDate": fromDate,
+      if (toDate != null && toDate.isNotEmpty) "toDate": toDate,
+      if (openCaseOnly != null) "openCaseOnly": openCaseOnly ? "1" : "0",
+    };
+
+    final body = {
+      "ServiceName": "CHECKSHEET_SUMMARY_GET",
+      "Paremeter": jsonEncode(innerParameter),
+    };
+
+    final response = await http
+        .post(
+          url,
+          headers: {
+            'accept': 'text/plain',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 60));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'HTTP ${response.statusCode}: ไม่สามารถดึงข้อมูลสรุป AM ($level)');
+    }
+
+    final String decodedBody = utf8.decode(response.bodyBytes);
+    final dynamic parsed = jsonDecode(decodedBody);
+
+    if (parsed is Map<String, dynamic>) {
+      final status = parsed['status']?.toString().toLowerCase();
+      if (status == 'error') {
+        throw Exception(
+            parsed['message']?.toString() ?? 'เกิดข้อผิดพลาดจากเซิร์ฟเวอร์');
+      }
+      final dynamic rawData = parsed['Data'] ?? parsed['data'];
+      if (rawData == null) return [];
+      final dynamic listData =
+          rawData is String ? jsonDecode(rawData) : rawData;
+      if (listData is List) {
+        return listData
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+      return [];
+    } else if (parsed is List) {
+      return parsed
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+
+    return [];
+  }
+
+  Future<List<AmSummaryMonthlyRow>> getAmSummaryMonthly({
+    String? jobId,
+    String? fromDate,
+    String? toDate,
+    bool refresh = true,
+  }) async {
+    final rows = await _fetchAmSummaryRaw(
+      level: 'JOB_MONTHLY',
+      jobId: jobId,
+      fromDate: fromDate,
+      toDate: toDate,
+      refresh: refresh,
+    );
+    return rows.map(AmSummaryMonthlyRow.fromJson).toList();
+  }
+
+  Future<List<AmSummaryDocumentRow>> getAmSummaryDocuments({
+    String? jobId,
+    String? documentId,
+    String? fromDate,
+    String? toDate,
+  }) async {
+    final rows = await _fetchAmSummaryRaw(
+      level: 'DOCUMENT',
+      jobId: jobId,
+      documentId: documentId,
+      fromDate: fromDate,
+      toDate: toDate,
+      refresh: false,
+    );
+    return rows.map(AmSummaryDocumentRow.fromJson).toList();
+  }
+
+  Future<List<AmSummaryAbnormalRow>> getAmSummaryAbnormals({
+    String? jobId,
+    String? documentId,
+    String? fromDate,
+    String? toDate,
+    bool? openCaseOnly,
+  }) async {
+    final rows = await _fetchAmSummaryRaw(
+      level: 'ABNORMAL',
+      jobId: jobId,
+      documentId: documentId,
+      fromDate: fromDate,
+      toDate: toDate,
+      openCaseOnly: openCaseOnly,
+      refresh: false,
+    );
+    return rows.map(AmSummaryAbnormalRow.fromJson).toList();
+  }
+
+  // --- NEW: CheckSheet Audit API (CHECKSHEET_AUDIT) ---
+  Future<List<AuditDocumentRow>> getAuditDocuments({
+    required String fromDate,
+    required String toDate,
+  }) async {
+    final uri = Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_AUDIT/api/documents')
+        .replace(queryParameters: {
+      'fromDate': fromDate,
+      'toDate': toDate,
+    });
+
+    final response = await http
+        .get(uri, headers: {'accept': 'application/json'})
+        .timeout(const Duration(seconds: 60));
+
+    if (response.statusCode != 200) {
+      throw Exception('HTTP ${response.statusCode}: โหลดรายการเอกสารไม่สำเร็จ');
+    }
+
+    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('รูปแบบข้อมูลจากเซิร์ฟเวอร์ไม่ถูกต้อง');
+    }
+    if (decoded['status']?.toString().toLowerCase() != 'success') {
+      throw Exception(
+          decoded['message']?.toString() ?? 'โหลดข้อมูลไม่สำเร็จ');
+    }
+
+    final rawRows = decoded['rows'];
+    if (rawRows is List) {
+      return rawRows
+          .whereType<Map>()
+          .map((e) => AuditDocumentRow.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    }
+    return [];
+  }
+
+  Future<AuditDocumentDetail> getAuditDocumentDetail(String documentId) async {
+    final uri = Uri.parse('${AppConfig.baseUrl}/CHECKSHEET_AUDIT/api/detail')
+        .replace(queryParameters: {'documentId': documentId});
+
+    final response = await http
+        .get(uri, headers: {'accept': 'application/json'})
+        .timeout(const Duration(seconds: 60));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'HTTP ${response.statusCode}: โหลดรายละเอียดเอกสารไม่สำเร็จ');
+    }
+
+    final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('รูปแบบข้อมูลจากเซิร์ฟเวอร์ไม่ถูกต้อง');
+    }
+    if (decoded['status']?.toString().toLowerCase() != 'success') {
+      throw Exception(
+          decoded['message']?.toString() ?? 'โหลดรายละเอียดไม่สำเร็จ');
+    }
+
+    List<T> parseList<T>(
+      dynamic raw,
+      T Function(Map<String, dynamic>) fromJson,
+    ) {
+      if (raw is! List) return [];
+      return raw
+          .whereType<Map>()
+          .map((e) => fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    }
+
+    return AuditDocumentDetail(
+      items: parseList(decoded['items'], AuditCheckItem.fromJson),
+      verifies: parseList(decoded['verifies'], AuditVerifyEntry.fromJson),
+      cases: parseList(decoded['cases'], AuditCaseEntry.fromJson),
+      supervisorChecks:
+          parseList(decoded['supervisorChecks'], AuditSupervisorCheck.fromJson),
+    );
   }
 }

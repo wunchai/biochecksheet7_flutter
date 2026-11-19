@@ -14,6 +14,8 @@ import 'package:biochecksheet7_flutter/presentation/screens/imagerecord/image_re
 import 'package:biochecksheet7_flutter/presentation/screens/problem/problem_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/deviceinfo/device_info_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_screen.dart'; // <<< NEW: Import Screen
+import 'package:biochecksheet7_flutter/presentation/screens/am_summary/am_summary_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/checksheet_audit/checksheet_audit_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/am_checksheet_screen.dart'; // <<< เพิ่ม Import
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_machine_online_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_record_online_screen.dart';
@@ -79,6 +81,10 @@ Map<String, WidgetBuilder> appRoutes() {
     '/notifications': (context) => const NotificationsScreen(title: 'การแจ้งเตือน'),
     '/data_summary': (context) => const DataSummaryScreen(
         title: 'สรุปข้อมูล'), // <<< NEW: Add explicit route
+    '/am_summary': (context) => const AmSummaryScreen(
+        title: 'สรุปผลการตรวจ AM'),
+    '/checksheet_audit': (context) => const ChecksheetAuditScreen(
+        title: 'บันทึก Check Sheet'),
     '/document_machine_online': (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       return DocumentMachineOnlineScreen(

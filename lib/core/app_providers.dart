@@ -45,6 +45,8 @@ import 'package:biochecksheet7_flutter/presentation/screens/deviceinfo/device_in
 
 // Import DataSummary components
 import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/am_summary/am_summary_viewmodel.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/checksheet_audit/checksheet_audit_viewmodel.dart';
 
 // --- <<< เพิ่ม Import สำหรับ Image Sync >>> ---
 import 'package:biochecksheet7_flutter/data/network/checksheet_image_api_service.dart';
@@ -154,5 +156,13 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
     // Custom Job Draft ViewModel
     ChangeNotifierProvider(
         create: (_) => DraftJobViewModel(repository: draftJobRepository)),
+
+    // AM Management Summary Dashboard ViewModel
+    ChangeNotifierProvider(
+        create: (_) => AmSummaryViewModel(documentOnlineApiService)),
+
+    // CheckSheet Audit ViewModel
+    ChangeNotifierProvider(
+        create: (_) => ChecksheetAuditViewModel(documentOnlineApiService)),
   ];
 }
