@@ -50,15 +50,6 @@ class _ChecksheetAuditScreenState extends State<ChecksheetAuditScreen>
   bool get wantKeepAlive => true;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      context.read<ChecksheetAuditViewModel>().initializeIfNeeded();
-    });
-  }
-
-  @override
   void dispose() {
     _mainScrollController.dispose();
     _listTableScrollController.dispose();

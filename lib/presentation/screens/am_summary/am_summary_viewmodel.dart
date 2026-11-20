@@ -13,7 +13,11 @@ class AmSummaryJobOption {
 class AmSummaryViewModel extends ChangeNotifier {
   final DocumentOnlineApiService _apiService;
 
-  AmSummaryViewModel(this._apiService);
+  AmSummaryViewModel(this._apiService) {
+    final now = DateTime.now();
+    _fromMonth = DateTime(now.year, now.month);
+    _toMonth = DateTime(now.year, now.month);
+  }
 
   List<AmSummaryMonthlyRow> _monthlyRows = [];
   List<AmSummaryDocumentRow>? _docCache;
@@ -28,7 +32,7 @@ class AmSummaryViewModel extends ChangeNotifier {
   bool _isLoadingMonthly = false;
   bool _isRefreshing = false;
   bool _isLoadingDetail = false;
-  bool _hasInitialized = false;
+  bool _hasLoadedOnce = false;
   String? _errorMessage;
   String? _detailErrorMessage;
 
@@ -46,7 +50,7 @@ class AmSummaryViewModel extends ChangeNotifier {
   bool get isLoadingMonthly => _isLoadingMonthly;
   bool get isRefreshing => _isRefreshing;
   bool get isLoadingDetail => _isLoadingDetail;
-  bool get hasInitialized => _hasInitialized;
+  bool get hasLoadedOnce => _hasLoadedOnce;
   String? get errorMessage => _errorMessage;
   String? get detailErrorMessage => _detailErrorMessage;
 
@@ -228,12 +232,6 @@ class AmSummaryViewModel extends ChangeNotifier {
   }
 
   // --- Actions ---
-  Future<void> initializeIfNeeded() async {
-    if (_hasInitialized) return;
-    _hasInitialized = true;
-    await load(refresh: true);
-  }
-
   Future<void> load({required bool refresh}) async {
     final seq = ++_monthlySeq;
     _isLoadingMonthly = true;
@@ -254,6 +252,7 @@ class AmSummaryViewModel extends ChangeNotifier {
       if (seq != _monthlySeq) return;
 
       _monthlyRows = rows;
+      _hasLoadedOnce = true;
 
       // Ensure selectedJobId still exists in options to prevent Dropdown crash.
       if (_selectedJobId != null &&
@@ -330,6 +329,7 @@ class AmSummaryViewModel extends ChangeNotifier {
   }
 
   Future<void> _ensureDetailLoaded() async {
+    if (!_hasLoadedOnce) return;
     final needsDocs = _detailMode.usesDocuments;
     if (needsDocs && _docCache != null) return;
     if (!needsDocs && _abnCache != null) return;

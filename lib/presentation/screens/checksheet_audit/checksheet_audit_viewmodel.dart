@@ -3,22 +3,16 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:biochecksheet7_flutter/data/models/checksheet_audit_models.dart';
 import 'package:biochecksheet7_flutter/data/network/document_online_api_service.dart';
 
 class ChecksheetAuditViewModel extends ChangeNotifier {
-  static const _prefFromKey = 'csAuditFrom';
-  static const _prefToKey = 'csAuditTo';
-  static const _prefFormKey = 'csAuditForm';
-  static const _prefPhaseKey = 'csAuditPhase';
-
   final DocumentOnlineApiService _apiService;
 
   ChecksheetAuditViewModel(this._apiService) {
     final now = DateTime.now();
-    _toDate = DateTime(now.year, now.month, now.day);
-    _fromDate = _toDate.subtract(const Duration(days: 6));
+    _fromDate = DateTime(now.year, now.month, 1);
+    _toDate = DateTime(now.year, now.month + 1, 0);
   }
 
   DateTime _fromDate = DateTime.now();
@@ -33,7 +27,6 @@ class ChecksheetAuditViewModel extends ChangeNotifier {
   AuditDocumentRow? _currentDocument;
   AuditDocumentDetail? _currentDetail;
 
-  bool _hasInitialized = false;
   bool _isLoadingList = false;
   bool _isLoadingDetail = false;
   String? _listError;
@@ -121,38 +114,6 @@ class ChecksheetAuditViewModel extends ChangeNotifier {
   int get distinctJobCount => filteredDocs.map((d) => d.jobId).toSet().length;
 
   // --- Lifecycle & Actions ---
-  Future<void> initializeIfNeeded() async {
-    if (_hasInitialized) return;
-    _hasInitialized = true;
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedFrom = prefs.getString(_prefFromKey);
-      final savedTo = prefs.getString(_prefToKey);
-      final savedForm = prefs.getString(_prefFormKey);
-      final savedPhase = prefs.getString(_prefPhaseKey);
-
-      if (savedFrom != null) {
-        final d = DateTime.tryParse(savedFrom);
-        if (d != null) _fromDate = DateTime(d.year, d.month, d.day);
-      }
-      if (savedTo != null) {
-        final d = DateTime.tryParse(savedTo);
-        if (d != null) _toDate = DateTime(d.year, d.month, d.day);
-      }
-      if (savedForm != null && savedForm.isNotEmpty) {
-        _selectedForm = savedForm;
-      }
-      if (savedPhase != null && savedPhase.isNotEmpty) {
-        _selectedPhase = savedPhase;
-      }
-    } catch (_) {
-      // Ignore preference read errors and keep default 7-day window.
-    }
-
-    await loadDocuments();
-  }
-
   void setFromDate(DateTime date) {
     _fromDate = DateTime(date.year, date.month, date.day);
     notifyListeners();
@@ -163,38 +124,20 @@ class ChecksheetAuditViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setSelectedForm(String? form) async {
+  void setSelectedForm(String? form) {
     _selectedForm = (form == null || form.isEmpty) ? null : form;
     _currentDocument = null;
     _currentDetail = null;
     _detailError = null;
     notifyListeners();
-    await _saveFilters();
   }
 
-  Future<void> setSelectedPhase(String? phase) async {
+  void setSelectedPhase(String? phase) {
     _selectedPhase = (phase == null || phase.isEmpty) ? null : phase;
     _currentDocument = null;
     _currentDetail = null;
     _detailError = null;
     notifyListeners();
-    await _saveFilters();
-  }
-
-  Future<void> _saveRange(String from, String to) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefFromKey, from);
-      await prefs.setString(_prefToKey, to);
-    } catch (_) {}
-  }
-
-  Future<void> _saveFilters() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_prefFormKey, _selectedForm ?? '');
-      await prefs.setString(_prefPhaseKey, _selectedPhase ?? '');
-    } catch (_) {}
   }
 
   Future<void> loadDocuments() async {
@@ -227,8 +170,6 @@ class ChecksheetAuditViewModel extends ChangeNotifier {
       _detailError = null;
       _isLoadingList = false;
       notifyListeners();
-
-      await _saveRange(from, to);
     } catch (e) {
       if (seq != _listSeq) return;
       _isLoadingList = false;

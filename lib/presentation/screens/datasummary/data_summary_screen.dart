@@ -160,14 +160,17 @@ class _DataSummaryScreenState extends State<DataSummaryScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'สถานะข้อมูลในระบบ (Sync Status)',
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[800],
-                                ),
+                      Expanded(
+                        child: Text(
+                          'สถานะข้อมูลในระบบ (Sync Status)',
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey[800],
+                                  ),
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       TextButton.icon(
                         onPressed: () => _triggerSyncJobs(context),
                         icon: const Icon(Icons.sync, size: 18),
@@ -326,12 +329,14 @@ class _DataSummaryScreenState extends State<DataSummaryScreen> {
               children: [
                 Icon(Icons.edit_document, color: Colors.blue.shade800),
                 const SizedBox(width: 8),
-                Text(
-                  'Custom Jobs / งานที่สร้างเอง',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade900,
+                Expanded(
+                  child: Text(
+                    'Custom Jobs / งานที่สร้างเอง',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade900,
+                    ),
                   ),
                 ),
               ],

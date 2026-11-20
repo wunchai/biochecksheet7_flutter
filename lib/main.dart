@@ -42,14 +42,22 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   HttpOverrides.global = MyHttpOverrides();
-  // --- <<< 2. เพิ่มโค้ดส่วนนี้เข้าไป ---
-  // ตรวจสอบให้แน่ใจว่า Flutter Engine พร้อมทำงานแล้ว
-  WidgetsFlutterBinding.ensureInitialized();
-// เปิดใช้งานโหมด Edge-to-Edge
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   runZonedGuarded<Future<void>>(() async {
+    // ตรวจสอบให้แน่ใจว่า Flutter Engine พร้อมทำงานแล้ว (ต้องอยู่ใน Zone เดียวกับ runApp)
     WidgetsFlutterBinding.ensureInitialized();
+
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      if (kDebugMode) {
+        print(
+            'Flutter error caught by FlutterError.onError: ${details.exception}');
+        print('Stack trace: ${details.stack}');
+      }
+    };
+
+    // เปิดใช้งานโหมด Edge-to-Edge
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
     // Initialize Firebase
     try {
@@ -117,15 +125,16 @@ Future<void> main() async {
       );
 */
 
-      await Workmanager().registerPeriodicTask(
-        "syncAllTask",
-        "syncAllTask",
-        frequency: const Duration(minutes: 15),
-        initialDelay: const Duration(seconds: 30),
-        constraints: Constraints(
-          networkType: NetworkType.connected,
-        ),
-      );
+      // Background periodic task is deactivated in favor of ForegroundSyncService (every 5 mins).
+      // await Workmanager().registerPeriodicTask(
+      //   "syncAllTask",
+      //   "syncAllTask",
+      //   frequency: const Duration(minutes: 15),
+      //   initialDelay: const Duration(seconds: 30),
+      //   constraints: Constraints(
+      //     networkType: NetworkType.connected,
+      //   ),
+      // );
     }
 
     // Initialize AppDatabase (singleton)
@@ -154,15 +163,6 @@ Future<void> main() async {
       print('Stack trace: $stack');
     }
   });
-
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    if (kDebugMode) {
-      print(
-          'Flutter error caught by FlutterError.onError: ${details.exception}');
-      print('Stack trace: ${details.stack}');
-    }
-  };
 }
 
 class MyApp extends StatelessWidget {

@@ -10,6 +10,7 @@ import 'package:biochecksheet7_flutter/data/services/data_sync_service.dart';
 import 'package:biochecksheet7_flutter/data/services/database_maintenance_service.dart';
 import 'package:biochecksheet7_flutter/data/services/data_cleanup_service.dart';
 import 'package:biochecksheet7_flutter/data/services/device_info_service.dart';
+import 'package:biochecksheet7_flutter/data/services/foreground_sync_service.dart';
 
 import 'package:biochecksheet7_flutter/presentation/screens/login/login_viewmodel.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/home/home_viewmodel.dart';
@@ -87,6 +88,10 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
   final draftJobRepository = DraftJobRepository(appDatabase.draftJobDao, draftApiService);
 
   final documentImageOnlineApiService = DocumentImageOnlineApiService(); // <<< NEW
+  final deviceInfoService = DeviceInfoService();
+  final databaseMaintenanceService =
+      DatabaseMaintenanceService(appDatabase: appDatabase);
+  final dataCleanupService = DataCleanupService(appDatabase: appDatabase);
 
   return [
     // Repositories (provided as value as they are singletons)
@@ -119,21 +124,28 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
         create: (_) => ProblemViewModel(appDatabase: appDatabase)),
 
     // CRUCIAL FIX: Provide DeviceInfoService as a regular Provider
-    Provider<DeviceInfoService>(
-        create: (context) => DeviceInfoService()), // <<< Change to (context)
+    Provider<DeviceInfoService>.value(value: deviceInfoService),
     ChangeNotifierProvider(
         create: (context) => DeviceInfoViewModel(
-            deviceInfoService:
-                Provider.of<DeviceInfoService>(context, listen: false),
+            deviceInfoService: deviceInfoService,
             dataSyncService: dataSyncService,
             loginRepository: loginRepository)), // <<< NEW
     Provider.value(value: dataSyncService), // Use existing instance
     Provider.value(value: documentOnlineApiService), // NEW: Provide DocumentOnlineApiService
 
-    Provider<DatabaseMaintenanceService>(
-        create: (_) => DatabaseMaintenanceService(appDatabase: appDatabase)),
-    Provider<DataCleanupService>(
-        create: (_) => DataCleanupService(appDatabase: appDatabase)),
+    Provider<DatabaseMaintenanceService>.value(
+        value: databaseMaintenanceService),
+    Provider<DataCleanupService>.value(value: dataCleanupService),
+    Provider<ForegroundSyncService>.value(
+      value: ForegroundSyncService(
+        dataSyncService: dataSyncService,
+        databaseMaintenanceService: databaseMaintenanceService,
+        dataCleanupService: dataCleanupService,
+        deviceInfoService: deviceInfoService,
+        loginRepository: loginRepository,
+        appDatabase: appDatabase,
+      )..start(interval: const Duration(minutes: 5)),
+    ),
     // NEW: DataSummaryViewModel
     ChangeNotifierProvider(
         create: (_) => DataSummaryViewModel(

@@ -1,5 +1,6 @@
 import java.util.Properties
 import java.io.FileInputStream
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 // android/app/build.gradle.kts
 plugins {
@@ -22,16 +23,12 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.biolab.checksheet"
     compileSdk = 36 // หรือเวอร์ชันที่สูงกว่าที่คุณใช้
-    ndkVersion = "28.1.13356709" // <<< เพิ่มบรรทัดนี้ (ถ้าจำเป็น)
+    ndkVersion = "28.2.13676358" // <<< อัปเดตให้ตรงกับ Flutter 3.50 และ plugins
 
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     defaultConfig {
@@ -60,8 +57,14 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
+
 // CRUCIAL FIX: Define kotlin_version here
-val kotlin_version = "2.2.20" // <<< NEW: Define kotlin_version (use your actual Kotlin version if different)
+val kotlin_version = "2.4.20" // <<< NEW: Define kotlin_version (use your actual Kotlin version if different)
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")

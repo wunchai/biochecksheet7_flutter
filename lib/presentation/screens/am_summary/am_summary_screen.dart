@@ -51,15 +51,6 @@ class _AmSummaryScreenState extends State<AmSummaryScreen>
   bool get wantKeepAlive => true;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      context.read<AmSummaryViewModel>().initializeIfNeeded();
-    });
-  }
-
-  @override
   void dispose() {
     _mainScrollController.dispose();
     _jobTableScrollController.dispose();
@@ -405,7 +396,9 @@ class _AmSummaryScreenState extends State<AmSummaryScreen>
         ? 'ผิดพลาด: ${vm.errorMessage}'
         : vm.isLoadingMonthly
             ? (vm.isRefreshing ? 'กำลังคำนวณใหม่…' : 'กำลังโหลด…')
-            : 'อัปเดตล่าสุด ${_fmtDateTime(vm.lastRefreshDate)}';
+            : !vm.hasLoadedOnce
+                ? 'เลือกตัวกรองแล้วกด "แสดง" หรือ "คำนวณใหม่" เพื่อดูข้อมูล'
+                : 'อัปเดตล่าสุด ${_fmtDateTime(vm.lastRefreshDate)}';
 
     return _buildSectionCard(
       child: Column(
@@ -785,6 +778,12 @@ class _AmSummaryScreenState extends State<AmSummaryScreen>
               child: Text('กำลังโหลด…',
                   style: TextStyle(fontSize: 13, color: _fgMuted)),
             )
+          else if (!vm.hasLoadedOnce)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Text('กด "แสดง" หรือ "คำนวณใหม่" เพื่อโหลดข้อมูล',
+                  style: TextStyle(fontSize: 13, color: _fgMuted)),
+            )
           else if (jobs.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
@@ -936,7 +935,13 @@ class _AmSummaryScreenState extends State<AmSummaryScreen>
             ],
           ),
           const SizedBox(height: 10),
-          if (months.isEmpty)
+          if (!vm.hasLoadedOnce && !vm.isLoadingMonthly)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Text('ยังไม่ได้โหลดข้อมูล',
+                  style: TextStyle(fontSize: 13, color: _fgMuted)),
+            )
+          else if (months.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Text('ไม่มีข้อมูล',
@@ -1104,7 +1109,15 @@ class _AmSummaryScreenState extends State<AmSummaryScreen>
           ),
           const SizedBox(height: 12),
           // Detail body
-          if (vm.isLoadingDetail)
+          if (!vm.hasLoadedOnce && !vm.isLoadingDetail)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                'กด "แสดง" หรือ "คำนวณใหม่" เพื่อโหลดข้อมูลรายละเอียด',
+                style: TextStyle(fontSize: 13, color: _fgMuted),
+              ),
+            )
+          else if (vm.isLoadingDetail)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(
