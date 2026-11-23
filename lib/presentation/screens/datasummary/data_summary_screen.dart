@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_viewmodel.dart'; // Import ViewModel
+import 'package:biochecksheet7_flutter/presentation/screens/deviceinfo/device_info_viewmodel.dart';
 import 'package:biochecksheet7_flutter/data/models/data_summary.dart'; // Import Model
 import 'package:biochecksheet7_flutter/presentation/widgets/error_dialog.dart'; // Import ErrorDialog
 import 'package:biochecksheet7_flutter/presentation/screens/home/home_viewmodel.dart'; // <<< NEW: Import HomeViewModel
@@ -27,13 +28,19 @@ class _DataSummaryScreenState extends State<DataSummaryScreen> {
       if (mounted) {
         Provider.of<DataSummaryViewModel>(context, listen: false)
             .fetchSummaryData();
+        Provider.of<DeviceInfoViewModel>(context, listen: false)
+            .fetchDeviceInfo(silent: true);
       }
     });
   }
 
   Future<void> _handleRefresh() async {
-    await Provider.of<DataSummaryViewModel>(context, listen: false)
-        .fetchSummaryData();
+    await Future.wait([
+      Provider.of<DataSummaryViewModel>(context, listen: false)
+          .fetchSummaryData(),
+      Provider.of<DeviceInfoViewModel>(context, listen: false)
+          .fetchDeviceInfo(silent: true),
+    ]);
   }
 
   Future<void> _showSyncResultFeedback(
@@ -108,15 +115,13 @@ class _DataSummaryScreenState extends State<DataSummaryScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () =>
-                Provider.of<DataSummaryViewModel>(context, listen: false)
-                    .fetchSummaryData(),
+            onPressed: _handleRefresh,
             tooltip: 'รีเฟรชข้อมูล',
           ),
         ],
       ),
-      body: Consumer<DataSummaryViewModel>(
-        builder: (context, viewModel, child) {
+      body: Consumer2<DataSummaryViewModel, DeviceInfoViewModel>(
+        builder: (context, viewModel, deviceViewModel, child) {
           if (viewModel.errorMessage != null && !_isShowingDialog) {
             final String currentErrorMessage = viewModel.errorMessage!;
             _isShowingDialog = true;
@@ -130,6 +135,42 @@ class _DataSummaryScreenState extends State<DataSummaryScreen> {
                   ),
                 );
                 viewModel.errorMessage = null;
+                _isShowingDialog = false;
+              }
+            });
+          } else if (deviceViewModel.syncMessage != null && !_isShowingDialog) {
+            final String currentSyncMessage = deviceViewModel.syncMessage!;
+            _isShowingDialog = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
+              if (mounted) {
+                final lower = currentSyncMessage.toLowerCase();
+                final bool isError = lower.contains('ล้มเหลว') ||
+                    lower.contains('ข้อผิดพลาด') ||
+                    lower.contains('ไม่สำเร็จ') ||
+                    lower.contains('failed') ||
+                    lower.contains('error') ||
+                    lower.contains('exception') ||
+                    lower.contains('timed out') ||
+                    lower.contains('ไม่สามารถเชื่อมต่อ');
+
+                if (isError) {
+                  await showDialog(
+                    context: context,
+                    builder: (context) => ErrorDialog(
+                      title: 'ข้อผิดพลาดในการซิงค์ข้อมูลอุปกรณ์',
+                      message: currentSyncMessage,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(currentSyncMessage),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+                deviceViewModel.syncMessage = null;
                 _isShowingDialog = false;
               }
             });
@@ -180,20 +221,14 @@ class _DataSummaryScreenState extends State<DataSummaryScreen> {
                   ),
                   const SizedBox(height: 12),
                   _buildMasterDataGrid(summary),
-                  const SizedBox(height: 80), // Space for FAB
+                  const SizedBox(height: 28),
+                  _buildDeviceInfoSection(context, deviceViewModel),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.pushNamed(context, '/device_info');
-        },
-        icon: const Icon(Icons.perm_device_information),
-        label: const Text('ข้อมูลอุปกรณ์'),
-        backgroundColor: Colors.blueGrey,
       ),
     );
   }
@@ -457,6 +492,272 @@ class _DataSummaryScreenState extends State<DataSummaryScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDeviceInfoSection(
+      BuildContext context, DeviceInfoViewModel deviceViewModel) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                'ข้อมูลอุปกรณ์ (Device Info)',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[800],
+                    ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton.icon(
+              onPressed: deviceViewModel.isLoading
+                  ? null
+                  : () => deviceViewModel.performManualMetadataSync(),
+              icon: deviceViewModel.isLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.sync, size: 18),
+              label: const Text('ซิงค์ข้อมูลอุปกรณ์'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (deviceViewModel.errorMessage != null)
+          Card(
+            elevation: 2,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  const Icon(Icons.error_outline, size: 36, color: Colors.red),
+                  const SizedBox(height: 8),
+                  Text(
+                    deviceViewModel.errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () =>
+                        deviceViewModel.fetchDeviceInfo(silent: true),
+                    child: const Text('ลองใหม่อีกครั้ง'),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else ...[
+          // App Version Banner Card
+          Card(
+            elevation: 3,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.blue.shade800, Colors.blue.shade500],
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.verified_user,
+                      size: 40, color: Colors.white),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Application Version',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          deviceViewModel.appVersion,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Device Specs Card
+          _buildDeviceCard(
+            title: 'ข้อมูลเครื่อง (Device Specs)',
+            children: [
+              _buildDeviceInfoRow(Icons.perm_device_information, 'Device ID',
+                  deviceViewModel.deviceId),
+              const Divider(height: 12),
+              _buildDeviceInfoRow(
+                  Icons.qr_code, 'Serial No.', deviceViewModel.serialNo),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Network Info Card
+          _buildDeviceCard(
+            title: 'เครือข่าย (Network)',
+            children: [
+              _buildDeviceInfoRow(
+                  Icons.wifi, 'IP Address', deviceViewModel.ipAddress),
+              const Divider(height: 12),
+              _buildDeviceInfoRow(Icons.signal_wifi_4_bar, 'Wi-Fi Strength',
+                  deviceViewModel.wifiStrength),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Storage / Master Images Card
+          _buildDeviceCard(
+            title: 'พื้นที่จัดเก็บ (Storage)',
+            children: [
+              _buildDeviceInfoRow(Icons.image, 'Master Images',
+                  '${deviceViewModel.masterImageCount} รูป'),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: deviceViewModel.masterImageCount > 0 &&
+                          !deviceViewModel.isLoading
+                      ? () =>
+                          _confirmDeleteMasterImages(context, deviceViewModel)
+                      : null,
+                  icon: const Icon(Icons.delete_forever, color: Colors.white),
+                  label: const Text(
+                    'ลบรูปภาพ Master ทั้งหมด',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    disabledBackgroundColor: Colors.red.shade200,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDeviceCard({
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeviceInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: Colors.blue.shade700, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteMasterImages(
+      BuildContext context, DeviceInfoViewModel viewModel) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('ยืนยันการลบ'),
+        content: const Text(
+            'คุณต้องการลบรูปภาพ Master ทั้งหมดออกจากเครื่องใช่หรือไม่?\n(รูปภาพจะถูกดาวน์โหลดใหม่เมื่อทำการ Sync)'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('ยกเลิก', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              viewModel.deleteMasterImages();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child:
+                const Text('ลบข้อมูล', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }

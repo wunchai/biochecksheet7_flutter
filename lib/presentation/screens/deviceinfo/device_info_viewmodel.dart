@@ -55,10 +55,12 @@ class DeviceInfoViewModel extends ChangeNotifier {
         _loginRepository = loginRepository;
 
   /// Fetches all device information.
-  Future<void> fetchDeviceInfo() async {
+  Future<void> fetchDeviceInfo({bool silent = false}) async {
     _isLoading = true;
     _errorMessage = null;
-    _syncMessage = null; // Clear any previous sync message
+    if (!silent) {
+      _syncMessage = null; // Clear any previous sync message
+    }
     notifyListeners();
 
     try {
@@ -71,13 +73,17 @@ class DeviceInfoViewModel extends ChangeNotifier {
       await fetchMasterImageCount(); // <<< NEW: Fetch image count
 
       _statusMessage = "ข้อมูลอุปกรณ์โหลดแล้ว."; // Set status message
-      _syncMessage = "โหลดข้อมูลอุปกรณ์สำเร็จ!"; // Set success message for UI
+      if (!silent) {
+        _syncMessage = "โหลดข้อมูลอุปกรณ์สำเร็จ!"; // Set success message for UI
+      }
     } catch (e) {
       _errorMessage =
           'ข้อผิดพลาดในการโหลดข้อมูลอุปกรณ์: $e'; // Set error message
       _statusMessage = "ไม่สามารถโหลดข้อมูลอุปกรณ์ได้: $e";
-      _syncMessage =
-          "ไม่สามารถโหลดข้อมูลอุปกรณ์ได้: $e"; // Set error message for UI
+      if (!silent) {
+        _syncMessage =
+            "ไม่สามารถโหลดข้อมูลอุปกรณ์ได้: $e"; // Set error message for UI
+      }
 
       print('Error fetching device info: $e');
     } finally {
@@ -95,7 +101,7 @@ class DeviceInfoViewModel extends ChangeNotifier {
 
     try {
       // 1. Get current device info (ensure it's up-to-date)
-      await fetchDeviceInfo(); // Refresh device info before sending
+      await fetchDeviceInfo(silent: true); // Refresh device info before sending
 
       // 2. Call checkSyncMetadata API
       final String username = _loginRepository.loggedInUser?.userId ?? 'unknown_user'; // <<< NEW

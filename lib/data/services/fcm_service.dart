@@ -1,7 +1,7 @@
 import 'dart:async'; // <<< NEW
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:io';
 import 'package:biochecksheet7_flutter/main.dart'; // <<< NEW: Import navigatorKey
 
 /// Top-level function for handling background messages.
@@ -20,16 +20,25 @@ class FCMService {
   // Private constructor for singleton
   FCMService._internal();
 
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  
+  // Lazy getter so FirebaseMessaging.instance is never called on unsupported platforms (Windows/Linux/Web without SW)
+  FirebaseMessaging get _firebaseMessaging => FirebaseMessaging.instance;
+
+  /// Returns true only on mobile/macOS platforms where native FCM is configured.
+  bool get _isFcmSupported {
+    if (kIsWeb) return false;
+    return defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+  }
+
   // Stream controller to broadcast messages to ViewModels
   final _messageStreamController = StreamController<RemoteMessage>.broadcast();
   Stream<RemoteMessage> get messageStream => _messageStreamController.stream;
 
   Future<void> initialize() async {
-    // Firebase Messaging ไม่รองรับบน Windows และ Linux
-    if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
-      print("FCM is not supported on Windows/Linux. Skipping initialization.");
+    // Firebase Messaging ไม่รองรับบน Windows, Linux และ Web (กรณีไม่มี firebase-messaging-sw.js)
+    if (!_isFcmSupported) {
+      print("FCM is not supported on this platform. Skipping initialization.");
       return;
     }
 
@@ -44,6 +53,7 @@ class FCMService {
   }
 
   Future<void> requestPermission() async {
+    if (!_isFcmSupported) return;
     NotificationSettings settings = await _firebaseMessaging.requestPermission(
       alert: true,
       announcement: false,
@@ -58,8 +68,8 @@ class FCMService {
   }
 
   Future<String?> getDeviceToken() async {
-    if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
-      return "dummy_token_for_windows"; // คืนค่าจำลองให้ Windows ไม่พัง
+    if (!_isFcmSupported || Firebase.apps.isEmpty) {
+      return "dummy_token_for_windows"; // คืนค่าจำลองให้ Windows / Web / Linux ไม่พัง
     }
 
     try {
@@ -67,7 +77,7 @@ class FCMService {
       print("========================================");
       print("FCM Device Token: $token");
       print("========================================");
-      
+
       // TODO: Send this token to your local database/server
       return token;
     } catch (e) {

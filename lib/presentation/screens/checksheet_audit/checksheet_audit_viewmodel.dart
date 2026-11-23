@@ -1,8 +1,6 @@
 // lib/presentation/screens/checksheet_audit/checksheet_audit_viewmodel.dart
-import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:biochecksheet7_flutter/core/utils/csv_downloader.dart';
 import 'package:biochecksheet7_flutter/data/models/checksheet_audit_models.dart';
 import 'package:biochecksheet7_flutter/data/network/document_online_api_service.dart';
 
@@ -209,6 +207,48 @@ class ChecksheetAuditViewModel extends ChangeNotifier {
   }
 
   // --- CSV Export (matches CHECKSHEET_AUDIT.cs columns & UTF-8 BOM) ---
+  String _escapeCsvCell(Object? raw) {
+    final s = raw?.toString() ?? '';
+    if (s.contains('"') ||
+        s.contains(',') ||
+        s.contains('\n') ||
+        s.contains('\r')) {
+      return '"${s.replaceAll('"', '""')}"';
+    }
+    return s;
+  }
+
+  String _resultThaiLabel(String result) {
+    switch (result) {
+      case 'NORMAL':
+        return 'ปกติ';
+      case 'IN_SPEC':
+        return 'ในสเปก';
+      case 'ABNORMAL':
+        return 'ผิดปกติ';
+      case 'OUT_OF_SPEC':
+        return 'นอกสเปก';
+      case 'UNREADABLE':
+        return 'อ่านค่าไม่ได้';
+      case 'BLANK':
+        return 'ไม่ได้บันทึก';
+      case 'NOT_NUMBER':
+        return 'ไม่ใช่ตัวเลข';
+      case 'NO_SPEC':
+        return 'ไม่มีสเปก';
+      case 'RECORDED':
+        return 'บันทึก';
+      default:
+        return result;
+    }
+  }
+
+  String _fmtShortDt(String? s) {
+    if (s == null || s.trim().isEmpty) return '';
+    final clean = s.replaceAll('T', ' ').trim();
+    return clean.length >= 16 ? clean.substring(0, 16) : clean;
+  }
+
   String buildCsvContent() {
     const headers = [
       'วันเวลาที่บันทึก',
@@ -234,19 +274,8 @@ class ChecksheetAuditViewModel extends ChangeNotifier {
       'Sync ล่าสุด',
     ];
 
-    String escapeCell(Object? raw) {
-      final s = raw?.toString() ?? '';
-      if (s.contains('"') ||
-          s.contains(',') ||
-          s.contains('\n') ||
-          s.contains('\r')) {
-        return '"${s.replaceAll('"', '""')}"';
-      }
-      return s;
-    }
-
     final lines = <String>[
-      headers.map(escapeCell).join(','),
+      headers.map(_escapeCsvCell).join(','),
       ...filteredDocs.map((d) {
         final cols = <Object?>[
           d.createDate ?? '',
@@ -271,32 +300,137 @@ class ChecksheetAuditViewModel extends ChangeNotifier {
           d.documentId,
           d.lastSync ?? '',
         ];
-        return cols.map(escapeCell).join(',');
+        return cols.map(_escapeCsvCell).join(',');
       }),
     ];
 
     return '\uFEFF${lines.join('\r\n')}';
   }
 
-  /// Saves CSV file to Downloads (or App Documents fallback). Returns saved file path, or null on Web.
+  /// Downloads list CSV directly in browser (Web) or saves to Downloads/Documents (Desktop/Mobile).
   Future<String?> exportCsvFile() async {
     if (filteredDocs.isEmpty) return null;
     final content = buildCsvContent();
-    if (kIsWeb) return null;
-
-    Directory? targetDir;
-    try {
-      targetDir = await getDownloadsDirectory();
-    } catch (_) {
-      targetDir = null;
-    }
-    targetDir ??= await getApplicationDocumentsDirectory();
-
     final from = _loadedFromDate ?? fromDateIso;
     final to = _loadedToDate ?? toDateIso;
     final fileName = 'checksheet_${from}_$to.csv';
-    final file = File('${targetDir.path}${Platform.pathSeparator}$fileName');
-    await file.writeAsBytes(utf8.encode(content), flush: true);
-    return file.path;
+    return saveCsvFile(fileName, content);
+  }
+
+  /// Builds CSV for all Tag items of the currently opened audit document (UTF-8 BOM).
+  String buildDetailCsvContent() {
+    final doc = _currentDocument;
+    final detail = _currentDetail;
+    if (doc == null || detail == null) return '';
+
+    const headers = [
+      'ลำดับ',
+      'เลขเอกสาร',
+      'ใบงาน',
+      'เครื่องจักร',
+      'พื้นที่',
+      'Lot',
+      'ผู้บันทึก',
+      'วันเวลาที่บันทึก',
+      'ช่วงการตรวจ',
+      'หมวด',
+      'รายการตรวจ (Tag)',
+      'เกณฑ์ / รายละเอียด',
+      'สเปก',
+      'ค่าที่บันทึก',
+      'หน่วย',
+      'ผลตรวจ',
+      'หมายเหตุ',
+      'ประวัติ Verify',
+      'ประวัติเคส',
+      'หัวหน้าตรวจ (ช่วงนี้)',
+    ];
+
+    final verifiesMap = detail.verifiesByRecordTagId;
+    final casesMap = detail.casesByRecordTagId;
+    final supByPhase = <String, List<AuditSupervisorCheck>>{};
+    for (final s in detail.supervisorChecks) {
+      supByPhase.putIfAbsent(s.phaseName.trim(), () => []).add(s);
+    }
+
+    final lines = <String>[
+      headers.map(_escapeCsvCell).join(','),
+    ];
+
+    for (int i = 0; i < detail.items.length; i++) {
+      final it = detail.items[i];
+
+      final criteriaParts = <String>[
+        if (it.description != null && it.description!.trim().isNotEmpty)
+          it.description!.trim(),
+        if (it.specification != null && it.specification!.trim().isNotEmpty)
+          it.specification!.trim(),
+      ];
+
+      final verifyText = (verifiesMap[it.recordTagId] ?? const []).map((v) {
+        final remark = (v.remark != null && v.remark!.trim().isNotEmpty)
+            ? ' : ${v.remark!.trim()}'
+            : '';
+        return '${v.verifyTypeName} (${v.verifyBy} ${_fmtShortDt(v.verifyDate)})$remark';
+      }).join(' | ');
+
+      final caseText = (casesMap[it.recordTagId] ?? const []).map((c) {
+        final state = c.isOpen ? 'ยังเปิด' : 'ปิดแล้ว';
+        final closePart = c.isOpen
+            ? ''
+            : ' ปิด ${c.closeUser ?? '-'} ${_fmtShortDt(c.closeDate)}';
+        final solvePart = (c.solvingDescription != null &&
+                c.solvingDescription!.trim().isNotEmpty)
+            ? ' : ${c.solvingDescription!.trim()}'
+            : '';
+        return '#${c.problemId} [$state] เปิด ${c.createUser} ${_fmtShortDt(c.createDate)}$closePart$solvePart';
+      }).join(' | ');
+
+      final supText = (supByPhase[it.phaseName.trim()] ?? const []).map((s) {
+        final comment = (s.comment != null && s.comment!.trim().isNotEmpty)
+            ? ' : ${s.comment!.trim()}'
+            : '';
+        return '${s.userId} ${_fmtShortDt(s.checkDateTime)}$comment';
+      }).join(' | ');
+
+      final cols = <Object?>[
+        i + 1,
+        doc.documentId,
+        doc.formName,
+        doc.machineName,
+        doc.location,
+        doc.lot,
+        doc.createUser,
+        _fmtShortDt(doc.createDate),
+        it.phaseName,
+        it.groupName,
+        it.tagName,
+        criteriaParts.join(' / '),
+        it.formattedSpec,
+        it.value ?? '',
+        it.unit?.trim() ?? '',
+        _resultThaiLabel(it.result),
+        it.remark ?? '',
+        verifyText,
+        caseText,
+        supText,
+      ];
+      lines.add(cols.map(_escapeCsvCell).join(','));
+    }
+
+    return '\uFEFF${lines.join('\r\n')}';
+  }
+
+  /// Downloads Tag detail CSV directly in browser (Web) or saves to Downloads/Documents (Desktop/Mobile).
+  Future<String?> exportDetailCsvFile() async {
+    final doc = _currentDocument;
+    final detail = _currentDetail;
+    if (doc == null || detail == null || detail.items.isEmpty) return null;
+
+    final content = buildDetailCsvContent();
+    final safeDocId =
+        doc.documentId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+    final fileName = 'checksheet_detail_$safeDocId.csv';
+    return saveCsvFile(fileName, content);
   }
 }

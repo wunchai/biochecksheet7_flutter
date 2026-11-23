@@ -17,17 +17,15 @@ class ProblemApiService {
     final uri = Uri.parse("$_baseUrl/CHECKSHEET_PROBLEM_PAGED_SYNC");
     print("Syncing problems with URL: $uri, jobId: $jobId, page: $pageIndex");
     final headers = {"Content-Type": "application/json"};
-    
+
     final Map<String, dynamic> bodyMap = {
       "userId": "000000",
       "username": "000000",
+      "jobId": (jobId != null && jobId.isNotEmpty) ? jobId : "0",
       "pageIndex": pageIndex.toString(),
       "pageSize": pageSize.toString(),
     };
-    if (jobId != null && jobId.isNotEmpty) {
-      bodyMap["jobId"] = jobId;
-    }
-    
+
     final body = jsonEncode(bodyMap);
     print("Request body: $body");
 
@@ -43,9 +41,11 @@ class ProblemApiService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseJson = jsonDecode(decodedBody);
-        
-        dynamic rawProblemList = responseJson['Table'] ?? responseJson['Problems'] ?? responseJson['Jobs'];
-        
+
+        dynamic rawProblemList = responseJson['Table'] ??
+            responseJson['Problems'] ??
+            responseJson['Jobs'];
+
         if (rawProblemList is String) {
           rawProblemList = jsonDecode(rawProblemList);
         }
@@ -58,8 +58,12 @@ class ProblemApiService {
             return DbProblem(
               uid: 0, // Auto-increment
               problemId: problemData['problemId']?.toString(),
-              problemName: problemData['problemName'] ?? problemData['ProblemName'],
-              problemDescription: problemData['problemDescription'] ?? problemData['ProblemDescription'] ?? problemData['description'] ?? problemData['Description'],
+              problemName:
+                  problemData['problemName'] ?? problemData['ProblemName'],
+              problemDescription: problemData['problemDescription'] ??
+                  problemData['ProblemDescription'] ??
+                  problemData['description'] ??
+                  problemData['Description'],
               problemStatus: int.tryParse(
                       problemData['problemStatus']?.toString() ?? '0') ??
                   0,

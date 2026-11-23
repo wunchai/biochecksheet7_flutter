@@ -10,6 +10,7 @@ import 'package:biochecksheet7_flutter/data/repositories/document_record_reposit
 import 'package:biochecksheet7_flutter/data/services/data_sync_service.dart'; // <<< NEW: Import DataSyncService
 import 'package:biochecksheet7_flutter/data/network/sync_status.dart'; // <<< NEW: Import sync_status.dart
 import 'package:biochecksheet7_flutter/data/database/daos/image_dao.dart'; // <<< NEW: Import ImageDao
+import 'package:biochecksheet7_flutter/data/database/daos/job_dao.dart';
 
 class ProblemViewModel extends ChangeNotifier {
   final ProblemRepository _problemRepository;
@@ -19,9 +20,13 @@ class ProblemViewModel extends ChangeNotifier {
   final DataSyncService
       _dataSyncService; // <<< NEW: Add DataSyncService dependency
   final ImageDao _imageDao; // <<< NEW: Add ImageDao dependency
+  final JobDao _jobDao;
 
   Stream<List<DbProblem>>? _problemsStream;
   Stream<List<DbProblem>>? get problemsStream => _problemsStream;
+
+  Stream<List<DbJob>> get jobsStream =>
+      _jobDao.watchAllJobs(showCanceledJobs: false);
 
   String? currentJobId; // <<< NEW: Store current jobId for sync
 
@@ -52,7 +57,15 @@ class ProblemViewModel extends ChangeNotifier {
         _documentRecordRepository =
             DocumentRecordRepository(appDatabase: appDatabase),
         _dataSyncService = DataSyncService(appDatabase: appDatabase),
-        _imageDao = appDatabase.imageDao; // <<< NEW: Initialize ImageDao
+        _imageDao = appDatabase.imageDao, // <<< NEW: Initialize ImageDao
+        _jobDao = appDatabase.jobDao;
+
+  /// เลือก Job เพื่อกรองรายการปัญหาในเครื่องทันที (null = ทุกงาน)
+  Future<void> selectJob(String? jobId) async {
+    final normalized = (jobId == null || jobId.trim().isEmpty) ? null : jobId;
+    if (currentJobId == normalized && _problemsStream != null) return;
+    await loadProblems(jobId: normalized);
+  }
 
   /// โหลดรายการปัญหาตาม Status (0, 1, 2) และ optionally กรองตาม jobId
   Future<void> loadProblems({String? jobId}) async {
@@ -62,8 +75,8 @@ class ProblemViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _problemsStream = _problemRepository.watchProblemsByStatus(
-          [0, 1, 2], jobId: jobId); // Load problems with status 0, 1, 2 and optional jobId
+      _problemsStream = _problemRepository.watchProblemsByStatus([0, 1, 2],
+          jobId: jobId); // Load problems with status 0, 1, 2 and optional jobId
       _statusMessage = "รายการปัญหาโหลดแล้ว.";
     } catch (e) {
       _statusMessage = "ไม่สามารถโหลดรายการปัญหาได้: $e";
@@ -84,8 +97,8 @@ class ProblemViewModel extends ChangeNotifier {
     try {
       // NEW: Call API sync for problems first
       print('ProblemViewModel: กำลังซิงค์ปัญหาจาก API (เฉพาะ Problems)...');
-      final syncResult =
-          await _dataSyncService.performProblemsSync(jobId: currentJobId); // Calls sync with jobId
+      final syncResult = await _dataSyncService.performProblemsSync(
+          jobId: currentJobId); // Calls sync with jobId
       print(
           'ProblemViewModel: syncResult runtimeType is ${syncResult.runtimeType}'); // <<< NEW: Debugging print
 
@@ -111,7 +124,9 @@ class ProblemViewModel extends ChangeNotifier {
       notifyListeners(); // <<< CRUCIAL FIX: Notify listeners IMMEDIATELY after setting _syncMessage
       // This ensures the UI gets the error/success message.
 
-      await loadProblems(jobId: currentJobId); // Reload from Local DB after sync with same jobId
+      await loadProblems(
+          jobId:
+              currentJobId); // Reload from Local DB after sync with same jobId
       // resultStatus is already assigned before returning.
     } catch (e) {
       resultStatus = SyncError(
@@ -245,7 +260,8 @@ class ProblemViewModel extends ChangeNotifier {
       _statusMessage = "บันทึกข้อมูลล้มเหลว.";
     }
     notifyListeners();
-    await loadProblems(jobId: currentJobId); // Reload to reflect changes, keeping jobId
+    await loadProblems(
+        jobId: currentJobId); // Reload to reflect changes, keeping jobId
     return allProblemsValid;
   }
 

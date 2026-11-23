@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/home/home_screen.dart';
 //import 'package:biochecksheet7_flutter/ui/dashboard/dashboard_screen.dart';
 //import 'package:biochecksheet7_flutter/ui/notifications/notifications_screen.dart';
-import 'package:biochecksheet7_flutter/presentation/screens/problem/problem_screen.dart'; // <<< NEW: Import ProblemScreen
+import 'package:biochecksheet7_flutter/presentation/screens/problem/case_hub_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_screen.dart'; // <<< NEW: Import DataSummaryScreen
 import 'package:biochecksheet7_flutter/presentation/screens/am_summary/am_summary_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/checksheet_audit/checksheet_audit_screen.dart';
@@ -25,23 +25,7 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
   // List of screens to display in the Bottom Navigation Bar.
   final List<Widget> _screens = [
     const HomeScreen(title: 'Home'),
-    Builder(
-      builder: (context) => HomeScreen(
-        title: 'เลือกงานเพื่อดู Case',
-        showFullMenu: false, // ซ่อนเมนู Sync/Upload/Logout ฯลฯ เพื่อให้ชื่อเรื่องมีพื้นที่แสดงเต็มๆ
-        onJobTapped: (context, job) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProblemScreen(
-                title: 'Case ของงาน: ${job.jobName ?? ''}',
-                jobId: job.jobId,
-              ),
-            ),
-          );
-        },
-      ),
-    ),
+    const CaseHubScreen(),
     const DataSummaryScreen(
         title: 'สรุปข้อมูล'), // <<< CHANGED: Notifications to DataSummaryScreen
     const AmSummaryScreen(title: 'สรุปผลการตรวจ AM'),

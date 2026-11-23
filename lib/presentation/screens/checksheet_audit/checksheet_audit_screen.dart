@@ -1,7 +1,6 @@
 // lib/presentation/screens/checksheet_audit/checksheet_audit_screen.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:biochecksheet7_flutter/data/models/checksheet_audit_models.dart';
@@ -93,25 +92,16 @@ class _ChecksheetAuditScreenState extends State<ChecksheetAuditScreen>
 
   Future<void> _handleExportCsv(ChecksheetAuditViewModel vm) async {
     try {
-      if (kIsWeb) {
-        final csv = vm.buildCsvContent();
-        await Clipboard.setData(ClipboardData(text: csv));
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('คัดลอกข้อมูล CSV ไปยังคลิปบอร์ดแล้ว'),
-            backgroundColor: _accent,
-          ),
-        );
-        return;
-      }
-
-      final path = await vm.exportCsvFile();
+      final saved = await vm.exportCsvFile();
       if (!mounted) return;
-      if (path != null) {
+      if (saved != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('บันทึกไฟล์ CSV แล้ว: $path'),
+            content: Text(
+              kIsWeb
+                  ? 'ดาวน์โหลดไฟล์ CSV แล้ว: $saved'
+                  : 'บันทึกไฟล์ CSV แล้ว: $saved',
+            ),
             backgroundColor: _good,
             duration: const Duration(seconds: 5),
           ),
@@ -122,6 +112,34 @@ class _ChecksheetAuditScreenState extends State<ChecksheetAuditScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('ส่งออก CSV ไม่สำเร็จ: $e'),
+          backgroundColor: _critical,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleExportDetailCsv(ChecksheetAuditViewModel vm) async {
+    try {
+      final saved = await vm.exportDetailCsvFile();
+      if (!mounted) return;
+      if (saved != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              kIsWeb
+                  ? 'ดาวน์โหลดรายการ Tag (CSV) แล้ว: $saved'
+                  : 'บันทึกรายการ Tag (CSV) แล้ว: $saved',
+            ),
+            backgroundColor: _good,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('ส่งออกรายการ Tag ไม่สำเร็จ: $e'),
           backgroundColor: _critical,
         ),
       );
@@ -150,8 +168,12 @@ class _ChecksheetAuditScreenState extends State<ChecksheetAuditScreen>
     super.build(context);
     return Consumer<ChecksheetAuditViewModel>(
       builder: (context, vm, _) {
-        final canExportCsv =
+        final canExportListCsv =
             !vm.isInDetailView && vm.filteredDocs.isNotEmpty && !vm.isLoadingList;
+        final canExportDetailCsv = vm.isInDetailView &&
+            vm.currentDetail != null &&
+            vm.currentDetail!.items.isNotEmpty &&
+            !vm.isLoadingDetail;
 
         return Scaffold(
           backgroundColor: _bg,
@@ -193,12 +215,17 @@ class _ChecksheetAuditScreenState extends State<ChecksheetAuditScreen>
               ],
             ),
             actions: [
-              if (!vm.isInDetailView)
-                IconButton(
-                  icon: const Icon(Icons.download_outlined),
-                  tooltip: 'ดาวน์โหลด Excel (CSV)',
-                  onPressed: canExportCsv ? () => _handleExportCsv(vm) : null,
-                ),
+              IconButton(
+                icon: const Icon(Icons.download_outlined),
+                tooltip: vm.isInDetailView
+                    ? 'ดาวน์โหลดรายการ Tag (CSV)'
+                    : 'ดาวน์โหลด Excel (CSV)',
+                onPressed: vm.isInDetailView
+                    ? (canExportDetailCsv
+                        ? () => _handleExportDetailCsv(vm)
+                        : null)
+                    : (canExportListCsv ? () => _handleExportCsv(vm) : null),
+              ),
               IconButton(
                 icon: vm.isLoadingList || vm.isLoadingDetail
                     ? const SizedBox(
@@ -244,10 +271,10 @@ class _ChecksheetAuditScreenState extends State<ChecksheetAuditScreen>
                     children: [
                       _buildIntroBanner(),
                       const SizedBox(height: 14),
-                      _buildFilterCard(vm, canExportCsv),
+                      _buildFilterCard(vm, canExportListCsv),
                       const SizedBox(height: 14),
                       if (vm.isInDetailView)
-                        _buildDetailView(vm)
+                        _buildDetailView(vm, canExportDetailCsv)
                       else
                         _buildListView(vm),
                       const SizedBox(height: 16),
@@ -787,7 +814,8 @@ class _ChecksheetAuditScreenState extends State<ChecksheetAuditScreen>
   }
 
   // ---------------- DETAIL VIEW ----------------
-  Widget _buildDetailView(ChecksheetAuditViewModel vm) {
+  Widget _buildDetailView(
+      ChecksheetAuditViewModel vm, bool canExportDetailCsv) {
     final doc = vm.currentDocument!;
     final detail = vm.currentDetail;
 
@@ -795,7 +823,7 @@ class _ChecksheetAuditScreenState extends State<ChecksheetAuditScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Back & Open Online Document action bar
+          // Back, Export Detail CSV & Open Online Document action bar
           Wrap(
             spacing: 10,
             runSpacing: 8,
@@ -812,6 +840,21 @@ class _ChecksheetAuditScreenState extends State<ChecksheetAuditScreen>
                 onPressed: vm.backToList,
                 icon: const Icon(Icons.arrow_back, size: 16),
                 label: const Text('กลับไปรายการ',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _accent,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: canExportDetailCsv
+                    ? () => _handleExportDetailCsv(vm)
+                    : null,
+                icon: const Icon(Icons.table_view_outlined, size: 16),
+                label: const Text('ดาวน์โหลดรายการ Tag (CSV)',
                     style: TextStyle(fontWeight: FontWeight.w600)),
               ),
               OutlinedButton.icon(

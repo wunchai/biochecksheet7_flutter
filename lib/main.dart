@@ -59,16 +59,18 @@ Future<void> main() async {
     // เปิดใช้งานโหมด Edge-to-Edge
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-    // Initialize Firebase
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
+    // Initialize Firebase (only on Android/iOS/macOS where FCM is used)
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
+      try {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
 
-      // Initialize FCM Service (using global singleton)
-      await fcmService.initialize();
-    } catch (e) {
-      print("Firebase initialization failed: $e");
+        // Initialize FCM Service (using global singleton)
+        await fcmService.initialize();
+      } catch (e) {
+        print("Firebase initialization failed: $e");
+      }
     }
 
     // (ทางเลือก) ทำให้ System Bar โปร่งใสเพื่อให้สวยงามยิ่งขึ้น

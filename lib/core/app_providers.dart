@@ -48,6 +48,8 @@ import 'package:biochecksheet7_flutter/presentation/screens/deviceinfo/device_in
 import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_viewmodel.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/am_summary/am_summary_viewmodel.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/checksheet_audit/checksheet_audit_viewmodel.dart';
+import 'package:biochecksheet7_flutter/data/network/mt_request_api_service.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/mt_request/mt_request_viewmodel.dart';
 
 // --- <<< เพิ่ม Import สำหรับ Image Sync >>> ---
 import 'package:biochecksheet7_flutter/data/network/checksheet_image_api_service.dart';
@@ -88,6 +90,7 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
   final draftJobRepository = DraftJobRepository(appDatabase.draftJobDao, draftApiService);
 
   final documentImageOnlineApiService = DocumentImageOnlineApiService(); // <<< NEW
+  final mtRequestApiService = MtRequestApiService();
   final deviceInfoService = DeviceInfoService();
   final databaseMaintenanceService =
       DatabaseMaintenanceService(appDatabase: appDatabase);
@@ -176,5 +179,14 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
     // CheckSheet Audit ViewModel
     ChangeNotifierProvider(
         create: (_) => ChecksheetAuditViewModel(documentOnlineApiService)),
+
+    // MT Request ViewModel (CHECKSHEET_MT_REQUEST)
+    Provider<MtRequestApiService>.value(value: mtRequestApiService),
+    ChangeNotifierProvider(
+        create: (_) => MtRequestViewModel(
+              apiService: mtRequestApiService,
+              appDatabase: appDatabase,
+              loginRepository: loginRepository,
+            )),
   ];
 }
