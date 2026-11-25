@@ -12,7 +12,14 @@ class MtRequestApiException implements Exception {
     required this.message,
   });
 
-  bool get shouldReload => httpStatus == 400 || httpStatus == 404;
+  /// Reload on stale/rule errors (400/404), except non-stale input/search/MT-temp errors.
+  bool get shouldReload =>
+      (httpStatus == 400 || httpStatus == 404) &&
+      code != 50038 &&
+      code != 50062 &&
+      code != 50063 &&
+      code != 50070 &&
+      code != 50071;
 
   @override
   String toString() => message;
@@ -68,7 +75,17 @@ String? _mtToNullableStr(dynamic v) {
   return s.isEmpty ? null : s;
 }
 
-/// From Lookups -> Table
+/// Formats a local DateTime as `yyyy-MM-ddTHH:mm` (Thai local time, NO `Z` suffix).
+String formatMtLocalDateTime(DateTime dt) {
+  final y = dt.year.toString().padLeft(4, '0');
+  final mo = dt.month.toString().padLeft(2, '0');
+  final d = dt.day.toString().padLeft(2, '0');
+  final h = dt.hour.toString().padLeft(2, '0');
+  final mi = dt.minute.toString().padLeft(2, '0');
+  return '$y-$mo-${d}T$h:$mi';
+}
+
+/// Simple { id, name } lookup row used by Table (statuses), Table2 (statusEquiType), Table3 (planImpact).
 class MtRequestStatusLookup {
   final int id;
   final String name;
@@ -104,13 +121,199 @@ class MtRequestResultLookup {
   }
 }
 
+/// From Lookups -> Table4 (requestJobType)
+class MtRequestJobTypeLookup {
+  final int id;
+  final String name;
+  final String? nameEn;
+
+  const MtRequestJobTypeLookup({
+    required this.id,
+    required this.name,
+    this.nameEn,
+  });
+
+  String get displayLabel =>
+      (nameEn != null && nameEn!.isNotEmpty) ? '$name ($nameEn)' : name;
+
+  factory MtRequestJobTypeLookup.fromJson(Map<String, dynamic> json) {
+    return MtRequestJobTypeLookup(
+      id: _mtToInt(_mtReadKey(json, 'id')),
+      name: _mtToStr(_mtReadKey(json, 'name')),
+      nameEn: _mtToNullableStr(_mtReadKey(json, 'nameEn')),
+    );
+  }
+}
+
+/// From Lookups -> Table5 (departments: preserve leading zeros in [code], e.g. "052")
+class MtDepartmentLookup {
+  final String code;
+  final String name;
+  final String? description;
+
+  const MtDepartmentLookup({
+    required this.code,
+    required this.name,
+    this.description,
+  });
+
+  String get displayLabel {
+    final desc = (description != null && description!.isNotEmpty)
+        ? ' - $description'
+        : '';
+    return '$code · $name$desc';
+  }
+
+  factory MtDepartmentLookup.fromJson(Map<String, dynamic> json) {
+    return MtDepartmentLookup(
+      code: _mtToStr(_mtReadKey(json, 'code')),
+      name: _mtToStr(_mtReadKey(json, 'name')),
+      description: _mtToNullableStr(_mtReadKey(json, 'description')),
+    );
+  }
+}
+
+/// From Lookups -> Table6 (qualityIssueType)
+class MtQualityIssueTypeLookup {
+  final int id;
+  final String name;
+  final String? description;
+
+  const MtQualityIssueTypeLookup({
+    required this.id,
+    required this.name,
+    this.description,
+  });
+
+  String get displayLabel => (description != null && description!.isNotEmpty)
+      ? '$name ($description)'
+      : name;
+
+  factory MtQualityIssueTypeLookup.fromJson(Map<String, dynamic> json) {
+    return MtQualityIssueTypeLookup(
+      id: _mtToInt(_mtReadKey(json, 'id')),
+      name: _mtToStr(_mtReadKey(json, 'name')),
+      description: _mtToNullableStr(_mtReadKey(json, 'description')),
+    );
+  }
+}
+
+/// Row from EmployeeSearch -> Table
+class MtEmployeeSearchItem {
+  final String employeeId;
+  final String employeeName;
+  final String? positionName;
+  final String? departmentCode;
+  final String? departmentName;
+  final String? email;
+  final String? adUser;
+  final bool active;
+
+  const MtEmployeeSearchItem({
+    required this.employeeId,
+    required this.employeeName,
+    this.positionName,
+    this.departmentCode,
+    this.departmentName,
+    this.email,
+    this.adUser,
+    this.active = true,
+  });
+
+  factory MtEmployeeSearchItem.fromJson(Map<String, dynamic> json) {
+    return MtEmployeeSearchItem(
+      employeeId: _mtToStr(_mtReadKey(json, 'employeeId')),
+      employeeName: _mtToStr(_mtReadKey(json, 'employeeName')),
+      positionName: _mtToNullableStr(_mtReadKey(json, 'positionName')),
+      departmentCode: _mtToNullableStr(_mtReadKey(json, 'departmentCode')),
+      departmentName: _mtToNullableStr(_mtReadKey(json, 'departmentName')),
+      email: _mtToNullableStr(_mtReadKey(json, 'email')),
+      adUser: _mtToNullableStr(_mtReadKey(json, 'adUser')),
+      active: _mtToBool(_mtReadKey(json, 'active'), fallback: true),
+    );
+  }
+}
+
+/// Row from EquipmentSearch -> Table
+class MtEquipmentSearchItem {
+  final String equipmentId;
+  final String equipmentName;
+  final String? equipmentName2;
+  final String? model;
+  final String? assetNo;
+  final String? serialNo;
+
+  const MtEquipmentSearchItem({
+    required this.equipmentId,
+    required this.equipmentName,
+    this.equipmentName2,
+    this.model,
+    this.assetNo,
+    this.serialNo,
+  });
+
+  factory MtEquipmentSearchItem.fromJson(Map<String, dynamic> json) {
+    return MtEquipmentSearchItem(
+      equipmentId: _mtToStr(_mtReadKey(json, 'equipmentId')),
+      equipmentName: _mtToStr(_mtReadKey(json, 'equipmentName')),
+      equipmentName2: _mtToNullableStr(_mtReadKey(json, 'equipmentName2')),
+      model: _mtToNullableStr(_mtReadKey(json, 'model')),
+      assetNo: _mtToNullableStr(_mtReadKey(json, 'assetNo')),
+      serialNo: _mtToNullableStr(_mtReadKey(json, 'serialNo')),
+    );
+  }
+}
+
+/// Row from DeviationSearch -> Table
+class MtDeviationSearchItem {
+  final int? systemId;
+  final String? systemName;
+  final String deviationNo;
+  final String? deviationDate;
+  final String? heading;
+  final String? ownerDepartment;
+  final String? statusName;
+
+  const MtDeviationSearchItem({
+    this.systemId,
+    this.systemName,
+    required this.deviationNo,
+    this.deviationDate,
+    this.heading,
+    this.ownerDepartment,
+    this.statusName,
+  });
+
+  factory MtDeviationSearchItem.fromJson(Map<String, dynamic> json) {
+    return MtDeviationSearchItem(
+      systemId: _mtToNullableInt(_mtReadKey(json, 'systemId')),
+      systemName: _mtToNullableStr(_mtReadKey(json, 'systemName')),
+      deviationNo: _mtToStr(_mtReadKey(json, 'deviationNo')),
+      deviationDate: _mtToNullableStr(_mtReadKey(json, 'deviationDate')),
+      heading: _mtToNullableStr(_mtReadKey(json, 'heading')),
+      ownerDepartment: _mtToNullableStr(_mtReadKey(json, 'ownerDepartment')),
+      statusName: _mtToNullableStr(_mtReadKey(json, 'statusName')),
+    );
+  }
+}
+
 class MtRequestLookups {
-  final List<MtRequestStatusLookup> statuses;
-  final List<MtRequestResultLookup> results;
+  final List<MtRequestStatusLookup> statuses; // Table
+  final List<MtRequestResultLookup> results; // Table1
+  final List<MtRequestStatusLookup> statusEquiTypes; // Table2
+  final List<MtRequestStatusLookup> planImpacts; // Table3
+  final List<MtRequestJobTypeLookup> requestJobTypes; // Table4
+  final List<MtDepartmentLookup> departments; // Table5
+  final List<MtQualityIssueTypeLookup> qualityIssueTypes; // Table6
 
   const MtRequestLookups({
     required this.statuses,
     required this.results,
+    this.statusEquiTypes = const [],
+    this.planImpacts = const [],
+    this.requestJobTypes = const [],
+    this.departments = const [],
+    this.qualityIssueTypes = const [],
   });
 
   String statusNameFor(int status, {String? fallback}) {
@@ -130,6 +333,55 @@ class MtRequestLookups {
       default:
         return 'สถานะ $status';
     }
+  }
+
+  String statusEquiTypeNameFor(int? id) {
+    if (id == null) return '–';
+    for (final item in statusEquiTypes) {
+      if (item.id == id) return item.name;
+    }
+    return id == 0
+        ? 'Break Down เครื่องเสีย'
+        : id == 1
+            ? 'Near Fail เครื่องใกล้เสีย'
+            : '$id';
+  }
+
+  String planImpactNameFor(int? id) {
+    if (id == null) return '–';
+    for (final item in planImpacts) {
+      if (item.id == id) return item.name;
+    }
+    return id == 0
+        ? 'ไม่กระทบแผนผลิต'
+        : id == 1
+            ? 'กระทบแผนผลิต'
+            : '$id';
+  }
+
+  String requestJobTypeNameFor(int? id) {
+    if (id == null) return '–';
+    for (final item in requestJobTypes) {
+      if (item.id == id) return item.displayLabel;
+    }
+    return '$id';
+  }
+
+  String departmentDisplayFor(String? code) {
+    if (code == null || code.trim().isEmpty) return '–';
+    final trimmed = code.trim();
+    for (final d in departments) {
+      if (d.code == trimmed) return d.displayLabel;
+    }
+    return trimmed;
+  }
+
+  String qualityIssueTypeNameFor(int? id) {
+    if (id == null) return '–';
+    for (final item in qualityIssueTypes) {
+      if (item.id == id) return item.displayLabel;
+    }
+    return '$id';
   }
 }
 
@@ -231,6 +483,15 @@ class MtRequestListItem {
   final int caseCount;
   final int closedCaseCount;
 
+  // --- Read-only MT System Status (from MTSystem DB via List) ---
+  final int? mtStatus;
+  final String? mtStatusName;
+  final String? mtJobNo;
+  final int? mtJobStatus;
+  final String? mtJobStatusName;
+  final String? mtEngineerName;
+  final bool? mtEnded;
+
   const MtRequestListItem({
     required this.id,
     required this.jobId,
@@ -249,7 +510,25 @@ class MtRequestListItem {
     this.closeNote,
     required this.caseCount,
     required this.closedCaseCount,
+    this.mtStatus,
+    this.mtStatusName,
+    this.mtJobNo,
+    this.mtJobStatus,
+    this.mtJobStatusName,
+    this.mtEngineerName,
+    this.mtEnded,
   });
+
+  bool get isMtEnded => mtEnded == true;
+  bool get isMtCancelled => mtStatus == 9;
+  bool get isWaitingFieldClose => status == 1 && mtEnded == true;
+  bool get hasMtTracking =>
+      mtStatus != null ||
+      (mtStatusName != null && mtStatusName!.isNotEmpty) ||
+      (mtJobNo != null && mtJobNo!.isNotEmpty) ||
+      mtJobStatus != null ||
+      (mtJobStatusName != null && mtJobStatusName!.isNotEmpty) ||
+      (mtEngineerName != null && mtEngineerName!.isNotEmpty);
 
   factory MtRequestListItem.fromJson(Map<String, dynamic> json) {
     return MtRequestListItem(
@@ -270,6 +549,13 @@ class MtRequestListItem {
       closeNote: _mtToNullableStr(_mtReadKey(json, 'closeNote')),
       caseCount: _mtToInt(_mtReadKey(json, 'caseCount')),
       closedCaseCount: _mtToInt(_mtReadKey(json, 'closedCaseCount')),
+      mtStatus: _mtToNullableInt(_mtReadKey(json, 'mtStatus')),
+      mtStatusName: _mtToNullableStr(_mtReadKey(json, 'mtStatusName')),
+      mtJobNo: _mtToNullableStr(_mtReadKey(json, 'mtJobNo')),
+      mtJobStatus: _mtToNullableInt(_mtReadKey(json, 'mtJobStatus')),
+      mtJobStatusName: _mtToNullableStr(_mtReadKey(json, 'mtJobStatusName')),
+      mtEngineerName: _mtToNullableStr(_mtReadKey(json, 'mtEngineerName')),
+      mtEnded: _mtToNullableBool(_mtReadKey(json, 'mtEnded')),
     );
   }
 }
@@ -295,6 +581,54 @@ class MtRequestHeader {
   final String? closeDate;
   final String? closeNote;
 
+  // --- MT Request Form Fields (v2) ---
+  final String? requesterName;
+  final String? requesterDepartmentCode;
+  final String? requesterTel;
+  final String? requesterEmail;
+  final int? requestJobType;
+  final String? equipmentDepartmentCode;
+  final String? equipmentId;
+  final String? equipmentLocation;
+  final int? statusEquiType;
+  final String? problemDate;
+  final int? planImpact;
+  final int? qualityIssueType;
+  final String? qualityIssueNo;
+  final String? onsiteName;
+  final String? onsiteTel;
+
+  // --- MT Send Readiness & Reference ---
+  final int? mtRecId;
+  final String? missingFields;
+  final bool readyToSend;
+
+  // --- Read-only MT System Status (from MTSystem DB via Detail) ---
+  final int? mtStatus;
+  final String? mtStatusName;
+  final String? mtLastAction;
+  final String? mtLastActionDate;
+  final String? mtCancelDate;
+  final String? mtJobNo;
+  final int? mtJobStatus;
+  final String? mtJobStatusName;
+  final String? mtEngineerName;
+  final String? mtRepairDate;
+  final String? mtCloseJobDate;
+  final String? mtFinishDate;
+  final String? mtCorrectiveAction;
+  final String? mtCloseJobDescription;
+  final bool? mtEnded;
+
+  // --- Display Names resolved from MT Master (from Detail) ---
+  final String? requestJobTypeName;
+  final String? requesterDepartmentName;
+  final String? equipmentDepartmentName;
+  final String? equipmentName;
+  final String? statusEquiTypeName;
+  final String? planImpactName;
+  final String? qualityIssueTypeName;
+
   const MtRequestHeader({
     required this.id,
     required this.jobId,
@@ -314,6 +648,46 @@ class MtRequestHeader {
     this.closeUser,
     this.closeDate,
     this.closeNote,
+    this.requesterName,
+    this.requesterDepartmentCode,
+    this.requesterTel,
+    this.requesterEmail,
+    this.requestJobType,
+    this.equipmentDepartmentCode,
+    this.equipmentId,
+    this.equipmentLocation,
+    this.statusEquiType,
+    this.problemDate,
+    this.planImpact,
+    this.qualityIssueType,
+    this.qualityIssueNo,
+    this.onsiteName,
+    this.onsiteTel,
+    this.mtRecId,
+    this.missingFields,
+    this.readyToSend = false,
+    this.mtStatus,
+    this.mtStatusName,
+    this.mtLastAction,
+    this.mtLastActionDate,
+    this.mtCancelDate,
+    this.mtJobNo,
+    this.mtJobStatus,
+    this.mtJobStatusName,
+    this.mtEngineerName,
+    this.mtRepairDate,
+    this.mtCloseJobDate,
+    this.mtFinishDate,
+    this.mtCorrectiveAction,
+    this.mtCloseJobDescription,
+    this.mtEnded,
+    this.requestJobTypeName,
+    this.requesterDepartmentName,
+    this.equipmentDepartmentName,
+    this.equipmentName,
+    this.statusEquiTypeName,
+    this.planImpactName,
+    this.qualityIssueTypeName,
   });
 
   bool get isDraft => status == 0;
@@ -321,6 +695,20 @@ class MtRequestHeader {
   bool get isClosed => status == 2;
   bool get isCancelled => status == 3;
   bool get isEditable => isDraft || isSentToMt;
+
+  bool get isMtEnded => mtEnded == true;
+  bool get isMtCancelled => mtStatus == 9;
+  bool get isWaitingFieldClose => isSentToMt && mtEnded == true;
+  bool get hasMtTracking =>
+      mtStatus != null ||
+      (mtStatusName != null && mtStatusName!.isNotEmpty) ||
+      (mtLastAction != null && mtLastAction!.isNotEmpty) ||
+      (mtJobNo != null && mtJobNo!.isNotEmpty) ||
+      mtJobStatus != null ||
+      (mtJobStatusName != null && mtJobStatusName!.isNotEmpty) ||
+      (mtEngineerName != null && mtEngineerName!.isNotEmpty) ||
+      (mtCorrectiveAction != null && mtCorrectiveAction!.isNotEmpty) ||
+      (mtCloseJobDescription != null && mtCloseJobDescription!.isNotEmpty);
 
   factory MtRequestHeader.fromJson(Map<String, dynamic> json) {
     return MtRequestHeader(
@@ -342,6 +730,56 @@ class MtRequestHeader {
       closeUser: _mtToNullableStr(_mtReadKey(json, 'closeUser')),
       closeDate: _mtToNullableStr(_mtReadKey(json, 'closeDate')),
       closeNote: _mtToNullableStr(_mtReadKey(json, 'closeNote')),
+      requesterName: _mtToNullableStr(_mtReadKey(json, 'requesterName')),
+      requesterDepartmentCode:
+          _mtToNullableStr(_mtReadKey(json, 'requesterDepartmentCode')),
+      requesterTel: _mtToNullableStr(_mtReadKey(json, 'requesterTel')),
+      requesterEmail: _mtToNullableStr(_mtReadKey(json, 'requesterEmail')),
+      requestJobType: _mtToNullableInt(_mtReadKey(json, 'requestJobType')),
+      equipmentDepartmentCode:
+          _mtToNullableStr(_mtReadKey(json, 'equipmentDepartmentCode')),
+      equipmentId: _mtToNullableStr(_mtReadKey(json, 'equipmentId')),
+      equipmentLocation:
+          _mtToNullableStr(_mtReadKey(json, 'equipmentLocation')),
+      statusEquiType: _mtToNullableInt(_mtReadKey(json, 'statusEquiType')),
+      problemDate: _mtToNullableStr(_mtReadKey(json, 'problemDate')),
+      planImpact: _mtToNullableInt(_mtReadKey(json, 'planImpact')),
+      qualityIssueType: _mtToNullableInt(_mtReadKey(json, 'qualityIssueType')),
+      qualityIssueNo: _mtToNullableStr(_mtReadKey(json, 'qualityIssueNo')),
+      onsiteName: _mtToNullableStr(_mtReadKey(json, 'onsiteName')),
+      onsiteTel: _mtToNullableStr(_mtReadKey(json, 'onsiteTel')),
+      mtRecId: _mtToNullableInt(_mtReadKey(json, 'mtRecId')),
+      missingFields: _mtToNullableStr(_mtReadKey(json, 'missingFields')),
+      readyToSend: _mtToBool(_mtReadKey(json, 'readyToSend')),
+      mtStatus: _mtToNullableInt(_mtReadKey(json, 'mtStatus')),
+      mtStatusName: _mtToNullableStr(_mtReadKey(json, 'mtStatusName')),
+      mtLastAction: _mtToNullableStr(_mtReadKey(json, 'mtLastAction')),
+      mtLastActionDate: _mtToNullableStr(_mtReadKey(json, 'mtLastActionDate')),
+      mtCancelDate: _mtToNullableStr(_mtReadKey(json, 'mtCancelDate')),
+      mtJobNo: _mtToNullableStr(_mtReadKey(json, 'mtJobNo')),
+      mtJobStatus: _mtToNullableInt(_mtReadKey(json, 'mtJobStatus')),
+      mtJobStatusName: _mtToNullableStr(_mtReadKey(json, 'mtJobStatusName')),
+      mtEngineerName: _mtToNullableStr(_mtReadKey(json, 'mtEngineerName')),
+      mtRepairDate: _mtToNullableStr(_mtReadKey(json, 'mtRepairDate')),
+      mtCloseJobDate: _mtToNullableStr(_mtReadKey(json, 'mtCloseJobDate')),
+      mtFinishDate: _mtToNullableStr(_mtReadKey(json, 'mtFinishDate')),
+      mtCorrectiveAction:
+          _mtToNullableStr(_mtReadKey(json, 'mtCorrectiveAction')),
+      mtCloseJobDescription:
+          _mtToNullableStr(_mtReadKey(json, 'mtCloseJobDescription')),
+      mtEnded: _mtToNullableBool(_mtReadKey(json, 'mtEnded')),
+      requestJobTypeName:
+          _mtToNullableStr(_mtReadKey(json, 'requestJobTypeName')),
+      requesterDepartmentName:
+          _mtToNullableStr(_mtReadKey(json, 'requesterDepartmentName')),
+      equipmentDepartmentName:
+          _mtToNullableStr(_mtReadKey(json, 'equipmentDepartmentName')),
+      equipmentName: _mtToNullableStr(_mtReadKey(json, 'equipmentName')),
+      statusEquiTypeName:
+          _mtToNullableStr(_mtReadKey(json, 'statusEquiTypeName')),
+      planImpactName: _mtToNullableStr(_mtReadKey(json, 'planImpactName')),
+      qualityIssueTypeName:
+          _mtToNullableStr(_mtReadKey(json, 'qualityIssueTypeName')),
     );
   }
 }

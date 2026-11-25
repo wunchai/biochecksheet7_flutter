@@ -399,7 +399,7 @@ class _MtRequestViewState extends State<MtRequestView>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Status chips
+              // Status chips + MT Ended quick filter
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -408,8 +408,25 @@ class _MtRequestViewState extends State<MtRequestView>
                       padding: const EdgeInsets.only(right: 6),
                       child: ChoiceChip(
                         label: const Text('ทั้งหมด'),
-                        selected: vm.filterStatus == null,
+                        selected:
+                            !vm.filterMtEndedOnly && vm.filterStatus == null,
                         onSelected: (_) => vm.setFilterStatus(null),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: ChoiceChip(
+                        avatar: Icon(
+                          Icons.task_alt,
+                          size: 16,
+                          color: vm.filterMtEndedOnly
+                              ? Colors.teal.shade900
+                              : Colors.teal.shade700,
+                        ),
+                        label: const Text('MT จบแล้ว (รอปิด)'),
+                        selected: vm.filterMtEndedOnly,
+                        selectedColor: Colors.teal.shade100,
+                        onSelected: (_) => vm.setFilterMtEndedOnly(true),
                       ),
                     ),
                     ...statuses.map(
@@ -417,7 +434,8 @@ class _MtRequestViewState extends State<MtRequestView>
                         padding: const EdgeInsets.only(right: 6),
                         child: ChoiceChip(
                           label: Text(s.name),
-                          selected: vm.filterStatus == s.id,
+                          selected:
+                              !vm.filterMtEndedOnly && vm.filterStatus == s.id,
                           onSelected: (_) => vm.setFilterStatus(s.id),
                         ),
                       ),
@@ -615,6 +633,10 @@ class _MtRequestViewState extends State<MtRequestView>
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
+              if (r.hasMtTracking || r.isWaitingFieldClose) ...[
+                const SizedBox(height: 8),
+                _buildCardMtTrackingBox(r),
+              ],
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -638,6 +660,77 @@ class _MtRequestViewState extends State<MtRequestView>
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCardMtTrackingBox(MtRequestListItem r) {
+    final isEndedWaiting = r.isWaitingFieldClose;
+    final isCancelled = r.isMtCancelled;
+
+    final Color bg = isEndedWaiting
+        ? (isCancelled ? Colors.red.shade50 : Colors.teal.shade50)
+        : Colors.indigo.shade50;
+    final Color border = isEndedWaiting
+        ? (isCancelled ? Colors.red.shade200 : Colors.teal.shade300)
+        : Colors.indigo.shade100;
+    final Color accent = isEndedWaiting
+        ? (isCancelled ? Colors.red.shade900 : Colors.teal.shade900)
+        : Colors.indigo.shade900;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Icon(Icons.build_circle_outlined, size: 15, color: accent),
+              if (r.mtStatusName != null && r.mtStatusName!.isNotEmpty)
+                Text(
+                  'MT: ${r.mtStatusName!}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: accent,
+                  ),
+                ),
+              if (isEndedWaiting)
+                _tinyBadge(
+                  isCancelled ? 'MT ยกเลิก · รอจัดการ' : 'MT จบแล้ว · รอปิดงาน',
+                  isCancelled ? Colors.red.shade100 : Colors.teal.shade100,
+                  accent,
+                ),
+            ],
+          ),
+          if ((r.mtJobNo != null && r.mtJobNo!.isNotEmpty) ||
+              (r.mtJobStatusName != null && r.mtJobStatusName!.isNotEmpty) ||
+              (r.mtEngineerName != null && r.mtEngineerName!.isNotEmpty)) ...[
+            const SizedBox(height: 3),
+            Text(
+              [
+                if (r.mtJobNo != null && r.mtJobNo!.isNotEmpty)
+                  'ใบงาน ${r.mtJobNo}',
+                if (r.mtJobStatusName != null && r.mtJobStatusName!.isNotEmpty)
+                  r.mtJobStatusName!,
+                if (r.mtEngineerName != null && r.mtEngineerName!.isNotEmpty)
+                  'ช่าง: ${r.mtEngineerName}',
+              ].join(' · '),
+              style: TextStyle(fontSize: 11.5, color: Colors.grey.shade800),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ],
       ),
     );
   }

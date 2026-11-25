@@ -51,11 +51,13 @@ class MtRequestViewModel extends ChangeNotifier {
   DateTime? _toDate;
   int? _filterStatus;
   int? _filterJobId;
+  bool _filterMtEndedOnly = false;
 
   DateTime? get fromDate => _fromDate;
   DateTime? get toDate => _toDate;
   int? get filterStatus => _filterStatus;
   int? get filterJobId => _filterJobId;
+  bool get filterMtEndedOnly => _filterMtEndedOnly;
 
   String? get fromDateIso => _fromDate == null ? null : _iso(_fromDate!);
   String? get toDateIso => _toDate == null ? null : _iso(_toDate!);
@@ -93,15 +95,14 @@ class MtRequestViewModel extends ChangeNotifier {
   Stream<List<DbJob>> get jobsStream =>
       _jobDao.watchAllJobs(showCanceledJobs: false);
 
-  String get currentUserId =>
-      _loginRepository.loggedInUser?.userId ?? '000000';
+  String get currentUserId => _loginRepository.loggedInUser?.userId ?? '000000';
 
   static String _iso(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-  // --- Lookups ---
-  Future<void> ensureLookupsLoaded() async {
-    if (_lookups != null || _isLoadingLookups) return;
+  // --- Lookups & MT Master Searches ---
+  Future<void> ensureLookupsLoaded({bool forceReload = false}) async {
+    if ((!forceReload && _lookups != null) || _isLoadingLookups) return;
     _isLoadingLookups = true;
     notifyListeners();
     try {
@@ -112,6 +113,30 @@ class MtRequestViewModel extends ChangeNotifier {
       _isLoadingLookups = false;
       notifyListeners();
     }
+  }
+
+  Future<List<MtEmployeeSearchItem>> searchEmployees(
+    String query, {
+    bool includeInactive = false,
+  }) {
+    return _apiService.searchEmployees(
+      query: query,
+      includeInactive: includeInactive,
+    );
+  }
+
+  Future<List<MtEquipmentSearchItem>> searchEquipment(String query) {
+    return _apiService.searchEquipment(query: query);
+  }
+
+  Future<List<MtDeviationSearchItem>> searchDeviations(
+    String query, {
+    int? systemId,
+  }) {
+    return _apiService.searchDeviations(
+      query: query,
+      systemId: systemId,
+    );
   }
 
   // --- Request List Filters & Loading ---
@@ -133,6 +158,16 @@ class MtRequestViewModel extends ChangeNotifier {
 
   Future<void> setFilterStatus(int? status) async {
     _filterStatus = status;
+    _filterMtEndedOnly = false;
+    notifyListeners();
+    await loadRequests();
+  }
+
+  Future<void> setFilterMtEndedOnly(bool value) async {
+    _filterMtEndedOnly = value;
+    if (value) {
+      _filterStatus = null;
+    }
     notifyListeners();
     await loadRequests();
   }
@@ -159,8 +194,9 @@ class MtRequestViewModel extends ChangeNotifier {
       _requests = await _apiService.getRequestList(
         fromDate: fromDateIso,
         toDate: toDateIso,
-        status: _filterStatus,
+        status: _filterMtEndedOnly ? null : _filterStatus,
         jobId: _filterJobId,
+        mtEnded: _filterMtEndedOnly ? true : null,
       );
       _hasLoadedRequests = true;
     } catch (e) {
@@ -362,6 +398,23 @@ class MtRequestViewModel extends ChangeNotifier {
     );
   }
 
+  Future<MtRequestActionResult> updateCurrentFields(
+      Map<String, dynamic> fields) async {
+    final detail = _currentDetail;
+    if (detail == null) {
+      return const MtRequestActionResult(
+          success: false, message: 'ไม่พบข้อมูลใบแจ้งซ่อม');
+    }
+    return _runDetailWrite(
+      action: () => _apiService.updateFields(
+        id: detail.header.id,
+        fields: fields,
+        user: currentUserId,
+      ),
+      successMessage: 'บันทึกข้อมูลใบแจ้งซ่อมเรียบร้อย',
+    );
+  }
+
   Future<MtRequestActionResult> updateCurrentDescription(
       String? description) async {
     final detail = _currentDetail;
@@ -379,23 +432,18 @@ class MtRequestViewModel extends ChangeNotifier {
     );
   }
 
-  Future<MtRequestActionResult> setCurrentRequestNo(String requestNo) async {
+  Future<MtRequestActionResult> sendCurrentRequest() async {
     final detail = _currentDetail;
     if (detail == null) {
       return const MtRequestActionResult(
           success: false, message: 'ไม่พบข้อมูลใบแจ้งซ่อม');
     }
-    if (requestNo.trim().isEmpty) {
-      return const MtRequestActionResult(
-          success: false, message: 'กรุณาระบุเลขใบแจ้งซ่อม (RequestNo)');
-    }
     return _runDetailWrite(
-      action: () => _apiService.setRequestNo(
+      action: () => _apiService.send(
         id: detail.header.id,
-        requestNo: requestNo,
         user: currentUserId,
       ),
-      successMessage: 'บันทึกเลขใบแจ้งซ่อม ${requestNo.trim()} สำเร็จ',
+      successMessage: 'ส่งใบแจ้งซ่อมเข้าระบบ MT สำเร็จ',
       refreshCasesToo: true,
     );
   }

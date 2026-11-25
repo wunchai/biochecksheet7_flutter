@@ -5,7 +5,7 @@ import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:biochecksheet7_flutter/data/models/mt_request_models.dart';
 
 /// Client for POST {BASE_URL}/CHECKSHEET_MT_REQUEST
-/// Implements all 11 commands defined in CheckSheet_MTRequest_API.md.
+/// Implements all commands defined in CheckSheet_MTRequest_API.md (v2).
 class MtRequestApiService {
   Future<Map<String, dynamic>> _call(
     String serviceName, [
@@ -103,7 +103,7 @@ class MtRequestApiService {
     );
   }
 
-  // 3.1 Lookups
+  // 3.1 Lookups (Table..Table6: statuses, results, statusEquiType, planImpact, requestJobType, departments, qualityIssueType)
   Future<MtRequestLookups> getLookups() async {
     final body = await _call('Lookups');
     final statuses = _extractTable(body, 'Table')
@@ -112,7 +112,75 @@ class MtRequestApiService {
     final results = _extractTable(body, 'Table1')
         .map(MtRequestResultLookup.fromJson)
         .toList();
-    return MtRequestLookups(statuses: statuses, results: results);
+    final statusEquiTypes = _extractTable(body, 'Table2')
+        .map(MtRequestStatusLookup.fromJson)
+        .toList();
+    final planImpacts = _extractTable(body, 'Table3')
+        .map(MtRequestStatusLookup.fromJson)
+        .toList();
+    final requestJobTypes = _extractTable(body, 'Table4')
+        .map(MtRequestJobTypeLookup.fromJson)
+        .toList();
+    final departments =
+        _extractTable(body, 'Table5').map(MtDepartmentLookup.fromJson).toList();
+    final qualityIssueTypes = _extractTable(body, 'Table6')
+        .map(MtQualityIssueTypeLookup.fromJson)
+        .toList();
+    return MtRequestLookups(
+      statuses: statuses,
+      results: results,
+      statusEquiTypes: statusEquiTypes,
+      planImpacts: planImpacts,
+      requestJobTypes: requestJobTypes,
+      departments: departments,
+      qualityIssueTypes: qualityIssueTypes,
+    );
+  }
+
+  // 3.1.1 EmployeeSearch
+  Future<List<MtEmployeeSearchItem>> searchEmployees({
+    required String query,
+    bool includeInactive = false,
+    int top = 50,
+  }) async {
+    final body = await _call('EmployeeSearch', {
+      'q': query.trim(),
+      'includeInactive': includeInactive ? 1 : 0,
+      'top': top,
+    });
+    return _extractTable(body, 'Table')
+        .map(MtEmployeeSearchItem.fromJson)
+        .toList();
+  }
+
+  // 3.1.2 EquipmentSearch
+  Future<List<MtEquipmentSearchItem>> searchEquipment({
+    required String query,
+    int top = 50,
+  }) async {
+    final body = await _call('EquipmentSearch', {
+      'q': query.trim(),
+      'top': top,
+    });
+    return _extractTable(body, 'Table')
+        .map(MtEquipmentSearchItem.fromJson)
+        .toList();
+  }
+
+  // 3.1.3 DeviationSearch
+  Future<List<MtDeviationSearchItem>> searchDeviations({
+    required String query,
+    int? systemId,
+    int top = 50,
+  }) async {
+    final body = await _call('DeviationSearch', {
+      'q': query.trim(),
+      if (systemId != null) 'systemId': systemId,
+      'top': top,
+    });
+    return _extractTable(body, 'Table')
+        .map(MtDeviationSearchItem.fromJson)
+        .toList();
   }
 
   // 3.2 CaseList
@@ -134,12 +202,14 @@ class MtRequestApiService {
     String? toDate,
     int? status,
     int? jobId,
+    bool? mtEnded,
   }) async {
     final param = <String, dynamic>{
       if (fromDate != null && fromDate.isNotEmpty) 'fromDate': fromDate,
       if (toDate != null && toDate.isNotEmpty) 'toDate': toDate,
       if (status != null) 'status': status,
       if (jobId != null) 'jobId': jobId,
+      if (mtEnded == true) 'mtEnded': 1,
     };
     final body = await _call('List', param.isEmpty ? null : param);
     return _extractTable(body, 'Table')
@@ -157,14 +227,17 @@ class MtRequestApiService {
   Future<MtRequestDetail> create({
     required List<int> problemIds,
     String? description,
+    Map<String, dynamic>? extraFields,
     required String user,
   }) async {
     final desc = description?.trim();
-    final body = await _call('Create', {
+    final param = <String, dynamic>{
       'problemIds': problemIds,
       if (desc != null && desc.isNotEmpty) 'description': desc,
+      if (extraFields != null) ...extraFields,
       'user': user,
-    });
+    };
+    final body = await _call('Create', param);
     return _parseDetail(body);
   }
 
@@ -196,29 +269,39 @@ class MtRequestApiService {
     return _parseDetail(body);
   }
 
-  // 3.8 Update
-  Future<MtRequestDetail> updateDescription({
+  // 3.8 Update (partial update: only keys present in [fields] are updated; status 1 allows only description)
+  Future<MtRequestDetail> updateFields({
     required int id,
-    String? description,
+    required Map<String, dynamic> fields,
     required String user,
   }) async {
     final body = await _call('Update', {
       'id': id,
-      'description': description?.trim() ?? '',
       'user': user,
+      ...fields,
     });
     return _parseDetail(body);
   }
 
-  // 3.9 SetRequestNo
-  Future<MtRequestDetail> setRequestNo({
+  Future<MtRequestDetail> updateDescription({
     required int id,
-    required String requestNo,
+    String? description,
+    required String user,
+  }) {
+    return updateFields(
+      id: id,
+      fields: {'description': description?.trim() ?? ''},
+      user: user,
+    );
+  }
+
+  // 3.9 Send (Draft -> Sent to MT; server creates MT request & assigns requestNo + mtRecId)
+  Future<MtRequestDetail> send({
+    required int id,
     required String user,
   }) async {
-    final body = await _call('SetRequestNo', {
+    final body = await _call('Send', {
       'id': id,
-      'requestNo': requestNo.trim(),
       'user': user,
     });
     return _parseDetail(body);
@@ -251,6 +334,20 @@ class MtRequestApiService {
     final body = await _call('Cancel', {
       'id': id,
       if (trimmed != null && trimmed.isNotEmpty) 'note': trimmed,
+      'user': user,
+    });
+    return _parseDetail(body);
+  }
+
+  // 3.12 SetRequestNo (Admin-only fallback; not exposed in standard user UI)
+  Future<MtRequestDetail> setRequestNo({
+    required int id,
+    required String requestNo,
+    required String user,
+  }) async {
+    final body = await _call('SetRequestNo', {
+      'id': id,
+      'requestNo': requestNo.trim(),
       'user': user,
     });
     return _parseDetail(body);
