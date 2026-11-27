@@ -17,6 +17,7 @@ import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_sum
 import 'package:biochecksheet7_flutter/presentation/screens/am_summary/am_summary_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/checksheet_audit/checksheet_audit_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/mt_request/mt_request_detail_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/voice_report/voice_report_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/amchecksheet/am_checksheet_screen.dart'; // <<< เพิ่ม Import
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_machine_online_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/document_online/document_record_online_screen.dart';
@@ -86,6 +87,8 @@ Map<String, WidgetBuilder> appRoutes() {
         title: 'สรุปผลการตรวจ AM'),
     '/checksheet_audit': (context) => const ChecksheetAuditScreen(
         title: 'บันทึก Check Sheet'),
+    '/voice_report': (context) => const VoiceReportScreen(
+        title: 'บันทึกเสียงรายงาน'),
     '/mt_request_detail': (context) {
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;

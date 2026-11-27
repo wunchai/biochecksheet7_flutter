@@ -5,8 +5,10 @@ import 'package:biochecksheet7_flutter/presentation/screens/home/home_screen.dar
 //import 'package:biochecksheet7_flutter/ui/notifications/notifications_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/problem/case_hub_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/datasummary/data_summary_screen.dart'; // <<< NEW: Import DataSummaryScreen
+import 'package:biochecksheet7_flutter/core/app_config.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/am_summary/am_summary_screen.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/checksheet_audit/checksheet_audit_screen.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/voice_report/voice_report_screen.dart';
 
 /// This screen acts as a wrapper for the main content screens
 /// and provides the Bottom Navigation Bar, similar to how
@@ -30,6 +32,8 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
         title: 'สรุปข้อมูล'), // <<< CHANGED: Notifications to DataSummaryScreen
     const AmSummaryScreen(title: 'สรุปผลการตรวจ AM'),
     const ChecksheetAuditScreen(title: 'บันทึก Check Sheet'),
+    if (AppConfig.enableVoiceReportTab)
+      const VoiceReportScreen(title: 'บันทึกเสียงรายงาน'),
   ];
 
   @override
@@ -138,6 +142,12 @@ class _MainWrapperScreenState extends State<MainWrapperScreen> {
                 activeIcon: Icon(Icons.fact_check_rounded),
                 label: 'Audit',
               ),
+              if (AppConfig.enableVoiceReportTab)
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.mic_none_rounded),
+                  activeIcon: Icon(Icons.mic_rounded),
+                  label: 'Voice',
+                ),
             ],
             currentIndex:
                 _selectedIndex, // Highlight the currently selected tab.

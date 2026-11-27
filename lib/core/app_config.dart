@@ -17,11 +17,13 @@ class AppConfig {
   // ตัวอย่าง: 'http://192.168.1.100:8080' หรือ 'https://api.yourdomain.com'
   //static const String baseUrl = 'http://10.1.200.26/ServiceJson/Service4.svc';
   //static const String baseUrl = 'https://10.1.150.73:488/CSAPI';
-  static const String baseUrl = 'https://api1.biolab.co.th:488/CSAPI';
-  //static const String baseUrl = 'http://10.1.200.26:94';
+  //static const String baseUrl = 'https://api1.biolab.co.th:488/CSAPI';
+  static const String baseUrl = 'http://10.1.200.26:94';
   //static const String baseUrl = 'http://10.1.2.42:93';
   //static const String baseUrl = 'http://10.1.1.66:5029';
   static const String databaseName = 'biochecksheet7_db.sqlite';
+  // สวิตช์เปิด/ปิดแท็บทดลอง "บันทึกเสียงรายงาน (Voice Report)" — เปลี่ยนเป็น false เพื่อซ่อนแท็บได้ทันที
+  static const bool enableVoiceReportTab = true;
   // --- การตั้งค่าอื่นๆ (สามารถเพิ่มได้ในอนาคต) ---
 
   // ตัวอย่าง: ระยะเวลา timeout สำหรับการเชื่อมต่อ API (เป็นวินาที)

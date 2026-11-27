@@ -3,9 +3,11 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  audioplayers_windows
   file_selector_windows
   firebase_core
   permission_handler_windows
+  record_windows
   sqlite3_flutter_libs
 )
 

@@ -50,6 +50,8 @@ import 'package:biochecksheet7_flutter/presentation/screens/am_summary/am_summar
 import 'package:biochecksheet7_flutter/presentation/screens/checksheet_audit/checksheet_audit_viewmodel.dart';
 import 'package:biochecksheet7_flutter/data/network/mt_request_api_service.dart';
 import 'package:biochecksheet7_flutter/presentation/screens/mt_request/mt_request_viewmodel.dart';
+import 'package:biochecksheet7_flutter/data/network/voice_report_api_service.dart';
+import 'package:biochecksheet7_flutter/presentation/screens/voice_report/voice_report_viewmodel.dart';
 
 // --- <<< เพิ่ม Import สำหรับ Image Sync >>> ---
 import 'package:biochecksheet7_flutter/data/network/checksheet_image_api_service.dart';
@@ -91,6 +93,7 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
 
   final documentImageOnlineApiService = DocumentImageOnlineApiService(); // <<< NEW
   final mtRequestApiService = MtRequestApiService();
+  final voiceReportApiService = VoiceReportApiService();
   final deviceInfoService = DeviceInfoService();
   final databaseMaintenanceService =
       DatabaseMaintenanceService(appDatabase: appDatabase);
@@ -187,6 +190,16 @@ Future<List<SingleChildWidget>> appProviders(AppDatabase appDatabase) async {
               apiService: mtRequestApiService,
               appDatabase: appDatabase,
               loginRepository: loginRepository,
+            )),
+
+    // Voice Report ViewModel (CHECKSHEET_VOICE / CHECKSHEET_VOICE_UPLOAD)
+    Provider<VoiceReportApiService>.value(value: voiceReportApiService),
+    ChangeNotifierProvider(
+        create: (_) => VoiceReportViewModel(
+              apiService: voiceReportApiService,
+              appDatabase: appDatabase,
+              loginRepository: loginRepository,
+              deviceInfoService: deviceInfoService,
             )),
   ];
 }

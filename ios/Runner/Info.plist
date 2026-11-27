@@ -34,7 +34,7 @@
 		<key>NSCameraUsageDescription</key>
 		<string>This app needs camera access to take photos of records.</string>
 		<key>NSMicrophoneUsageDescription</key>
-		<string>This app needs microphone access to record videos (if video is enabled).</string>
+		<string>This app requires microphone access so you can record production voice reports to be transcribed into text for your job log.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>This app needs photo library access to save photos.</string>
 		<key>UIApplicationSceneManifest</key>
